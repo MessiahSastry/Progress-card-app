@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>St. Patrick's Report Card App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>ST. PATRICK'S SCHOOL</h1>
+    <h2>IIT & NEET FOUNDATION</h2>
+    <h3>MARKS MEMO</h3>
+  </header>
+  <main id="app"></main>
+
+  <!-- Add Class Modal -->
+  <div id="addClassModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeAddClass">&times;</span>
+      <h2>Create Class</h2>
+      <input type="text" id="newClassName" placeholder="Class Name" />
+      <button id="createClassBtn">Create Class</button>
+    </div>
+  </div>
+
+  <!-- Add Section Modal -->
+  <div id="addSectionModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeAddSection">&times;</span>
+      <h2>Create Section</h2>
+      <input type="text" id="newSectionName" placeholder="Section Name" />
+      <button id="createSectionBtn">Create Section</button>
+    </div>
+  </div>
+
+  <!-- Add Student Modal -->
+  <div id="addStudentModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeAddStudent">&times;</span>
+      <h2>Add Student</h2>
+      <input type="text" id="studentName" placeholder="Name" />
+      <input type="text" id="fatherName" placeholder="Father's Name" />
+      <input type="number" id="rollNumber" placeholder="Roll" />
+      <button id="saveStudentBtn">Save Student</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
