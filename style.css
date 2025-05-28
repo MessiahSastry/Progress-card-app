@@ -1,6 +1,6 @@
 body {
   font-family: Arial, sans-serif;
-  background: #fff; /* Pure white, no blue/grey */
+  background: #fff;
   margin: 0;
   padding: 0;
 }
@@ -12,7 +12,7 @@ body {
 }
 main {
   width: 100vw;
-  min-height: calc(100vh - 94px); /* fill below header */
+  min-height: calc(100vh - 110px);
   background: #fff;
   margin: 0;
   border-radius: 0;
@@ -21,6 +21,10 @@ main {
   font-size: 18px;
   position: relative;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 }
 @media (min-width: 600px) {
   main {
@@ -34,13 +38,15 @@ main {
 #classButtons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px 14px;
+  gap: 14px 10px;
   justify-items: center;
-  margin-bottom: 16px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 24px auto;
 }
 .class-btn {
-  width: 92%;
-  min-width: 90px;
+  width: 90px;
+  min-width: 80px;
   height: 44px;
   font-size: 15px;
   border: 3px solid #0f3d6b;
@@ -51,8 +57,8 @@ main {
   text-align: center;
   transition: box-shadow 0.2s, transform 0.1s;
   box-shadow: 0 2px 8px #0f3d6b22;
-  line-height: 42px;
   margin: 0;
+  line-height: 42px;
 }
 .class-btn:hover {
   box-shadow: 0 4px 14px #0f3d6b44;
@@ -108,7 +114,7 @@ main {
 }
 /* Modal styles */
 .modal {
-  display: none; /* Hidden by default */
+  display: none;
   position: fixed;
   z-index: 10000;
   left: 0;
@@ -181,7 +187,6 @@ main {
 .close:hover {
   color: #000;
 }
-/* Move modal up if keyboard is open on mobile */
 @media (max-width: 600px) {
   .modal-content:focus-within,
   .modal-content input:focus {
