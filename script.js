@@ -7,33 +7,27 @@ let schoolData = {
   currentClass: null,
   currentSection: null,
 };
-
 // Color palette for classes
 const colors = [
   "#d72631", "#f46036", "#2d82b7", "#2eb872", "#63458a",
   "#edc988", "#638475", "#bc4b51", "#447604", "#a23e48",
   "#395b50", "#5c3c92", "#1b3a4b"
 ];
-
 // Modals and Inputs
 const addClassModal = document.getElementById('addClassModal');
 const addSectionModal = document.getElementById('addSectionModal');
 const addStudentModal = document.getElementById('addStudentModal');
-
 const newClassNameInput = document.getElementById('newClassName');
 const createClassBtn = document.getElementById('createClassBtn');
 const closeAddClass = document.getElementById('closeAddClass');
-
 const newSectionNameInput = document.getElementById('newSectionName');
 const createSectionBtn = document.getElementById('createSectionBtn');
 const closeAddSection = document.getElementById('closeAddSection');
-
 const studentNameInput = document.getElementById('studentName');
 const fatherNameInput = document.getElementById('fatherName');
 const rollNumberInput = document.getElementById('rollNumber');
 const saveStudentBtn = document.getElementById('saveStudentBtn');
 const closeAddStudent = document.getElementById('closeAddStudent');
-
 // Hide modals when clicking close or outside
 function closeAllModals() {
   addClassModal.style.display = 'none';
@@ -48,7 +42,14 @@ window.onclick = function(event) {
   if (event.target === addSectionModal) addSectionModal.style.display = 'none';
   if (event.target === addStudentModal) addStudentModal.style.display = 'none';
 };
-
+// Modal scroll for mobile keyboard
+[studentNameInput, fatherNameInput, rollNumberInput].forEach(input => {
+  input.addEventListener('focus', () => {
+    setTimeout(() => {
+      document.querySelector('.modal-content').scrollIntoView({behavior: 'smooth', block: 'center'});
+    }, 300);
+  });
+});
 // Add Class
 createClassBtn.onclick = () => {
   const newClassName = newClassNameInput.value.trim();
@@ -59,7 +60,6 @@ createClassBtn.onclick = () => {
   addClassModal.style.display = 'none';
   render();
 };
-
 // Add Section
 createSectionBtn.onclick = () => {
   const newSectionName = newSectionNameInput.value.trim();
@@ -71,7 +71,6 @@ createSectionBtn.onclick = () => {
   addSectionModal.style.display = 'none';
   render();
 };
-
 // Add Student
 saveStudentBtn.onclick = () => {
   const name = studentNameInput.value.trim();
@@ -86,12 +85,11 @@ saveStudentBtn.onclick = () => {
   addStudentModal.style.display = 'none';
   render();
 };
-
 // Main Render Function
 function render() {
   const app = document.getElementById('app');
   if (!schoolData.currentClass) {
-    let html = `<h2>Select Class</h2><div id="classButtons">`;
+    let html = `<h2 style="text-align:left;margin-bottom:16px;">Select Class</h2><div id="classButtons">`;
     schoolData.classes.forEach((cls, i) => {
       html += `<button class="class-btn" style="border-color:${colors[i % colors.length]}; color:${colors[i % colors.length]}">${cls}</button>`;
     });
@@ -113,11 +111,10 @@ function render() {
     };
     return;
   }
-
   if (!schoolData.currentSection) {
     app.innerHTML = `
-      <button id="back-btn">&#8592; Back</button>
       <div class="bar-row">
+        <button id="back-btn">&#8592; Back</button>
         <h2>${schoolData.currentClass}: Sections</h2>
         <button class="add-btn" id="addSectionBtn">+ Create Section</button>
       </div>
@@ -148,12 +145,11 @@ function render() {
     });
     return;
   }
-
   // Students page
   const key = schoolData.currentClass + '_' + schoolData.currentSection;
   app.innerHTML = `
-    <button id="back-btn">&#8592; Back</button>
     <div class="bar-row">
+      <button id="back-btn">&#8592; Back</button>
       <h2>${schoolData.currentClass} - ${schoolData.currentSection}: Students</h2>
       <button class="add-btn" id="addStudentBtn">+ Add Student</button>
     </div>
@@ -179,5 +175,4 @@ function render() {
     studentsList.appendChild(div);
   });
 }
-
 window.onload = render;
