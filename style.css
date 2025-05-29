@@ -82,6 +82,7 @@ main {
   background: #fff;
   overflow-wrap: break-word;
   word-break: break-word;
+  user-select: none;
 }
 .section-item { font-weight: bold; }
 #back-btn {
@@ -117,7 +118,6 @@ main {
 .add-btn:hover, .add-btn:focus {
   background-color: #1567b1;
 }
-/* Title style: below bar-row, left-aligned */
 .page-title {
   font-size: 22px;
   font-weight: bold;
@@ -202,6 +202,38 @@ main {
 }
 .close:hover {
   color: #000;
+}
+
+/* Long press modal style */
+.longpress-content {
+  background: #fff;
+  border-radius: 14px;
+  width: 230px;
+  max-width: 85vw;
+  box-shadow: 0 4px 20px #2223;
+  padding: 0;
+  margin: 160px auto 0 auto;
+  text-align: center;
+  overflow: hidden;
+  animation: fadein 0.25s;
+}
+@keyframes fadein {
+  from { opacity: 0; transform: scale(0.93);}
+  to { opacity: 1; transform: scale(1);}
+}
+.longpress-option {
+  font-size: 19px;
+  padding: 18px 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: #0f3d6b;
+  font-weight: bold;
+}
+.longpress-option:last-child { border-bottom: none; }
+.longpress-option:hover {
+  background: #eaf0fa;
+  color: #1567b1;
 }
 
 /* Modal-up class to move modal upward on keyboard open */
