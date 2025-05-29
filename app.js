@@ -566,6 +566,61 @@ window.onpopstate = function(event) {
     showClassList(false);
   }
 };
+function showAddPopup(type) {
+  if (type === "class") {
+    let html = `<div class="popup-bg" id="popup-bg">
+      <form class="popup" onsubmit="addClass(event)">
+        <label>Class Name</label>
+        <input name="className" maxlength="20" required>
+        <div class="btn-row">
+          <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+          <button>Add</button>
+        </div>
+      </form>
+    </div>`;
+    showPopup(html);
+  } else if (type === "section") {
+    let html = `<div class="popup-bg" id="popup-bg">
+      <form class="popup" onsubmit="addSection(event.target)">
+        <label>Section Name</label>
+        <input name="sectionName" maxlength="15" required>
+        <div class="btn-row">
+          <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+          <button>Add</button>
+        </div>
+      </form>
+    </div>`;
+    showPopup(html);
+  } else if (type === "student") {
+    let html = `<div class="popup-bg" id="popup-bg">
+      <form class="popup" onsubmit="addStudent(event.target)">
+        <label>Student Name</label>
+        <input name="studentName" maxlength="35" required>
+        <label>Father's Name</label>
+        <input name="fatherName" maxlength="35" required>
+        <label>Roll Number</label>
+        <input name="rollNo" type="number" min="1" max="999" required>
+        <div class="btn-row">
+          <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+          <button>Add</button>
+        </div>
+      </form>
+    </div>`;
+    showPopup(html);
+  }
+}
+function addClass(e) {
+  e.preventDefault();
+  let val = e.target.className.value.trim();
+  if (!val) return;
+  if (classes.find(c => c.name === val)) {
+    alert("Class already exists!");
+    return;
+  }
+  classes.push({name: val, sections: []});
+  saveData(); closePopup(); showClassList(false);
+}
+
 // Initial load
 loadData();
 // showClassList() is now called after splash
