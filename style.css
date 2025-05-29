@@ -67,12 +67,12 @@ main {
 }
 .section-item, .student-item {
   border-bottom: 1px solid #000;
-  padding: 10px 4px;
-  margin: 3px 0;
+  padding: 10px 0;
+  margin: 0;
   font-size: 17px;
   text-align: left;
   width: 100%;
-  max-width: 300px;
+  box-sizing: border-box;
 }
 .section-item { font-weight: bold; }
 #back-btn {
@@ -198,7 +198,12 @@ main {
 @media (max-width: 600px) {
   .modal-up .modal-content {
     margin-top: 2vh !important;
-    top: 6px !important;
-    position: absolute !important;
+    top: 8px !important;
+    position: fixed !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 11000 !important;
+    width: 95vw !important;
+    max-width: 370px !important;
   }
 }
