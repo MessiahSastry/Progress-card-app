@@ -50,6 +50,9 @@ function setupModalAutoUp(modalId) {
   inputs.forEach(input => {
     input.addEventListener('focus', () => {
       modal.classList.add('modal-up');
+      setTimeout(() => {
+        modal.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }, 100);
     });
     input.addEventListener('blur', () => {
       setTimeout(() => modal.classList.remove('modal-up'), 300);
@@ -126,9 +129,9 @@ function render() {
     app.innerHTML = `
       <div class="bar-row">
         <button id="back-btn">&#8592; Back</button>
-        <h2>${schoolData.currentClass}: Sections</h2>
         <button class="add-btn" id="addSectionBtn">+ Create Section</button>
       </div>
+      <div class="page-title">${schoolData.currentClass}: Sections</div>
       <div id="sectionList"></div>
     `;
     document.getElementById('back-btn').onclick = () => {
@@ -161,9 +164,9 @@ function render() {
   app.innerHTML = `
     <div class="bar-row">
       <button id="back-btn">&#8592; Back</button>
-      <h2>${schoolData.currentClass} - ${schoolData.currentSection}: Students</h2>
       <button class="add-btn" id="addStudentBtn">+ Add Student</button>
     </div>
+    <div class="page-title">${schoolData.currentClass} - ${schoolData.currentSection}: Students</div>
     <div id="studentsList"></div>
   `;
   document.getElementById('back-btn').onclick = () => {
