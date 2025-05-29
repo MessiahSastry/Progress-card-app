@@ -11,29 +11,21 @@ body {
   padding: 20px 10px 14px 10px;
 }
 main {
-  width: 100vw;
-  min-height: calc(100vh - 110px);
+  max-width: 700px;
   background: #fff;
-  margin: 0;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 0;
+  margin: 36px auto 0 auto;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px #0001;
+  padding: 30px;
   font-size: 18px;
+  min-height: 300px;
   position: relative;
+  width: 95vw;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-}
-@media (min-width: 600px) {
-  main {
-    max-width: 700px;
-    margin: 36px auto 0 auto;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px #0001;
-    padding: 30px;
-  }
 }
 #classButtons {
   display: grid;
@@ -66,15 +58,9 @@ main {
   background: #eaf0fa;
 }
 #sectionList, #studentsList {
-  width: 100vw;
-  margin-left: -8vw;
+  width: 100%;
+  margin: 0;
   background: #fff;
-}
-@media (min-width: 600px) {
-  #sectionList, #studentsList {
-    width: 100%;
-    margin-left: 0;
-  }
 }
 .section-item, .student-item {
   border-bottom: 1.5px solid #000;
@@ -85,6 +71,8 @@ main {
   width: 100%;
   box-sizing: border-box;
   background: #fff;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .section-item { font-weight: bold; }
 #back-btn {
