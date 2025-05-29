@@ -7,13 +7,11 @@ let schoolData = {
   currentClass: null,
   currentSection: null,
 };
-// Color palette for classes
 const colors = [
   "#d72631", "#f46036", "#2d82b7", "#2eb872", "#63458a",
   "#edc988", "#638475", "#bc4b51", "#447604", "#a23e48",
   "#395b50", "#5c3c92", "#1b3a4b"
 ];
-// Modals and Inputs
 const addClassModal = document.getElementById('addClassModal');
 const addSectionModal = document.getElementById('addSectionModal');
 const addStudentModal = document.getElementById('addStudentModal');
@@ -28,6 +26,7 @@ const fatherNameInput = document.getElementById('fatherName');
 const rollNumberInput = document.getElementById('rollNumber');
 const saveStudentBtn = document.getElementById('saveStudentBtn');
 const closeAddStudent = document.getElementById('closeAddStudent');
+
 // Hide modals when clicking close or outside
 function closeAllModals() {
   addClassModal.style.display = 'none';
@@ -42,14 +41,25 @@ window.onclick = function(event) {
   if (event.target === addSectionModal) addSectionModal.style.display = 'none';
   if (event.target === addStudentModal) addStudentModal.style.display = 'none';
 };
-// Modal scroll for mobile keyboard
-[studentNameInput, fatherNameInput, rollNumberInput].forEach(input => {
-  input.addEventListener('focus', () => {
-    setTimeout(() => {
-      document.querySelector('.modal-content').scrollIntoView({behavior: 'smooth', block: 'center'});
-    }, 300);
+
+// Modal scroll for mobile keyboard (auto-move up)
+function setupModalAutoUp(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  const inputs = modal.querySelectorAll('input');
+  inputs.forEach(input => {
+    input.addEventListener('focus', () => {
+      modal.classList.add('modal-up');
+    });
+    input.addEventListener('blur', () => {
+      setTimeout(() => modal.classList.remove('modal-up'), 300);
+    });
   });
-});
+}
+setupModalAutoUp('addStudentModal');
+setupModalAutoUp('addSectionModal');
+setupModalAutoUp('addClassModal');
+
 // Add Class
 createClassBtn.onclick = () => {
   const newClassName = newClassNameInput.value.trim();
@@ -85,6 +95,7 @@ saveStudentBtn.onclick = () => {
   addStudentModal.style.display = 'none';
   render();
 };
+
 // Main Render Function
 function render() {
   const app = document.getElementById('app');
