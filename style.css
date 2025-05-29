@@ -6,7 +6,27 @@
 html, body { margin: 0; padding: 0; height: 100%; background: #fff; font-family: 'Segoe UI', Arial, sans-serif; color: #222; }
 body { min-height: 100vh; }
 
-/* Fixed header */
+/* --- SPLASH SCREEN --- */
+.splash {
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  position: fixed; inset: 0; z-index: 2000; background: #fff;
+  animation: fadeIn 1s;
+}
+.splash img {
+  width: 205px; height: 205px; margin-bottom: 18px; border-radius: 36px;
+  box-shadow: 0 5px 50px #2980b975;
+  animation: pulse 1.7s infinite;
+  background: #fff;
+}
+@keyframes fadeIn { from { opacity: 0;} to { opacity: 1;} }
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 #fff3; }
+  50% { box-shadow: 0 6px 32px #0f3d6b85; }
+  100% { box-shadow: 0 0 0 #fff3; }
+}
+.hidden { display: none !important; }
+
+/* --- HEADER --- */
 .fixed-header {
   background: var(--blue);
   color: #fff;
@@ -20,7 +40,6 @@ body { min-height: 100vh; }
   text-align: center;
 }
 
-/* Colorful school title */
 .school-title {
   font-size: 2.1em;
   font-weight: 900;
@@ -53,20 +72,20 @@ body { min-height: 100vh; }
 .school-title span:nth-child(18) { color: #f39c12; }
 .subtitle { font-size: 1.15em; font-weight: 500; margin-bottom: 2px; letter-spacing: 1px; }
 
-/* Main content below header, with minimal padding for best scrolling UX */
+/* --- MAIN CONTENT --- */
 .main-content {
   padding: 0 0 90px 0;
   max-width: 680px;
   margin: 0 auto;
-  padding-top: 130px; /* room for header and sticky heading */
+  padding-top: 130px; /* ensures content starts below the header and sticky title */
   min-height: 70vh;
   box-sizing: border-box;
 }
 
-/* Sticky screen headings (always visible under the header) */
+/* --- STICKY SCREEN TITLE --- */
 .screen-title {
   position: sticky;
-  top: 85px; /* Should match fixed-header's height */
+  top: 85px; /* matches fixed-header height */
   z-index: 9;
   background: #fff;
   padding: 14px 0 8px 0;
@@ -79,7 +98,7 @@ body { min-height: 100vh; }
   border-bottom: 1.5px solid #e7eaf0;
 }
 
-/* Class buttons */
+/* --- CLASS BUTTONS --- */
 .class-list { 
   display: flex; flex-wrap: wrap; gap: 16px 10px; 
   justify-content: center; 
@@ -111,7 +130,7 @@ body { min-height: 100vh; }
   padding-left: 8px;
 }
 
-/* Section Chips */
+/* --- SECTION CHIPS --- */
 .section-list { display: flex; flex-direction: column; gap: 9px; align-items: flex-start; margin-top:7px; }
 .section-chip {
   border: 2.3px solid var(--blue);
@@ -129,7 +148,7 @@ body { min-height: 100vh; }
 }
 .section-chip:hover { background: #e3eefb; }
 
-/* Student List */
+/* --- STUDENT LIST --- */
 .student-list { display: flex; flex-direction: column; align-items: flex-start; margin-top: 7px;}
 .student-row {
   display: flex; width: 100%; align-items: center;
@@ -162,7 +181,7 @@ body { min-height: 100vh; }
   z-index: 102;
 }
 
-/* Popups */
+/* --- POPUPS --- */
 .popup-bg {
   position: fixed; inset: 0; background: #0007;
   z-index: 2000; display: flex; align-items: center; justify-content: center;
