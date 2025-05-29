@@ -223,7 +223,7 @@ body { min-height: 100vh; }
 ::-webkit-scrollbar-thumb { background: #dbeaff; border-radius: 4px;}
 /* Responsive */
 @media (max-width:650px) {
-  .main-content { margin-top: 92px;}
+  .main-content { margin-top: 145px;}
   .class-btn { flex-basis: calc(94%/3); }
   .school-title { font-size: 1.7em; }
   .screen-title { font-size:1.1em; }
@@ -231,7 +231,7 @@ body { min-height: 100vh; }
 }
 @media (max-width:430px) {
   .fixed-header { font-size: 0.94em; }
-  .main-content { margin-top: 80px;}
+  .main-content { margin-top: 150px;}
   .class-btn { flex-basis: calc(98%/3); font-size: 1em;}
   .school-title { font-size: 1.25em; }
   .screen-title { font-size:1em;}
