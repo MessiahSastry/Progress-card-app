@@ -42,20 +42,35 @@ window.onclick = function(event) {
   if (event.target === addStudentModal) addStudentModal.style.display = 'none';
 };
 
-// Modal scroll for mobile keyboard (auto-move up)
+// Modal scroll for mobile keyboard (auto-move up & never disappear)
 function setupModalAutoUp(modalId) {
   const modal = document.getElementById(modalId);
   if (!modal) return;
+  const modalContent = modal.querySelector('.modal-content');
   const inputs = modal.querySelectorAll('input');
+  let focusCount = 0;
+
+  function stickModalTop() {
+    modal.classList.add('modal-up');
+  }
+
+  function unstickModal() {
+    modal.classList.remove('modal-up');
+  }
+
   inputs.forEach(input => {
     input.addEventListener('focus', () => {
-      modal.classList.add('modal-up');
+      focusCount++;
+      stickModalTop();
       setTimeout(() => {
-        modal.scrollIntoView({behavior: 'smooth', block: 'start'});
+        modalContent.scrollIntoView({behavior: 'smooth', block: 'start'});
       }, 100);
     });
     input.addEventListener('blur', () => {
-      setTimeout(() => modal.classList.remove('modal-up'), 300);
+      focusCount--;
+      setTimeout(() => {
+        if (focusCount <= 0) unstickModal();
+      }, 350);
     });
   });
 }
