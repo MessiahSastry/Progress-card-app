@@ -1,4 +1,4 @@
-// Default classes: always show these in order
+// --- Data Setup ---
 let defaultClasses = [
   "Nursery","LKG","UKG","1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th"
 ];
@@ -19,7 +19,6 @@ function loadData() {
   let d = localStorage.getItem('sp_classes');
   if (d) {
     let loaded = JSON.parse(d);
-    // Always rebuild class list: defaults in order, then user-added
     classes = defaultClasses.map(name=>{
       let found = loaded.find(c=>c.name===name);
       return found ? found : {name,sections:[]};
@@ -64,7 +63,6 @@ function showClassList(push=true) {
 function showSectionList(classIdx,push=true) {
   currentClass = classes[classIdx];
   currentSection = null;
-  // Alphabetical section sort
   let sections = [...currentClass.sections].sort((a,b)=>a.name.localeCompare(b.name));
   let html = `<div class="screen-title">${currentClass.name} – Sections</div><div class="section-list">`;
   sections.forEach((sec, idx) => {
@@ -354,7 +352,6 @@ function showExamOptions(exam) {
   showPopup(html);
 }
 function editExam(exam) {
-  // Pre-fill with existing subjects
   let subjects = subjectsByExam[exam] || [];
   window.subjectRows = JSON.parse(JSON.stringify(subjects));
   let html = `<div class="popup-bg" id="popup-bg">
@@ -384,7 +381,6 @@ function submitEditExam(e,oldExam) {
   let newExam = e.target.examName.value.trim();
   if(!newExam) return;
   if((window.subjectRows||[]).length<1) { alert("Add at least one subject!"); return;}
-  // Rename or update
   delete subjectsByExam[oldExam];
   subjectsByExam[newExam] = JSON.parse(JSON.stringify(window.subjectRows));
   saveData(); closePopup();
@@ -420,9 +416,9 @@ function deleteExam(exam) {
   closePopup();
   showExamSettingsPopup();
 }
-function enableExamLongPress() {
-  // already set inline in showExamList
-}
+function enableExamLongPress() {}
+
+// Subjects (Exam Settings)
 function addSubjectRow() {
   let name = document.getElementById('subjectName').value.trim();
   let max = document.getElementById('maxMarks').value.trim();
@@ -459,7 +455,6 @@ function addExamSetting(e) {
 
 // Enter Marks
 function showEnterMarksPopup() {
-  // Step 1: Section
   let secList = [];
   classes.forEach((cls,cidx)=>{
     cls.sections.forEach((sec,sidx)=>{
@@ -531,10 +526,7 @@ function autoSaveMark(classIdx, secIdx, stuIdx, exam, subject, inp) {
   inp.style.background = "#c6e6ce";
   setTimeout(()=>inp.style.background="",700);
 }
-// Download PDF (placeholder)
-function showDownloadClassPDF() {
-  alert("Download Class Marks Memo feature coming soon!");
-}
+
 // Popups
 function closePopup() {
   if (lastPopup) lastPopup.remove();
@@ -547,25 +539,8 @@ function showPopup(html) {
   lastPopup = div.firstElementChild;
   document.body.appendChild(lastPopup);
 }
-// History and Mobile Back
-function pushHistory(screen, ...params) {
-  if(!firstLoad) historyStack.push({screen,params});
-  firstLoad = false;
-  window.history.pushState({screen,params}, "");
-}
-window.onpopstate = function(event) {
-  let state = event.state;
-  if(state && state.screen) {
-    let {screen, params} = state;
-    if(screen==="classList") showClassList(false);
-    else if(screen==="sectionList") showSectionList(...params,false);
-    else if(screen==="studentList") showStudentList(...params,false);
-    else if(screen==="enterMarks") enterMarksStart(...params);
-  } else {
-    // if at start, stay at class list
-    showClassList(false);
-  }
-};
+
+// Add Popups for Class/Section/Student
 function showAddPopup(type) {
   if (type === "class") {
     let html = `<div class="popup-bg" id="popup-bg">
@@ -620,6 +595,25 @@ function addClass(e) {
   classes.push({name: val, sections: []});
   saveData(); closePopup(); showClassList(false);
 }
+
+// History and Mobile Back
+function pushHistory(screen, ...params) {
+  if(!firstLoad) historyStack.push({screen,params});
+  firstLoad = false;
+  window.history.pushState({screen,params}, "");
+}
+window.onpopstate = function(event) {
+  let state = event.state;
+  if(state && state.screen) {
+    let {screen, params} = state;
+    if(screen==="classList") showClassList(false);
+    else if(screen==="sectionList") showSectionList(...params,false);
+    else if(screen==="studentList") showStudentList(...params,false);
+    else if(screen==="enterMarks") enterMarksStart(...params);
+  } else {
+    showClassList(false);
+  }
+};
 
 // Initial load
 loadData();
