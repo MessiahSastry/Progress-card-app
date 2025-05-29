@@ -226,15 +226,23 @@ function deleteStudentConfirm(classIdx,secIdx,stuIdx) {
     </div></div>`;
   showPopup(html);
 }
-function deleteStudentSecondConfirm(classIdx,secIdx,stuIdx) {
+function deleteStudentSecondConfirm(classIdx, secIdx, stuIdx) {
   let stu = classes[classIdx].sections[secIdx].students[stuIdx];
   let html = `<div class="popup-bg" id="popup-bg">
     <div class="popup">
       <div><b>Confirm again</b> to delete <b>${stu.name}</b>!</div>
       <div class="btn-row" style="margin-top:7px;">
         <button type="button" class="cancel-btn" onclick="closePopup()">No</button>
-        <button onclick="deleteStudent(${class
-  saveData(); closePopup(); showClassList(false);
+        <button onclick="deleteStudent(${classIdx},${secIdx},${stuIdx})">Delete</button>
+      </div>
+    </div></div>`;
+  showPopup(html);
+}
+function deleteStudent(classIdx, secIdx, stuIdx) {
+  classes[classIdx].sections[secIdx].students.splice(stuIdx, 1);
+  saveData();
+  closePopup();
+  showStudentList(classIdx, secIdx, false);
 }
 function addSection(form) {
   const name = form.sectionName.value.trim();
