@@ -27,11 +27,20 @@ const rollNumberInput = document.getElementById('rollNumber');
 const saveStudentBtn = document.getElementById('saveStudentBtn');
 const closeAddStudent = document.getElementById('closeAddStudent');
 
+const longPressModal = document.getElementById('longPressModal');
+const longPressContent = document.getElementById('longPressContent');
+const sectionModalTitle = document.getElementById('sectionModalTitle');
+const studentModalTitle = document.getElementById('studentModalTitle');
+
+let editSectionIndex = null;
+let editStudentIndex = null;
+
 // Hide modals when clicking close or outside
 function closeAllModals() {
   addClassModal.style.display = 'none';
   addSectionModal.style.display = 'none';
   addStudentModal.style.display = 'none';
+  longPressModal.style.display = 'none';
 }
 closeAddClass.onclick = () => addClassModal.style.display = 'none';
 closeAddSection.onclick = () => addSectionModal.style.display = 'none';
@@ -40,6 +49,7 @@ window.onclick = function(event) {
   if (event.target === addClassModal) addClassModal.style.display = 'none';
   if (event.target === addSectionModal) addSectionModal.style.display = 'none';
   if (event.target === addStudentModal) addStudentModal.style.display = 'none';
+  if (event.target === longPressModal) longPressModal.style.display = 'none';
 };
 
 // Modal scroll for mobile keyboard (auto-move up & never disappear)
@@ -88,10 +98,36 @@ createClassBtn.onclick = () => {
   addClassModal.style.display = 'none';
   render();
 };
-// Add Section
+
+// Add/Edit Section
+let isEditingSection = false;
 createSectionBtn.onclick = () => {
   const newSectionName = newSectionNameInput.value.trim();
   if (!newSectionName) return alert('Please enter a section name.');
+  if (isEditingSection && editSectionIndex !== null) {
+    // Edit existing
+    let sections = schoolData.sections[schoolData.currentClass];
+    let oldName = sections[editSectionIndex];
+    if (sections.includes(newSectionName) && oldName !== newSectionName)
+      return alert('Section already exists.');
+    // Rename students key
+    const oldKey = schoolData.currentClass + '_' + oldName;
+    const newKey = schoolData.currentClass + '_' + newSectionName;
+    schoolData.sections[schoolData.currentClass][editSectionIndex] = newSectionName;
+    if (schoolData.students[oldKey]) {
+      schoolData.students[newKey] = schoolData.students[oldKey];
+      delete schoolData.students[oldKey];
+    }
+    if (schoolData.currentSection === oldName) {
+      schoolData.currentSection = newSectionName;
+    }
+    isEditingSection = false;
+    editSectionIndex = null;
+    addSectionModal.style.display = 'none';
+    render();
+    return;
+  }
+  // Add new
   if (schoolData.sections[schoolData.currentClass].includes(newSectionName))
     return alert('Section already exists.');
   schoolData.sections[schoolData.currentClass].push(newSectionName);
@@ -99,13 +135,39 @@ createSectionBtn.onclick = () => {
   addSectionModal.style.display = 'none';
   render();
 };
-// Add Student
+function openEditSectionModal(index) {
+  isEditingSection = true;
+  editSectionIndex = index;
+  sectionModalTitle.textContent = "Edit Section";
+  newSectionNameInput.value = schoolData.sections[schoolData.currentClass][index];
+  addSectionModal.style.display = 'flex';
+  newSectionNameInput.focus();
+}
+
+// Add/Edit Student
+let isEditingStudent = false;
+createStudentBtnHandler = function () {}; // placeholder for code order
+
 saveStudentBtn.onclick = () => {
   const name = studentNameInput.value.trim();
   const father = fatherNameInput.value.trim();
   const roll = rollNumberInput.value.trim();
-  if (!name || !roll) return alert('Please enter student name and roll number.');
   const key = schoolData.currentClass + '_' + schoolData.currentSection;
+  if (!name || !roll) return alert('Please enter student name and roll number.');
+
+  if (isEditingStudent && editStudentIndex !== null) {
+    // Edit existing student
+    let students = schoolData.students[key];
+    if (students.some((s, idx) => s.roll === roll && idx !== editStudentIndex))
+      return alert('Roll number already exists in this section.');
+    students[editStudentIndex] = { name, father, roll };
+    isEditingStudent = false;
+    editStudentIndex = null;
+    addStudentModal.style.display = 'none';
+    render();
+    return;
+  }
+  // Add new student
   schoolData.students[key] = schoolData.students[key] || [];
   if (schoolData.students[key].some(s => s.roll === roll)) return alert('Roll number already exists in this section.');
   schoolData.students[key].push({ name, father, roll });
@@ -113,6 +175,59 @@ saveStudentBtn.onclick = () => {
   addStudentModal.style.display = 'none';
   render();
 };
+function openEditStudentModal(index) {
+  isEditingStudent = true;
+  editStudentIndex = index;
+  studentModalTitle.textContent = "Edit Student";
+  const key = schoolData.currentClass + '_' + schoolData.currentSection;
+  const s = schoolData.students[key][index];
+  studentNameInput.value = s.name;
+  fatherNameInput.value = s.father;
+  rollNumberInput.value = s.roll;
+  addStudentModal.style.display = 'flex';
+  studentNameInput.focus();
+}
+
+// -- Long Press Handler --
+function setupLongPress(element, onLongPress) {
+  let pressTimer = null;
+  let longPressed = false;
+  let startX, startY;
+
+  function touchStart(e) {
+    longPressed = false;
+    if (e.touches) {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }
+    pressTimer = setTimeout(() => {
+      longPressed = true;
+      onLongPress(e);
+    }, 550);
+  }
+  function touchEnd(e) {
+    clearTimeout(pressTimer);
+  }
+  function touchMove(e) {
+    // If finger moves a lot, cancel
+    if (!e.touches) return;
+    if (Math.abs(e.touches[0].clientX - startX) > 18 || Math.abs(e.touches[0].clientY - startY) > 18) {
+      clearTimeout(pressTimer);
+    }
+  }
+  element.addEventListener('touchstart', touchStart);
+  element.addEventListener('touchend', touchEnd);
+  element.addEventListener('touchmove', touchMove);
+  element.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    pressTimer = setTimeout(() => {
+      longPressed = true;
+      onLongPress(e);
+    }, 600);
+  });
+  element.addEventListener('mouseup', touchEnd);
+  element.addEventListener('mouseleave', touchEnd);
+}
 
 // Main Render Function
 function render() {
@@ -154,13 +269,16 @@ function render() {
       render();
     };
     document.getElementById('addSectionBtn').onclick = () => {
+      isEditingSection = false;
+      editSectionIndex = null;
+      sectionModalTitle.textContent = "Create Section";
       newSectionNameInput.value = '';
       addSectionModal.style.display = 'flex';
       newSectionNameInput.focus();
     };
     const sectionList = document.getElementById('sectionList');
     sectionList.innerHTML = '';
-    schoolData.sections[schoolData.currentClass].forEach(section => {
+    schoolData.sections[schoolData.currentClass].forEach((section, idx) => {
       const div = document.createElement('div');
       div.textContent = section;
       div.className = 'section-item';
@@ -170,6 +288,10 @@ function render() {
           schoolData.students[schoolData.currentClass + '_' + section] = [];
         render();
       };
+      // Long-press
+      setupLongPress(div, (e) => {
+        showSectionOptions(idx);
+      });
       sectionList.appendChild(div);
     });
     return;
@@ -189,6 +311,9 @@ function render() {
     render();
   };
   document.getElementById('addStudentBtn').onclick = () => {
+    isEditingStudent = false;
+    editStudentIndex = null;
+    studentModalTitle.textContent = "Add Student";
     studentNameInput.value = '';
     fatherNameInput.value = '';
     rollNumberInput.value = '';
@@ -197,11 +322,65 @@ function render() {
   };
   const studentsList = document.getElementById('studentsList');
   studentsList.innerHTML = '';
-  (schoolData.students[key] || []).forEach(student => {
+  (schoolData.students[key] || []).forEach((student, idx) => {
     const div = document.createElement('div');
     div.textContent = `(${student.roll}) ${student.name}`;
     div.className = 'student-item';
+    // Long-press
+    setupLongPress(div, (e) => {
+      showStudentOptions(idx);
+    });
     studentsList.appendChild(div);
   });
 }
+
+// Section Long-press Options
+function showSectionOptions(idx) {
+  longPressContent.innerHTML = `
+    <div class="longpress-option" id="editSectionOpt">Edit</div>
+    <div class="longpress-option" id="deleteSectionOpt" style="color:#d72631;">Delete</div>
+  `;
+  longPressModal.style.display = 'flex';
+  document.getElementById('editSectionOpt').onclick = () => {
+    longPressModal.style.display = 'none';
+    openEditSectionModal(idx);
+  };
+  document.getElementById('deleteSectionOpt').onclick = () => {
+    longPressModal.style.display = 'none';
+    if (confirm("Are you sure you want to delete this section? All its students will be lost!")) {
+      // Remove section and students
+      let secName = schoolData.sections[schoolData.currentClass][idx];
+      let stuKey = schoolData.currentClass + '_' + secName;
+      schoolData.sections[schoolData.currentClass].splice(idx, 1);
+      delete schoolData.students[stuKey];
+      // If you are in this section, go back
+      if (schoolData.currentSection === secName) {
+        schoolData.currentSection = null;
+      }
+      render();
+    }
+  };
+}
+
+// Student Long-press Options
+function showStudentOptions(idx) {
+  longPressContent.innerHTML = `
+    <div class="longpress-option" id="editStudentOpt">Edit</div>
+    <div class="longpress-option" id="deleteStudentOpt" style="color:#d72631;">Delete</div>
+  `;
+  longPressModal.style.display = 'flex';
+  document.getElementById('editStudentOpt').onclick = () => {
+    longPressModal.style.display = 'none';
+    openEditStudentModal(idx);
+  };
+  document.getElementById('deleteStudentOpt').onclick = () => {
+    longPressModal.style.display = 'none';
+    if (confirm("Are you sure you want to delete this student?")) {
+      const key = schoolData.currentClass + '_' + schoolData.currentSection;
+      schoolData.students[key].splice(idx, 1);
+      render();
+    }
+  };
+}
+
 window.onload = render;
