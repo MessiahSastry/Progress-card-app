@@ -1,386 +1,563 @@
-let schoolData = {
-  classes: [
-    "Nursery", "LKG", "UKG", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"
-  ],
-  sections: {},
-  students: {},
-  currentClass: null,
-  currentSection: null,
-};
-const colors = [
-  "#d72631", "#f46036", "#2d82b7", "#2eb872", "#63458a",
-  "#edc988", "#638475", "#bc4b51", "#447604", "#a23e48",
-  "#395b50", "#5c3c92", "#1b3a4b"
+// Default classes: always show these in order
+let defaultClasses = [
+  "Nursery","LKG","UKG","1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th"
 ];
-const addClassModal = document.getElementById('addClassModal');
-const addSectionModal = document.getElementById('addSectionModal');
-const addStudentModal = document.getElementById('addStudentModal');
-const newClassNameInput = document.getElementById('newClassName');
-const createClassBtn = document.getElementById('createClassBtn');
-const closeAddClass = document.getElementById('closeAddClass');
-const newSectionNameInput = document.getElementById('newSectionName');
-const createSectionBtn = document.getElementById('createSectionBtn');
-const closeAddSection = document.getElementById('closeAddSection');
-const studentNameInput = document.getElementById('studentName');
-const fatherNameInput = document.getElementById('fatherName');
-const rollNumberInput = document.getElementById('rollNumber');
-const saveStudentBtn = document.getElementById('saveStudentBtn');
-const closeAddStudent = document.getElementById('closeAddStudent');
+let classes = [];
+let subjectsByExam = {};
+let currentClass = null, currentSection = null, currentStudent = null;
+let sectionColors = ["#e74c3c","#fdc600","#27ae60","#2980b9","#e67e22","#9b59b6","#f39c12","#e84393","#00b894","#fdc600"];
+let lastPopup = null;
+let historyStack = [];
+let firstLoad = true;
 
-const longPressModal = document.getElementById('longPressModal');
-const longPressContent = document.getElementById('longPressContent');
-const sectionModalTitle = document.getElementById('sectionModalTitle');
-const studentModalTitle = document.getElementById('studentModalTitle');
-
-let editSectionIndex = null;
-let editStudentIndex = null;
-
-// Hide modals when clicking close or outside
-function closeAllModals() {
-  addClassModal.style.display = 'none';
-  addSectionModal.style.display = 'none';
-  addStudentModal.style.display = 'none';
-  longPressModal.style.display = 'none';
+// --- Data Save/Load ---
+function saveData() {
+  localStorage.setItem('sp_classes', JSON.stringify(classes));
+  localStorage.setItem('sp_subjectsByExam', JSON.stringify(subjectsByExam));
 }
-closeAddClass.onclick = () => addClassModal.style.display = 'none';
-closeAddSection.onclick = () => addSectionModal.style.display = 'none';
-closeAddStudent.onclick = () => addStudentModal.style.display = 'none';
-window.onclick = function(event) {
-  if (event.target === addClassModal) addClassModal.style.display = 'none';
-  if (event.target === addSectionModal) addSectionModal.style.display = 'none';
-  if (event.target === addStudentModal) addStudentModal.style.display = 'none';
-  if (event.target === longPressModal) longPressModal.style.display = 'none';
-};
-
-// Modal scroll for mobile keyboard (auto-move up & never disappear)
-function setupModalAutoUp(modalId) {
-  const modal = document.getElementById(modalId);
-  if (!modal) return;
-  const modalContent = modal.querySelector('.modal-content');
-  const inputs = modal.querySelectorAll('input');
-  let focusCount = 0;
-
-  function stickModalTop() {
-    modal.classList.add('modal-up');
-  }
-
-  function unstickModal() {
-    modal.classList.remove('modal-up');
-  }
-
-  inputs.forEach(input => {
-    input.addEventListener('focus', () => {
-      focusCount++;
-      stickModalTop();
-      setTimeout(() => {
-        modalContent.scrollIntoView({behavior: 'smooth', block: 'start'});
-      }, 100);
+function loadData() {
+  let d = localStorage.getItem('sp_classes');
+  if (d) {
+    let loaded = JSON.parse(d);
+    // Always rebuild class list: defaults in order, then user-added
+    classes = defaultClasses.map(name=>{
+      let found = loaded.find(c=>c.name===name);
+      return found ? found : {name,sections:[]};
     });
-    input.addEventListener('blur', () => {
-      focusCount--;
-      setTimeout(() => {
-        if (focusCount <= 0) unstickModal();
-      }, 350);
+    loaded.forEach(c=>{
+      if(!defaultClasses.includes(c.name)) classes.push(c);
     });
+  }
+  else {
+    classes = defaultClasses.map(name=>({name,sections:[]}));
+  }
+  let s = localStorage.getItem('sp_subjectsByExam');
+  if (s) subjectsByExam = JSON.parse(s);
+  else subjectsByExam = {};
+}
+
+// --- Splash ---
+setTimeout(()=>{
+  document.getElementById('splash').classList.add('hidden');
+  showClassList();
+},1300);
+
+// ---- UI Screens ----
+function showClassList(push=true) {
+  currentClass = null; currentSection = null; currentStudent = null;
+  document.getElementById('header-exam').textContent = "";
+  let html = `<div class="screen-title">Select a Class</div>
+  <div class="class-list">`;
+  let colors = sectionColors;
+  classes.forEach((cls, idx) => {
+    let border = colors[idx%colors.length];
+    html += `<button class="class-btn" style="border-color:${border};color:${border};"
+      onmousedown="onClassLongPress(${idx},event)" ontouchstart="onClassLongPress(${idx},event)"
+      onclick="showSectionList(${idx},true)">${cls.name}</button>`;
   });
+  html += '</div>';
+  document.getElementById("main-area").innerHTML = html;
+  showFAB("+", ()=>showAddPopup("class"));
+  showSettingsBtn(false);
+  if(push) pushHistory("classList");
 }
-setupModalAutoUp('addStudentModal');
-setupModalAutoUp('addSectionModal');
-setupModalAutoUp('addClassModal');
-
-// Add Class
-createClassBtn.onclick = () => {
-  const newClassName = newClassNameInput.value.trim();
-  if (!newClassName) return alert('Please enter a class name.');
-  if (schoolData.classes.includes(newClassName)) return alert('Class already exists.');
-  schoolData.classes.push(newClassName);
-  schoolData.sections[newClassName] = [];
-  addClassModal.style.display = 'none';
-  render();
-};
-
-// Add/Edit Section
-let isEditingSection = false;
-createSectionBtn.onclick = () => {
-  const newSectionName = newSectionNameInput.value.trim();
-  if (!newSectionName) return alert('Please enter a section name.');
-  if (isEditingSection && editSectionIndex !== null) {
-    // Edit existing
-    let sections = schoolData.sections[schoolData.currentClass];
-    let oldName = sections[editSectionIndex];
-    if (sections.includes(newSectionName) && oldName !== newSectionName)
-      return alert('Section already exists.');
-    // Rename students key
-    const oldKey = schoolData.currentClass + '_' + oldName;
-    const newKey = schoolData.currentClass + '_' + newSectionName;
-    schoolData.sections[schoolData.currentClass][editSectionIndex] = newSectionName;
-    if (schoolData.students[oldKey]) {
-      schoolData.students[newKey] = schoolData.students[oldKey];
-      delete schoolData.students[oldKey];
-    }
-    if (schoolData.currentSection === oldName) {
-      schoolData.currentSection = newSectionName;
-    }
-    isEditingSection = false;
-    editSectionIndex = null;
-    addSectionModal.style.display = 'none';
-    render();
-    return;
-  }
-  // Add new
-  if (schoolData.sections[schoolData.currentClass].includes(newSectionName))
-    return alert('Section already exists.');
-  schoolData.sections[schoolData.currentClass].push(newSectionName);
-  schoolData.students[schoolData.currentClass + '_' + newSectionName] = [];
-  addSectionModal.style.display = 'none';
-  render();
-};
-function openEditSectionModal(index) {
-  isEditingSection = true;
-  editSectionIndex = index;
-  sectionModalTitle.textContent = "Edit Section";
-  newSectionNameInput.value = schoolData.sections[schoolData.currentClass][index];
-  addSectionModal.style.display = 'flex';
-  newSectionNameInput.focus();
-}
-
-// Add/Edit Student
-let isEditingStudent = false;
-createStudentBtnHandler = function () {}; // placeholder for code order
-
-saveStudentBtn.onclick = () => {
-  const name = studentNameInput.value.trim();
-  const father = fatherNameInput.value.trim();
-  const roll = rollNumberInput.value.trim();
-  const key = schoolData.currentClass + '_' + schoolData.currentSection;
-  if (!name || !roll) return alert('Please enter student name and roll number.');
-
-  if (isEditingStudent && editStudentIndex !== null) {
-    // Edit existing student
-    let students = schoolData.students[key];
-    if (students.some((s, idx) => s.roll === roll && idx !== editStudentIndex))
-      return alert('Roll number already exists in this section.');
-    students[editStudentIndex] = { name, father, roll };
-    isEditingStudent = false;
-    editStudentIndex = null;
-    addStudentModal.style.display = 'none';
-    render();
-    return;
-  }
-  // Add new student
-  schoolData.students[key] = schoolData.students[key] || [];
-  if (schoolData.students[key].some(s => s.roll === roll)) return alert('Roll number already exists in this section.');
-  schoolData.students[key].push({ name, father, roll });
-  schoolData.students[key].sort((a, b) => Number(a.roll) - Number(b.roll));
-  addStudentModal.style.display = 'none';
-  render();
-};
-function openEditStudentModal(index) {
-  isEditingStudent = true;
-  editStudentIndex = index;
-  studentModalTitle.textContent = "Edit Student";
-  const key = schoolData.currentClass + '_' + schoolData.currentSection;
-  const s = schoolData.students[key][index];
-  studentNameInput.value = s.name;
-  fatherNameInput.value = s.father;
-  rollNumberInput.value = s.roll;
-  addStudentModal.style.display = 'flex';
-  studentNameInput.focus();
-}
-
-// -- Long Press Handler --
-function setupLongPress(element, onLongPress) {
-  let pressTimer = null;
-  let longPressed = false;
-  let startX, startY;
-
-  function touchStart(e) {
-    longPressed = false;
-    if (e.touches) {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-    }
-    pressTimer = setTimeout(() => {
-      longPressed = true;
-      onLongPress(e);
-    }, 550);
-  }
-  function touchEnd(e) {
-    clearTimeout(pressTimer);
-  }
-  function touchMove(e) {
-    // If finger moves a lot, cancel
-    if (!e.touches) return;
-    if (Math.abs(e.touches[0].clientX - startX) > 18 || Math.abs(e.touches[0].clientY - startY) > 18) {
-      clearTimeout(pressTimer);
-    }
-  }
-  element.addEventListener('touchstart', touchStart);
-  element.addEventListener('touchend', touchEnd);
-  element.addEventListener('touchmove', touchMove);
-  element.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-    pressTimer = setTimeout(() => {
-      longPressed = true;
-      onLongPress(e);
-    }, 600);
+function showSectionList(classIdx,push=true) {
+  currentClass = classes[classIdx];
+  currentSection = null;
+  // Alphabetical section sort
+  let sections = [...currentClass.sections].sort((a,b)=>a.name.localeCompare(b.name));
+  let html = `<div class="screen-title">${currentClass.name} – Sections</div><div class="section-list">`;
+  sections.forEach((sec, idx) => {
+    html += `<div class="section-chip" style="border-color:${sectionColors[idx%sectionColors.length]}"
+    onmousedown="onSectionLongPress(${classIdx},${currentClass.sections.indexOf(sec)},event)" ontouchstart="onSectionLongPress(${classIdx},${currentClass.sections.indexOf(sec)},event)"
+    onclick="showStudentList(${classIdx},${currentClass.sections.indexOf(sec)},true)">${sec.name}</div>`;
   });
-  element.addEventListener('mouseup', touchEnd);
-  element.addEventListener('mouseleave', touchEnd);
+  html += '</div>';
+  document.getElementById("main-area").innerHTML = html;
+  showFAB("+", ()=>showAddPopup("section"));
+  showSettingsBtn(false);
+  if(push) pushHistory("sectionList",classIdx);
 }
-
-// Main Render Function
-function render() {
-  const app = document.getElementById('app');
-  if (!schoolData.currentClass) {
-    let html = `<h2 style="text-align:left;margin-bottom:16px;">Select Class</h2><div id="classButtons">`;
-    schoolData.classes.forEach((cls, i) => {
-      html += `<button class="class-btn" style="border-color:${colors[i % colors.length]}; color:${colors[i % colors.length]}">${cls}</button>`;
-    });
-    html += `</div><button class="add-btn" id="openAddClassModal">+ Add Class</button>`;
-    app.innerHTML = html;
-    // Class button events
-    Array.from(document.getElementsByClassName('class-btn')).forEach((btn, i) => {
-      btn.onclick = () => {
-        const cls = schoolData.classes[i];
-        schoolData.currentClass = cls;
-        if (!schoolData.sections[cls]) schoolData.sections[cls] = [];
-        render();
-      }
-    });
-    document.getElementById('openAddClassModal').onclick = () => {
-      newClassNameInput.value = '';
-      addClassModal.style.display = 'flex';
-      newClassNameInput.focus();
-    };
-    return;
-  }
-  if (!schoolData.currentSection) {
-    app.innerHTML = `
-      <div class="bar-row">
-        <button id="back-btn">&#8592; Back</button>
-        <button class="add-btn" id="addSectionBtn">+ Create Section</button>
+// Section Long Press
+let sectionTimer = null;
+function onSectionLongPress(classIdx, secIdx, event) {
+  sectionTimer = setTimeout(()=> {
+    let section = classes[classIdx].sections[secIdx];
+    showSectionOptions(classIdx,secIdx,section);
+  }, 650);
+  event.target.onmouseup = event.target.ontouchend = ()=>clearTimeout(sectionTimer);
+}
+function showSectionOptions(classIdx,secIdx,section) {
+  let html = `<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+      <div style="margin-bottom:10px;">Section: <b>${section.name}</b></div>
+      <div class="option-row">
+        <button class="option-btn" onclick="editSection(${classIdx},${secIdx})">Edit</button>
+        <button class="option-btn" onclick="deleteSectionConfirm(${classIdx},${secIdx})">Delete</button>
+        <button class="cancel-btn" onclick="closePopup()">Cancel</button>
       </div>
-      <div class="page-title">${schoolData.currentClass}: Sections</div>
-      <div id="sectionList"></div>
-    `;
-    document.getElementById('back-btn').onclick = () => {
-      schoolData.currentClass = null;
-      render();
-    };
-    document.getElementById('addSectionBtn').onclick = () => {
-      isEditingSection = false;
-      editSectionIndex = null;
-      sectionModalTitle.textContent = "Create Section";
-      newSectionNameInput.value = '';
-      addSectionModal.style.display = 'flex';
-      newSectionNameInput.focus();
-    };
-    const sectionList = document.getElementById('sectionList');
-    sectionList.innerHTML = '';
-    schoolData.sections[schoolData.currentClass].forEach((section, idx) => {
-      const div = document.createElement('div');
-      div.textContent = section;
-      div.className = 'section-item';
-      div.onclick = () => {
-        schoolData.currentSection = section;
-        if (!schoolData.students[schoolData.currentClass + '_' + section])
-          schoolData.students[schoolData.currentClass + '_' + section] = [];
-        render();
-      };
-      // Long-press
-      setupLongPress(div, (e) => {
-        showSectionOptions(idx);
-      });
-      sectionList.appendChild(div);
-    });
-    return;
-  }
-  // Students page
-  const key = schoolData.currentClass + '_' + schoolData.currentSection;
-  app.innerHTML = `
-    <div class="bar-row">
-      <button id="back-btn">&#8592; Back</button>
-      <button class="add-btn" id="addStudentBtn">+ Add Student</button>
-    </div>
-    <div class="page-title">${schoolData.currentClass} - ${schoolData.currentSection}: Students</div>
-    <div id="studentsList"></div>
-  `;
-  document.getElementById('back-btn').onclick = () => {
-    schoolData.currentSection = null;
-    render();
-  };
-  document.getElementById('addStudentBtn').onclick = () => {
-    isEditingStudent = false;
-    editStudentIndex = null;
-    studentModalTitle.textContent = "Add Student";
-    studentNameInput.value = '';
-    fatherNameInput.value = '';
-    rollNumberInput.value = '';
-    addStudentModal.style.display = 'flex';
-    studentNameInput.focus();
-  };
-  const studentsList = document.getElementById('studentsList');
-  studentsList.innerHTML = '';
-  (schoolData.students[key] || []).forEach((student, idx) => {
-    const div = document.createElement('div');
-    div.textContent = `(${student.roll}) ${student.name}`;
-    div.className = 'student-item';
-    // Long-press
-    setupLongPress(div, (e) => {
-      showStudentOptions(idx);
-    });
-    studentsList.appendChild(div);
+    </div></div>`;
+  showPopup(html);
+}
+function editSection(classIdx,secIdx) {
+  let section = classes[classIdx].sections[secIdx];
+  let html = `<div class="popup-bg" id="popup-bg">
+    <form class="popup" onsubmit="submitEditSection(event,${classIdx},${secIdx})">
+      <label>Edit Section Name</label>
+      <input name="sectionName" value="${section.name}" required>
+      <div class="btn-row">
+        <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        <button>Save</button>
+      </div>
+    </form></div>`;
+  showPopup(html);
+}
+function submitEditSection(e,classIdx,secIdx) {
+  e.preventDefault();
+  let val = e.target.sectionName.value.trim();
+  if(!val) return;
+  classes[classIdx].sections[secIdx].name = val;
+  saveData(); closePopup(); showSectionList(classIdx,false);
+}
+function deleteSectionConfirm(classIdx,secIdx) {
+  let html = `<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+      <div>Are you sure you want to delete section <b>${classes[classIdx].sections[secIdx].name}</b>?</div>
+      <div class="btn-row" style="margin-top:8px;">
+        <button type="button" class="cancel-btn" onclick="closePopup()">No</button>
+        <button onclick="deleteSectionSecondConfirm(${classIdx},${secIdx})">Yes</button>
+      </div>
+    </div></div>`;
+  showPopup(html);
+}
+function deleteSectionSecondConfirm(classIdx,secIdx) {
+  let html = `<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+      <div><b>Confirm again</b> to delete section <b>${classes[classIdx].sections[secIdx].name}</b>!</div>
+      <div class="btn-row" style="margin-top:8px;">
+        <button type="button" class="cancel-btn" onclick="closePopup()">No</button>
+        <button onclick="deleteSection(${classIdx},${secIdx})">Delete</button>
+      </div>
+    </div></div>`;
+  showPopup(html);
+}
+function deleteSection(classIdx,secIdx) {
+  classes[classIdx].sections.splice(secIdx,1);
+  saveData(); closePopup(); showSectionList(classIdx,false);
+}
+// Students
+function showStudentList(classIdx, secIdx,push=true) {
+  currentClass = classes[classIdx];
+  currentSection = currentClass.sections[secIdx];
+  currentStudent = null;
+  let title = `${currentClass.name} – Section ${currentSection.name}`;
+  let html = `<div class="screen-title">${title}</div>
+  <div class="student-list">`;
+  let list = [...currentSection.students];
+  list.sort((a,b)=>parseInt(a.roll)-parseInt(b.roll));
+  list.forEach((stu, idx) => {
+    html += `<div class="student-row" 
+      onmousedown="onStudentLongPress(${classIdx},${secIdx},${idx},event)" 
+      ontouchstart="onStudentLongPress(${classIdx},${secIdx},${idx},event)">
+      <span class="roll-no">${stu.roll}.</span> ${stu.name}
+      </div>`;
   });
+  html += '</div>';
+  document.getElementById("main-area").innerHTML = html;
+  showFAB("+", ()=>showAddPopup("student"));
+  showSettingsBtn(true);
+  if(push) pushHistory("studentList",classIdx,secIdx);
+}
+// Student Long Press
+let studentTimer = null;
+function onStudentLongPress(classIdx,secIdx,stuIdx,event) {
+  studentTimer = setTimeout(()=> {
+    let stu = classes[classIdx].sections[secIdx].students[stuIdx];
+    showStudentOptions(classIdx,secIdx,stuIdx,stu);
+  }, 650);
+  event.target.onmouseup = event.target.ontouchend = ()=>clearTimeout(studentTimer);
+}
+function showStudentOptions(classIdx,secIdx,stuIdx,stu) {
+  let html = `<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+      <div style="margin-bottom:8px;">${stu.roll}. <b>${stu.name}</b></div>
+      <div class="option-row">
+        <button class="option-btn" onclick="editStudent(${classIdx},${secIdx},${stuIdx})">Edit</button>
+        <button class="option-btn" onclick="deleteStudentConfirm(${classIdx},${secIdx},${stuIdx})">Delete</button>
+        <button class="cancel-btn" onclick="closePopup()">Cancel</button>
+      </div>
+    </div></div>`;
+  showPopup(html);
+}
+function editStudent(classIdx,secIdx,stuIdx) {
+  let stu = classes[classIdx].sections[secIdx].students[stuIdx];
+  let html = `<div class="popup-bg" id="popup-bg">
+    <form class="popup" onsubmit="submitEditStudent(event,${classIdx},${secIdx},${stuIdx})">
+      <label>Student Name</label>
+      <input name="studentName" value="${stu.name}" required>
+      <label>Father's Name</label>
+      <input name="fatherName" value="${stu.father||''}">
+      <label>Roll Number</label>
+      <input name="rollNo" type="number" min="1" max="999" value="${stu.roll}" required>
+      <div class="btn-row">
+        <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        <button>Save</button>
+      </div>
+    </form></div>`;
+  showPopup(html);
+}
+function submitEditStudent(e,classIdx,secIdx,stuIdx) {
+  e.preventDefault();
+  let form = e.target;
+  classes[classIdx].sections[secIdx].students[stuIdx].name = form.studentName.value.trim();
+  classes[classIdx].sections[secIdx].students[stuIdx].father = form.fatherName.value.trim();
+  classes[classIdx].sections[secIdx].students[stuIdx].roll = form.rollNo.value.trim();
+  saveData(); closePopup(); showStudentList(classIdx, secIdx,false);
+}
+function deleteStudentConfirm(classIdx,secIdx,stuIdx) {
+  let stu = classes[classIdx].sections[secIdx].students[stuIdx];
+  let html = `<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+      <div>Are you sure you want to delete <b>${stu.name}</b>?</div>
+      <div class="btn-row" style="margin-top:7px;">
+        <button type="button" class="cancel-btn" onclick="closePopup()">No</button>
+        <button onclick="deleteStudentSecondConfirm(${classIdx},${secIdx},${stuIdx})">Yes</button>
+      </div>
+    </div></div>`;
+  showPopup(html);
+}
+function deleteStudentSecondConfirm(classIdx,secIdx,stuIdx) {
+  let stu = classes[classIdx].sections[secIdx].students[stuIdx];
+  let html = `<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+      <div><b>Confirm again</b> to delete <b>${stu.name}</b>!</div>
+      <div class="btn-row" style="margin-top:7px;">
+        <button type="button" class="cancel-btn" onclick="closePopup()">No</button>
+        <button onclick="deleteStudent(${class
+  saveData(); closePopup(); showClassList(false);
+}
+function addSection(form) {
+  const name = form.sectionName.value.trim();
+  if (!name) return;
+  currentClass.sections.push({name,students:[]});
+  saveData(); closePopup();
+  showSectionList(classes.indexOf(currentClass),false);
+}
+function addStudent(form) {
+  const name = form.studentName.value.trim();
+  const father = form.fatherName.value.trim();
+  const roll = form.rollNo.value.trim();
+  if (!name || !father || !roll) return;
+  currentSection.students.push({name,father,roll,marks:{}});
+  saveData(); closePopup();
+  showStudentList(classes.indexOf(currentClass), currentClass.sections.indexOf(currentSection),false);
 }
 
-// Section Long-press Options
-function showSectionOptions(idx) {
-  longPressContent.innerHTML = `
-    <div class="longpress-option" id="editSectionOpt">Edit</div>
-    <div class="longpress-option" id="deleteSectionOpt" style="color:#d72631;">Delete</div>
-  `;
-  longPressModal.style.display = 'flex';
-  document.getElementById('editSectionOpt').onclick = () => {
-    longPressModal.style.display = 'none';
-    openEditSectionModal(idx);
-  };
-  document.getElementById('deleteSectionOpt').onclick = () => {
-    longPressModal.style.display = 'none';
-    if (confirm("Are you sure you want to delete this section? All its students will be lost!")) {
-      // Remove section and students
-      let secName = schoolData.sections[schoolData.currentClass][idx];
-      let stuKey = schoolData.currentClass + '_' + secName;
-      schoolData.sections[schoolData.currentClass].splice(idx, 1);
-      delete schoolData.students[stuKey];
-      // If you are in this section, go back
-      if (schoolData.currentSection === secName) {
-        schoolData.currentSection = null;
-      }
-      render();
-    }
-  };
+// FAB & Settings
+function showFAB(label,onClick) {
+  let fab = document.getElementById('fab');
+  fab.innerHTML = label;
+  fab.style.display = "flex";
+  fab.onclick = onClick;
+}
+function showSettingsBtn(show) {
+  let btn = document.getElementById('settings-btn');
+  btn.style.display = show?"flex":"none";
 }
 
-// Student Long-press Options
-function showStudentOptions(idx) {
-  longPressContent.innerHTML = `
-    <div class="longpress-option" id="editStudentOpt">Edit</div>
-    <div class="longpress-option" id="deleteStudentOpt" style="color:#d72631;">Delete</div>
-  `;
-  longPressModal.style.display = 'flex';
-  document.getElementById('editStudentOpt').onclick = () => {
-    longPressModal.style.display = 'none';
-    openEditStudentModal(idx);
-  };
-  document.getElementById('deleteStudentOpt').onclick = () => {
-    longPressModal.style.display = 'none';
-    if (confirm("Are you sure you want to delete this student?")) {
-      const key = schoolData.currentClass + '_' + schoolData.currentSection;
-      schoolData.students[key].splice(idx, 1);
-      render();
-    }
-  };
+// Settings Popup
+function showSettingsPopup() {
+  let html = `<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+      <div style="font-weight:600;color:#0f3d6b;margin-bottom:9px;font-size:1.08em;">Settings & Actions</div>
+      <div class="option-row" style="flex-direction:column;gap:11px;">
+        <button class="option-btn" onclick="showExamSettingsPopup()">Exam Settings</button>
+        <button class="option-btn" onclick="showEnterMarksPopup()">Enter Marks</button>
+        <button class="option-btn" onclick="alert('Download Class Marks Memo coming soon!')">Download Class Marks Memos (PDF)</button>
+        <button class="option-btn" onclick="alert('Coming soon!')">Download Hall Tickets</button>
+        <button class="option-btn" onclick="alert('Coming soon!')">Download Class Marks (Excel)</button>
+        <button class="option-btn" onclick="closePopup()">Close</button>
+      </div>
+    </div>
+  </div>`;
+  showPopup(html);
 }
 
-window.onload = render;
+// Exam Settings
+function showExamSettingsPopup() {
+  let html = `<div class="popup-bg" id="popup-bg">
+  <div class="popup" style="max-width: 400px;">
+    <div style="font-weight:600;font-size:1.03em;color:#0f3d6b;margin-bottom:8px;">Saved Exams</div>
+    <div id="examListArea"></div>
+    <form onsubmit="addExamSetting(event)" style="margin-top:14px;">
+      <label>Exam Name</label>
+      <input name="examName" maxlength="25" required>
+      <div id="subjectsArea">
+        <div style="font-weight:600;color:#0f3d6b;margin-top:8px;">Add Subjects</div>
+        <div>
+          <input id="subjectName" placeholder="Subject name" style="width:49%;" maxlength="22">
+          <input id="maxMarks" type="number" min="1" max="200" placeholder="Max marks" style="width:33%;">
+          <button type="button" onclick="addSubjectRow()" style="margin-left:5px;padding:5px 11px;border-radius:6px;">Add</button>
+        </div>
+        <div class="subjects-list" id="subjects-list"></div>
+      </div>
+      <div class="btn-row" style="margin-top:9px;">
+        <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        <button>Save Exam</button>
+      </div>
+    </form>
+  </div></div>`;
+  showPopup(html);
+  window.subjectRows = [];
+  updateSubjectsList();
+  showExamList();
+  enableExamLongPress();
+}
+function showExamList() {
+  let area = document.getElementById('examListArea');
+  if (!area) return;
+  let html = "";
+  Object.keys(subjectsByExam).forEach((exam,i)=>{
+    html += `<div class="exam-list-item" style="padding:10px 0 6px 0; font-size:1.08em; font-weight:600; color:#0982cc; user-select:none; cursor:pointer;" 
+    onmousedown="onExamLongPress('${exam.replace(/'/g,"\\'")}',event)" ontouchstart="onExamLongPress('${exam.replace(/'/g,"\\'")}',event)">
+    ${exam}
+    </div>`;
+  });
+  area.innerHTML = html || `<span style="color:#b8b8b8;font-size:1.01em;">No exams saved yet.</span>`;
+}
+// Exam Long Press for Edit/Delete
+let examTimer = null;
+function onExamLongPress(exam, event) {
+  examTimer = setTimeout(()=>{
+    showExamOptions(exam);
+  }, 650);
+  event.target.onmouseup = event.target.ontouchend = ()=>clearTimeout(examTimer);
+}
+function showExamOptions(exam) {
+  let html = `<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+      <div style="margin-bottom:10px;"><b>${exam}</b></div>
+      <div class="option-row">
+        <button class="option-btn" onclick="editExam('${exam.replace(/'/g,"\\'")}')">Edit</button>
+        <button class="option-btn" onclick="deleteExamConfirm('${exam.replace(/'/g,"\\'")}')">Delete</button>
+        <button class="cancel-btn" onclick="closePopup()">Cancel</button>
+      </div>
+    </div></div>`;
+  showPopup(html);
+}
+function editExam(exam) {
+  // Pre-fill with existing subjects
+  let subjects = subjectsByExam[exam] || [];
+  window.subjectRows = JSON.parse(JSON.stringify(subjects));
+  let html = `<div class="popup-bg" id="popup-bg">
+    <form class="popup" onsubmit="submitEditExam(event,'${exam.replace(/'/g,"\\'")}')">
+      <label>Edit Exam Name</label>
+      <input name="examName" value="${exam}" maxlength="25" required>
+      <div id="subjectsArea">
+        <div style="font-weight:600;color:#0f3d6b;margin-top:8px;">Edit Subjects</div>
+        <div>
+          <input id="subjectName" placeholder="Subject name" style="width:49%;" maxlength="22">
+          <input id="maxMarks" type="number" min="1" max="200" placeholder="Max marks" style="width:33%;">
+          <button type="button" onclick="addSubjectRow()" style="margin-left:5px;padding:5px 11px;border-radius:6px;">Add</button>
+        </div>
+        <div class="subjects-list" id="subjects-list"></div>
+      </div>
+      <div class="btn-row" style="margin-top:9px;">
+        <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        <button>Save</button>
+      </div>
+    </form>
+  </div>`;
+  showPopup(html);
+  updateSubjectsList();
+}
+function submitEditExam(e,oldExam) {
+  e.preventDefault();
+  let newExam = e.target.examName.value.trim();
+  if(!newExam) return;
+  if((window.subjectRows||[]).length<1) { alert("Add at least one subject!"); return;}
+  // Rename or update
+  delete subjectsByExam[oldExam];
+  subjectsByExam[newExam] = JSON.parse(JSON.stringify(window.subjectRows));
+  saveData(); closePopup();
+  alert("Exam updated!");
+}
+function deleteExamConfirm(exam) {
+  let html = `<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+      <div style="margin-bottom:7px;">Are you sure you want to delete exam <b>${exam}</b>?</div>
+      <div class="option-row">
+        <button class="option-btn" onclick="closePopup()">Cancel</button>
+        <button class="option-btn" style="background:#e74c3c;color:#fff;" onclick="deleteExamSecondConfirm('${exam.replace(/'/g,"\\'")}')">Delete</button>
+      </div>
+    </div>
+  </div>`;
+  showPopup(html);
+}
+function deleteExamSecondConfirm(exam) {
+  let html = `<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+      <div style="margin-bottom:7px;"><b>Confirm again</b> to delete exam <b>${exam}</b>!</div>
+      <div class="option-row">
+        <button class="option-btn" onclick="closePopup()">Cancel</button>
+        <button class="option-btn" style="background:#e74c3c;color:#fff;" onclick="deleteExam('${exam.replace(/'/g,"\\'")}')">Delete</button>
+      </div>
+    </div>
+  </div>`;
+  showPopup(html);
+}
+function deleteExam(exam) {
+  delete subjectsByExam[exam];
+  saveData();
+  closePopup();
+  showExamSettingsPopup();
+}
+function enableExamLongPress() {
+  // already set inline in showExamList
+}
+function addSubjectRow() {
+  let name = document.getElementById('subjectName').value.trim();
+  let max = document.getElementById('maxMarks').value.trim();
+  if (!name || !max) return;
+  window.subjectRows.push({name, max});
+  updateSubjectsList();
+  document.getElementById('subjectName').value = "";
+  document.getElementById('maxMarks').value = "";
+}
+function updateSubjectsList() {
+  let div = document.getElementById('subjects-list');
+  if (!div) return;
+  let html = "";
+  (window.subjectRows||[]).forEach((row, idx)=>{
+    html += `<div class="subject-item"><span class="subject-name">${row.name}</span>
+    <span class="max-marks">(Max: ${row.max})</span>
+    <button class="remove-subject" onclick="removeSubjectRow(${idx})"><i class="fa fa-times"></i></button></div>`;
+  });
+  div.innerHTML = html;
+}
+function removeSubjectRow(idx) {
+  window.subjectRows.splice(idx,1);
+  updateSubjectsList();
+}
+function addExamSetting(e) {
+  e.preventDefault();
+  let examName = e.target.examName.value.trim();
+  if(!examName) return;
+  if((window.subjectRows||[]).length<1) { alert("Add at least one subject!"); return;}
+  subjectsByExam[examName] = JSON.parse(JSON.stringify(window.subjectRows));
+  saveData(); closePopup();
+  alert("Exam settings saved!");
+}
+
+// Enter Marks
+function showEnterMarksPopup() {
+  // Step 1: Section
+  let secList = [];
+  classes.forEach((cls,cidx)=>{
+    cls.sections.forEach((sec,sidx)=>{
+      secList.push({classIdx:cidx,secIdx:sidx,disp:`${cls.name} – ${sec.name}`});
+    });
+  });
+  let html = `<div class="popup-bg" id="popup-bg">
+  <div class="popup" style="max-width:370px;">
+    <label>Select Section</label>
+    <select id="enterSec" style="font-size:1.11em;">
+      ${secList.map(s=>`<option value="${s.classIdx},${s.secIdx}">${s.disp}</option>`).join('')}
+    </select>
+    <label>Select Exam</label>
+    <select id="enterExam" onchange="updateEnterMarksSubjects()" style="font-size:1.11em;">
+      <option value="">Select</option>
+      ${Object.keys(subjectsByExam).map(e=>`<option value="${e}">${e}</option>`).join('')}
+    </select>
+    <label>Select Subject</label>
+    <select id="enterSubject" style="font-size:1.11em;"></select>
+    <div class="btn-row" style="margin-top:11px;">
+      <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+      <button onclick="enterMarksStart()">OK</button>
+    </div>
+  </div></div>`;
+  showPopup(html);
+}
+function updateEnterMarksSubjects() {
+  let examName = document.getElementById('enterExam').value;
+  let subs = subjectsByExam[examName]||[];
+  let sel = document.getElementById('enterSubject');
+  sel.innerHTML = subs.map(s=>`<option value="${s.name}">${s.name} (Max: ${s.max})</option>`).join('');
+}
+function enterMarksStart() {
+  let [classIdx, secIdx] = document.getElementById('enterSec').value.split(',');
+  let examName = document.getElementById('enterExam').value;
+  let subject = document.getElementById('enterSubject').value;
+  if (!examName || !subject) return alert("Select exam and subject!");
+  closePopup();
+  let section = classes[classIdx].sections[secIdx];
+  let students = [...section.students];
+  students.sort((a,b)=>parseInt(a.roll)-parseInt(b.roll));
+  let max = 0;
+  (subjectsByExam[examName]||[]).forEach(s=>{if(s.name===subject) max=+s.max;});
+  let html = `<div class="screen-title">${classes[classIdx].name} – ${section.name}<br>Exam: ${examName} | Subject: ${subject}</div>
+  <form id="marksForm">
+  <div class="student-list">`;
+  students.forEach((stu,idx)=>{
+    let obt = (stu.marks[examName]||{})[subject]||"";
+    html += `<div class="student-row" style="padding:11px 0 11px 7px;">
+    <span class="marks-entry-student">${stu.roll}.</span> <span class="marks-entry-student">${stu.name}</span>
+    <input class="marks-entry-input" type="number" min="0" max="${max}" 
+    name="mark${idx}" value="${obt}" oninput="autoSaveMark(${classIdx},${secIdx},${idx},'${examName}','${subject}',this)">
+    </div>`;
+  });
+  html += `</div></form>`;
+  document.getElementById("main-area").innerHTML = html;
+  showFAB("←", ()=>showStudentList(classIdx,secIdx,false));
+  showSettingsBtn(false);
+  pushHistory("enterMarks",classIdx,secIdx);
+}
+function autoSaveMark(classIdx, secIdx, stuIdx, exam, subject, inp) {
+  let val = inp.value.trim();
+  let mark = val ? +val : "";
+  let stu = classes[classIdx].sections[secIdx].students[stuIdx];
+  if (!stu.marks) stu.marks = {};
+  if (!stu.marks[exam]) stu.marks[exam] = {};
+  stu.marks[exam][subject] = mark;
+  saveData();
+  inp.style.background = "#c6e6ce";
+  setTimeout(()=>inp.style.background="",700);
+}
+// Download PDF (placeholder)
+function showDownloadClassPDF() {
+  alert("Download Class Marks Memo feature coming soon!");
+}
+// Popups
+function closePopup() {
+  if (lastPopup) lastPopup.remove();
+  lastPopup = null;
+}
+function showPopup(html) {
+  closePopup();
+  let div = document.createElement('div');
+  div.innerHTML = html;
+  lastPopup = div.firstElementChild;
+  document.body.appendChild(lastPopup);
+}
+// History and Mobile Back
+function pushHistory(screen, ...params) {
+  if(!firstLoad) historyStack.push({screen,params});
+  firstLoad = false;
+  window.history.pushState({screen,params}, "");
+}
+window.onpopstate = function(event) {
+  let state = event.state;
+  if(state && state.screen) {
+    let {screen, params} = state;
+    if(screen==="classList") showClassList(false);
+    else if(screen==="sectionList") showSectionList(...params,false);
+    else if(screen==="studentList") showStudentList(...params,false);
+    else if(screen==="enterMarks") enterMarksStart(...params);
+  } else {
+    // if at start, stay at class list
+    showClassList(false);
+  }
+};
+// Initial load
+loadData();
+// showClassList() is now called after splash
