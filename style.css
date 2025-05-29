@@ -18,7 +18,7 @@ body { min-height: 100vh; }
   text-align: center;
 }
 .school-title {
-  font-size: 2.1em;
+  font-size: 2.2em;
   font-weight: 900;
   letter-spacing: 1.1px;
   display: flex;
@@ -225,7 +225,7 @@ body { min-height: 100vh; }
 @media (max-width:650px) {
   .main-content { margin-top: 92px;}
   .class-btn { flex-basis: calc(94%/3); }
-  .school-title { font-size: 1.3em; }
+  .school-title { font-size: 1.7em; }
   .screen-title { font-size:1.1em; }
   .left-title { font-size:1em;}
 }
@@ -233,7 +233,7 @@ body { min-height: 100vh; }
   .fixed-header { font-size: 0.94em; }
   .main-content { margin-top: 80px;}
   .class-btn { flex-basis: calc(98%/3); font-size: 1em;}
-  .school-title { font-size: 1em; }
+  .school-title { font-size: 1.25em; }
   .screen-title { font-size:1em;}
   .left-title { font-size:0.96em;}
 }
