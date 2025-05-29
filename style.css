@@ -17,7 +17,7 @@ main {
   margin: 0;
   border-radius: 0;
   box-shadow: none;
-  padding: 18px 4vw 32px 4vw;
+  padding: 0;
   font-size: 18px;
   position: relative;
   box-sizing: border-box;
@@ -65,14 +65,26 @@ main {
   transform: translateY(-2px) scale(1.04);
   background: #eaf0fa;
 }
+#sectionList, #studentsList {
+  width: 100vw;
+  margin-left: -8vw;
+  background: #fff;
+}
+@media (min-width: 600px) {
+  #sectionList, #studentsList {
+    width: 100%;
+    margin-left: 0;
+  }
+}
 .section-item, .student-item {
-  border-bottom: 1px solid #000;
+  border-bottom: 1.5px solid #000;
   padding: 10px 0;
   margin: 0;
   font-size: 17px;
   text-align: left;
   width: 100%;
   box-sizing: border-box;
+  background: #fff;
 }
 .section-item { font-weight: bold; }
 #back-btn {
@@ -134,11 +146,11 @@ main {
 }
 .modal-content {
   background-color: #fefefe;
-  padding: 20px 30px 30px 30px;
+  padding: 20px 10px 30px 10px;
   border: 1px solid #888;
   border-radius: 16px;
-  width: 94vw;
-  max-width: 340px;
+  width: 95vw;
+  max-width: 350px;
   position: relative;
   margin: 8vh auto 0 auto;
   transition: margin-top 0.2s, top 0.2s;
@@ -181,14 +193,15 @@ main {
 }
 .close {
   position: absolute;
-  top: 12px;
-  right: 18px;
+  top: 10px;
+  right: 10px;
   font-size: 28px;
   font-weight: bold;
   color: #555;
   cursor: pointer;
   user-select: none;
   transition: color 0.3s ease;
+  z-index: 12000;
 }
 .close:hover {
   color: #000;
