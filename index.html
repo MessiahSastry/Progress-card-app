@@ -23,24 +23,30 @@
       <button id="createClassBtn">Create Class</button>
     </div>
   </div>
-  <!-- Add Section Modal -->
+  <!-- Add/Edit Section Modal -->
   <div id="addSectionModal" class="modal">
     <div class="modal-content">
       <span class="close" id="closeAddSection">&times;</span>
-      <h2>Create Section</h2>
+      <h2 id="sectionModalTitle">Create Section</h2>
       <input type="text" id="newSectionName" placeholder="Section Name" />
-      <button id="createSectionBtn">Create Section</button>
+      <button id="createSectionBtn">Save Section</button>
     </div>
   </div>
-  <!-- Add Student Modal -->
+  <!-- Add/Edit Student Modal -->
   <div id="addStudentModal" class="modal">
     <div class="modal-content" id="addStudentModalContent">
       <span class="close" id="closeAddStudent">&times;</span>
-      <h2>Add Student</h2>
+      <h2 id="studentModalTitle">Add Student</h2>
       <input type="text" id="studentName" placeholder="Name" />
       <input type="text" id="fatherName" placeholder="Father's Name" />
       <input type="number" id="rollNumber" placeholder="Roll" />
       <button id="saveStudentBtn">Save Student</button>
+    </div>
+  </div>
+  <!-- Long Press Popup Modal -->
+  <div id="longPressModal" class="modal">
+    <div class="longpress-content" id="longPressContent">
+      <!-- Filled by JS -->
     </div>
   </div>
   <script src="script.js"></script>
