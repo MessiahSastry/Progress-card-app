@@ -24,7 +24,7 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
 }
 @media (min-width: 600px) {
   main {
@@ -70,6 +70,9 @@ main {
   padding: 10px 4px;
   margin: 3px 0;
   font-size: 17px;
+  text-align: left;
+  width: 100%;
+  max-width: 300px;
 }
 .section-item { font-weight: bold; }
 #back-btn {
@@ -86,17 +89,9 @@ main {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin-bottom: 18px;
+  margin-bottom: 2px;
   gap: 8px;
   box-sizing: border-box;
-}
-.bar-row h2 {
-  margin: 0;
-  padding: 0;
-  font-size: 20px;
-  font-weight: bold;
-  flex: 1 1 auto;
-  text-align: center;
 }
 .add-btn {
   background: #0f3d6b;
@@ -113,6 +108,16 @@ main {
 .add-btn:hover, .add-btn:focus {
   background-color: #1567b1;
 }
+/* Title style: below bar-row, left-aligned */
+.page-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 14px 0 10px 0;
+  text-align: left;
+  width: 100%;
+  padding-left: 2px;
+}
+
 /* Modal styles */
 .modal {
   display: none;
@@ -136,7 +141,7 @@ main {
   max-width: 340px;
   position: relative;
   margin: 8vh auto 0 auto;
-  transition: margin-top 0.2s;
+  transition: margin-top 0.2s, top 0.2s;
 }
 @media (min-width: 480px) {
   .modal-content {
@@ -193,10 +198,7 @@ main {
 @media (max-width: 600px) {
   .modal-up .modal-content {
     margin-top: 2vh !important;
-  }
-  .modal-content:focus-within,
-  .modal-content input:focus {
-    margin-top: 2vh !important;
-    margin-bottom: 2vh !important;
+    top: 6px !important;
+    position: absolute !important;
   }
 }
