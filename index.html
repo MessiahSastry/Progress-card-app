@@ -1,54 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>St. Patrick's Report Card App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>St. Patrick's Progress Card App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="app-header">
-    <h1>ST. PATRICK'S SCHOOL</h1>
-    <h2>IIT & NEET FOUNDATION</h2>
-    <h3>MARKS MEMO</h3>
-  </header>
-  <main id="app"></main>
-
-  <!-- Add Class Modal -->
-  <div id="addClassModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeAddClass">&times;</span>
-      <h2>Create Class</h2>
-      <input type="text" id="newClassName" placeholder="Class Name" />
-      <button id="createClassBtn">Create Class</button>
-    </div>
+  <!-- Splash Screen -->
+  <div class="splash" id="splash">
+    <img src="logo.png" alt="School Logo">
   </div>
-  <!-- Add/Edit Section Modal -->
-  <div id="addSectionModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeAddSection">&times;</span>
-      <h2 id="sectionModalTitle">Create Section</h2>
-      <input type="text" id="newSectionName" placeholder="Section Name" />
-      <button id="createSectionBtn">Save Section</button>
+  <!-- Header -->
+  <div class="fixed-header" id="header">
+    <div class="school-title" id="school-title">
+      <span>S</span><span>t</span><span>.</span><span>P</span><span>a</span><span>t</span><span>r</span><span>i</span><span>c</span><span>k</span><span>'</span><span>s</span><span>S</span><span>c</span><span>h</span><span>o</span><span>o</span><span>l</span>
     </div>
+    <div class="subtitle" id="header-subtitle">IIT & NEET FOUNDATION</div>
+    <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
   </div>
-  <!-- Add/Edit Student Modal -->
-  <div id="addStudentModal" class="modal">
-    <div class="modal-content" id="addStudentModalContent">
-      <span class="close" id="closeAddStudent">&times;</span>
-      <h2 id="studentModalTitle">Add Student</h2>
-      <input type="text" id="studentName" placeholder="Name" />
-      <input type="text" id="fatherName" placeholder="Father's Name" />
-      <input type="number" id="rollNumber" placeholder="Roll" />
-      <button id="saveStudentBtn">Save Student</button>
-    </div>
-  </div>
-  <!-- Long Press Popup Modal -->
-  <div id="longPressModal" class="modal">
-    <div class="longpress-content" id="longPressContent">
-      <!-- Filled by JS -->
-    </div>
-  </div>
-  <script src="script.js"></script>
+  <!-- Main Content -->
+  <div class="main-content" id="main-area"></div>
+  <!-- Add Student Floating Button -->
+  <button class="fab" id="fab" title="Add" onclick="showAddPopup()">+</button>
+  <!-- Settings Icon -->
+  <button class="settings-btn" id="settings-btn" title="Settings" onclick="showSettingsPopup()">
+    <i class="fa fa-cog"></i>
+  </button>
+  <!-- Popups will be injected here -->
+  <script src="app.js"></script>
 </body>
 </html>
