@@ -5,27 +5,23 @@
   <title>St. Patrick's School | Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
-  <!-- Google icon (FontAwesome) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-  <!-- School Title -->
-  <div class="school-title" id="main-title">
-    <span style="color:#e53935;">S</span>
-    <span style="color:#fbc02d;">t.</span>
-    <span style="color:#43a047;">P</span>
-    <span style="color:#1e88e5;">a</span>
-    <span style="color:#8e24aa;">t</span>
-    <span style="color:#fb8c00;">r</span>
-    <span style="color:#e91e63;">i</span>
-    <span style="color:#43a047;">c</span>
-    <span style="color:#fbc02d;">k</span>
-    <span style="color:#1e88e5;">'s</span>
-    <span style="color:#e53935;">School</span>
+  <!-- Splash Screen -->
+  <div class="splash" id="splash">
+    <div class="splash-logo">
+      <img src="logo.png" alt="School Logo" style="width:75px;height:75px;">
+    </div>
+    <div class="splash-school-title">St. Patrick's School</div>
+    <div class="splash-foundation">IIT & NEET FOUNDATION</div>
   </div>
   <div class="login-outer">
+    <div class="login-header">
+      <div class="school-title">St. Patrick's School</div>
+      <div class="foundation-title">IIT & NEET FOUNDATION</div>
+    </div>
     <div class="login-box">
-      <div class="login-subtitle">IIT & NEET FOUNDATION</div>
       <button class="google-btn" id="googleSignIn">
         <i class="fa-brands fa-google"></i>
         <span>Sign in with Google</span>
@@ -41,5 +37,13 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="app.js"></script>
+  <script>
+    // Splash transition logic with fade-in/fade-out
+    window.onload = function() {
+      setTimeout(() => {
+        document.getElementById('splash').classList.add('splash-hide');
+      }, 1600); // Show splash for 1.6s
+    }
+  </script>
 </body>
 </html>
