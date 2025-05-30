@@ -1,4 +1,97 @@
-/* === Login Box & Inputs/BUTTONS Centered === */
+/* === Splash Screen Styles === */
+.splash {
+  position: fixed;
+  z-index: 99999;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.6s;
+}
+.splash-logo {
+  width: 160px;
+  height: 160px;
+  margin-bottom: 18px;
+  opacity: 0;
+  transform: scale(0.7);
+  animation: splash-zoomin 1.3s cubic-bezier(0.7,0,0.3,1) 0.05s forwards;
+}
+@keyframes splash-zoomin {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.splash-title {
+  font-size: 2.2em;
+  color: #0f3d6b;
+  font-weight: bold;
+  letter-spacing: 1.2px;
+  text-align: center;
+  margin-bottom: 6px;
+  animation: fade-in 1.2s cubic-bezier(0.7, 0, 0.3, 1);
+}
+.splash-subtitle {
+  font-size: 1.13em;
+  color: #c92f2f;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 1px;
+  animation: fade-in 1.3s cubic-bezier(0.7, 0, 0.3, 1);
+}
+.splash.splash-hide {
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* === School Title (Login Header) === */
+.login-header {
+  margin-bottom: 22px;
+  text-align: center;
+}
+.school-title {
+  font-size: 2.3em;
+  color: #0f3d6b;
+  font-weight: bold;
+  letter-spacing: 1.1px;
+  margin-bottom: 2px;
+}
+.school-subtitle {
+  font-size: 1.2em;
+  color: #c92f2f;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+/* === Login/Register Centering & Styling === */
+.login-container {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background: #fff;
+  padding-top: 7vh;
+}
+
 .login-box {
   display: flex;
   flex-direction: column;
@@ -45,11 +138,39 @@
   display: block;
 }
 
-.btn-google, .btn-email, .btn-register {
-  width: 100%;
-  max-width: 320px;
+.btn-google {
+  background: #14345b;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 1px 10px #bdd5f570;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 7px;
+  transition: background 0.17s;
+}
+.btn-google i {
+  font-size: 1.45em;
+  margin-right: 13px;
+}
+.btn-google:hover { background: #183f6b; }
+
+.btn-email { background: #0f3d6b; color: #fff; }
+.btn-email:hover { background: #183f6b; }
+.btn-register { background: #18a889; color: #fff; }
+.btn-register:hover { background: #127865; }
+
+.divider {
+  text-align: center;
+  color: #a0a0a0;
+  margin: -3px 0 0 0;
+  font-size: 1.03em;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
+/* Forgot Password */
 .forgot-btn {
   width: 100%;
   max-width: 320px;
@@ -68,11 +189,20 @@
 }
 .forgot-btn:hover { color: #d32f2f; }
 
+/* Error/Info Message */
+.login-error {
+  text-align: center;
+  font-size: 1.05em;
+  min-height: 22px;
+  margin-top: 4px;
+  color: #e53935;
+}
+
+/* Responsive */
 @media (max-width: 500px) {
-  .login-box {
-    padding: 14px 6vw 18px 6vw;
-    max-width: 98vw;
-  }
+  .login-header .school-title { font-size: 1.43em; }
+  .login-header .school-subtitle { font-size: 1em; }
+  .login-box { padding: 14px 6vw 18px 6vw; max-width: 98vw; }
   .login-box input[type="email"],
   .login-box input[type="password"],
   .login-box button,
