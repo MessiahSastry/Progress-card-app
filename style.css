@@ -1,0 +1,139 @@
+:root {
+  --blue: #0f3d6b;
+  --border-radius: 18px;
+  --section-colors: #e74c3c,#fdc600,#27ae60,#2980b9,#e67e22,#9b59b6,#f39c12,#e84393,#00b894,#fdc600;
+}
+html, body { margin: 0; padding: 0; height: 100%; background: #fff; font-family: 'Segoe UI', Arial, sans-serif; color: #222; }
+body { min-height: 100vh; }
+
+/* SPLASH SCREEN */
+.splash {
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  position: fixed; inset: 0; z-index: 2000; background: #fff;
+  animation: fadeIn 1s;
+}
+.splash img {
+  width: 160px; height: 160px; margin-bottom: 18px; border-radius: 36px;
+  box-shadow: 0 5px 50px #2980b975;
+  animation: pulse 1.7s infinite;
+  background: #fff;
+}
+.splash-title {
+  font-size: 2em; font-weight: 900; letter-spacing: 1.1px;
+  margin-bottom: 6px; text-align: center;
+}
+.splash-subtitle {
+  font-size: 1.15em; font-weight: 500; margin-bottom: 2px; letter-spacing: 1px; color: var(--blue);
+}
+@keyframes fadeIn { from { opacity: 0;} to { opacity: 1;} }
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 #fff3; }
+  50% { box-shadow: 0 6px 32px #0f3d6b85; }
+  100% { box-shadow: 0 0 0 #fff3; }
+}
+.hidden { display: none !important; }
+
+.fixed-header {
+  background: var(--blue);
+  color: #fff;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  padding: 26px 0 15px 0;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  box-shadow: 0 2px 8px #bbb5;
+  text-align: center;
+}
+.school-title {
+  font-size: 2.1em;
+  font-weight: 900;
+  letter-spacing: 1.1px;
+  display: flex;
+  justify-content: center;
+  gap: 2.2px;
+  user-select: none;
+  margin-bottom: 3px;
+  line-height: 1.08;
+  flex-wrap: wrap;
+}
+.school-title span:nth-child(1) { color: #e74c3c; }
+.school-title span:nth-child(2) { color: #fdc600; }
+.school-title span:nth-child(3) { color: #27ae60; }
+.school-title span:nth-child(4) { color: #2980b9; }
+.school-title span:nth-child(5) { color: #e67e22; }
+.school-title span:nth-child(6) { color: #9b59b6; }
+.school-title span:nth-child(7) { color: #f39c12; }
+.school-title span:nth-child(8) { color: #e84393; }
+.school-title span:nth-child(9) { color: #00b894; }
+.school-title span:nth-child(10) { color: #fdc600; }
+.school-title span:nth-child(11) { color: #27ae60; }
+.school-title span:nth-child(12) { color: #2980b9; }
+.school-title span:nth-child(13) { color: #e67e22; }
+.school-title span:nth-child(14) { color: #9b59b6; }
+.school-title span:nth-child(15) { color: #e74c3c; }
+.school-title span:nth-child(16) { color: #fdc600; }
+.school-title span:nth-child(17) { color: #00b894; }
+.school-title span:nth-child(18) { color: #f39c12; }
+.subtitle { font-size: 1.15em; font-weight: 500; margin-bottom: 2px; letter-spacing: 1px; }
+#logoutBtn {
+  position: absolute; top: 22px; right: 26px; color: #fff; background: #e74c3c; border: none; border-radius: 8px;
+  padding: 6px 18px; font-size: 1em; font-weight: 600; cursor: pointer; z-index: 25;
+}
+#logoutBtn:hover { background: #c62828; }
+.main-content {
+  padding: 0 0 90px 0;
+  max-width: 680px;
+  margin: 0 auto;
+  padding-top: 130px;
+  min-height: 70vh;
+  box-sizing: border-box;
+}
+.screen-title {
+  position: sticky;
+  top: 85px;
+  z-index: 9;
+  background: #fff;
+  padding: 14px 0 8px 0;
+  font-size: 1.53em;
+  font-weight: 700;
+  color: var(--blue);
+  text-align: center;
+  letter-spacing: .02em;
+  margin: 0 0 8px 0;
+  border-bottom: 1.5px solid #e7eaf0;
+}
+/* ... You can add more style rules from your own CSS file here ... */
+.fab {
+  position: fixed; bottom: 65px; right: 16px; width: 52px; height: 52px;
+  background: var(--blue); color: #fff;
+  border-radius: 50%; font-size: 2em; border: none; cursor: pointer;
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 2px 2px 13px #bdd5f54d;
+}
+.settings-btn {
+  position: fixed; bottom: 14px; right: 22px;
+  background: #fff; color: var(--blue); border-radius: 50%; border: 2px solid var(--blue);
+  width: 41px; height: 41px; font-size: 1.33em;
+  box-shadow: 1px 1px 8px #d8e2f164;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 102;
+}
+/* Responsive */
+@media (max-width:650px) {
+  .main-content { padding-top: 120px; }
+  .class-btn { flex-basis: calc(94%/3); }
+  .school-title { font-size: 1.7em; }
+  .screen-title { font-size:1.1em; top: 76px; }
+  .left-title { font-size:1em;}
+}
+@media (max-width:430px) {
+  .fixed-header { font-size: 0.94em; }
+  .main-content { padding-top: 100px; }
+  .class-btn { flex-basis: calc(98%/3); font-size: 1em;}
+  .school-title { font-size: 1.25em; }
+  .screen-title { font-size:1em; top: 62px; }
+  .left-title { font-size:0.96em;}
+}

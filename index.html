@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>St. Patrick's Progress Card App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <!-- Firebase scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <!-- jsPDF, Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div class="splash" id="splash">
+    <img src="logo.png" alt="School Logo">
+    <div class="splash-title">St. <span style="text-transform:uppercase;">Patrick’s School</span></div>
+    <div class="splash-subtitle">IIT & NEET FOUNDATION</div>
+  </div>
+  <!-- Auth/Login screen will be injected -->
+  <div id="auth-area"></div>
+  <!-- Header -->
+  <div class="fixed-header" id="header" style="display:none;">
+    <div class="school-title" id="school-title">
+      <span>S</span><span>t</span><span>.</span><span>P</span><span>a</span><span>t</span><span>r</span><span>i</span><span>c</span><span>k</span><span>'</span><span>s</span><span>S</span><span>c</span><span>h</span><span>o</span><span>o</span><span>l</span>
+    </div>
+    <div class="subtitle" id="header-subtitle">IIT & NEET FOUNDATION</div>
+    <div class="subtitle" id="header-year"></div>
+    <button id="logoutBtn" class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+  <!-- Main Content -->
+  <div class="main-content" id="main-area"></div>
+  <!-- Add Student Floating Button -->
+  <button class="fab" id="fab" title="Add" onclick="showAddPopup()">+</button>
+  <!-- Settings Icon -->
+  <button class="settings-btn" id="settings-btn" title="Settings" onclick="showSettingsPopup()">
+    <i class="fa fa-cog"></i>
+  </button>
+  <!-- Popups will be injected here -->
+  <script src="app.js"></script>
+</body>
+</html>
