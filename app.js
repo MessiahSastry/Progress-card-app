@@ -39,14 +39,16 @@ function showLoginScreen() {
       </button>
     </div>
   `;
+}
+
 window.googleSignIn = function() {
-  signInWithRedirect(auth, provider);
+  auth.signInWithRedirect(provider);
 };
 
 // === Auth State Listener ===
-onAuthStateChanged(auth, user => {
+auth.onAuthStateChanged(user => {
   if (user) {
-    showAcademicYearScreen();
+    showAcademicYearScreen(); // (Define this function in your code)
   } else {
     showLoginScreen();
   }
