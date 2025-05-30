@@ -50,13 +50,8 @@ function showLoginScreen() {
       </button>
     </div>
   `;
-}
 window.googleSignIn = function() {
-  signInWithPopup(auth, provider).then(result => {
-    showAcademicYearScreen();
-  }).catch(err => {
-    alert("Sign-in failed: " + err.message);
-  });
+  signInWithRedirect(auth, provider);
 };
 
 // === Auth State Listener ===
