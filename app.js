@@ -34,6 +34,8 @@ function showLoginScreen() {
         <span style="color:#fdc600">o</span><span style="color:#00b894">o</span><span style="color:#f39c12">l</span>
       </h2>
       <div style="font-size:1.18em;color:#0f3d6b;margin-bottom:18px;font-weight:600;">IIT & NEET FOUNDATION</div>
+            <input id="email" type="email" placeholder="Email" style="margin:8px 0;padding:8px;width:220px;" />
+      <input id="password" type="password" placeholder="Password" style="margin:8px 0;padding:8px;width:220px;" />
       <button onclick="googleSignIn()" style="font-size:1.21em;padding:11px 39px;border-radius:10px;border:none;background:#0f3d6b;color:#fff;cursor:pointer;box-shadow:1px 2px 8px #bdd5f54d;">
         <i class="fa fa-google" style="margin-right:10px;"></i>Sign in with Google
       </button>
