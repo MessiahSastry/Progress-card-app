@@ -4,49 +4,51 @@
   <meta charset="UTF-8" />
   <title>St. Patrick's Progress Card App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <!-- Firebase scripts -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-  <!-- jsPDF, Chart.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <!-- Splash Screen -->
   <div class="splash" id="splash">
-    <img src="logo.png" alt="School Logo">
+    <img src="logo.png" alt="School Logo" style="width:85px;height:85px;margin-bottom:10px;">
     <div class="splash-title">St. <span style="text-transform:uppercase;">Patrick’s School</span></div>
     <div class="splash-subtitle">IIT & NEET FOUNDATION</div>
   </div>
-  <!-- Auth/Login screen will be injected -->
-  <div id="auth-area"></div>
-  <!-- Header -->
-  <div class="fixed-header" id="header" style="display:none;">
-    <div class="school-title" id="school-title">
-      <span>S</span><span>t</span><span>.</span><span>P</span><span>a</span><span>t</span><span>r</span><span>i</span><span>c</span><span>k</span><span>'</span><span>s</span><span>S</span><span>c</span><span>h</span><span>o</span><span>o</span><span>l</span>
-    </div>
-    <div class="subtitle" id="header-subtitle">IIT & NEET FOUNDATION</div>
-    <div class="subtitle" id="header-year"></div>
-    <button id="logoutBtn" class="logout-btn" onclick="logout()">Logout</button>
+
+  <!-- Login/Register Area -->
+  <div class="school-title" id="main-title" style="display:none;">
+    <span style="color:#e53935;">S</span>
+    <span style="color:#fbc02d;">t.</span>
+    <span style="color:#43a047;">P</span>
+    <span style="color:#1e88e5;">a</span>
+    <span style="color:#8e24aa;">t</span>
+    <span style="color:#fb8c00;">r</span>
+    <span style="color:#e91e63;">i</span>
+    <span style="color:#43a047;">c</span>
+    <span style="color:#fbc02d;">k</span>
+    <span style="color:#1e88e5;">'s</span>
+    <span style="color:#e53935;">School</span>
   </div>
-  <!-- Main Content -->
-  <div class="main-content" id="main-area"></div>
-  <!-- Add Student Floating Button -->
-  <button class="fab" id="fab" title="Add" onclick="showAddPopup()">+</button>
-  <!-- Settings Icon -->
-  <button class="settings-btn" id="settings-btn" title="Settings" onclick="showSettingsPopup()">
-    <i class="fa fa-cog"></i>
-  </button>
-  <!-- Popups will be injected here -->
- <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-<script src="app.js"></script>
+  <div class="login-box" id="main-login" style="display:none;">
+    <h2>IIT & NEET FOUNDATION</h2>
+    <button class="google-btn" id="googleSignIn">Sign in with Google</button>
+    <div class="or-divider">or</div>
+    <input type="email" id="email" placeholder="Email" autocomplete="username"/>
+    <input type="password" id="password" placeholder="Password" autocomplete="current-password"/>
+    <button class="email-btn" id="emailSignIn">Sign in with Email</button>
+    <button class="register-btn" id="registerBtn">Register (New User)</button>
+    <div id="loginError" class="login-error"></div>
+  </div>
+  <script>
+    // Splash: hide after 2 seconds, show login form
+    setTimeout(function() {
+      document.getElementById('splash').style.display = 'none';
+      document.getElementById('main-title').style.display = '';
+      document.getElementById('main-login').style.display = '';
+    }, 2000);
+  </script>
+  <script src="app.js"></script>
 </body>
 </html>
