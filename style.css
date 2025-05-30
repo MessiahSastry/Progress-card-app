@@ -6,52 +6,10 @@ html, body {
   background: #f2f7fb;
 }
 
-/* --- Splash Screen --- */
-.splash {
-  position: fixed;
-  z-index: 9999;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  opacity: 1;
-  transition: opacity 1s;
-}
-.splash-logo {
-  opacity: 0;
-  animation: fadeIn 1.2s 0.1s forwards;
-}
-.splash-school-title {
-  font-size: 2.1rem;
-  font-weight: bold;
-  color: #0f3d6b;
-  margin-top: 12px;
-  opacity: 0;
-  animation: fadeIn 1.2s 0.2s forwards;
-  letter-spacing: 0.04em;
-}
-.splash-foundation {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #e53935;
-  margin-top: 3px;
-  opacity: 0;
-  animation: fadeIn 1.2s 0.4s forwards;
-  letter-spacing: 0.03em;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px);}
-  to { opacity: 1; transform: translateY(0);}
-}
-.splash-hide {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.6s;
-}
+/* --- Splash --- */
+.splash { display: none; } /* Hide splash if not using, or keep your previous code if needed */
 
-/* --- Login Layout --- */
+/* --- Login Centered Outer --- */
 .login-outer {
   min-height: 100vh;
   width: 100vw;
@@ -60,43 +18,51 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
+
+/* --- Login Header --- */
 .login-header {
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   text-align: center;
 }
+
 .school-title {
-  font-size: 2.2rem;
+  font-size: 2.6rem;   /* DOUBLE the foundation title */
   font-weight: bold;
   color: #0f3d6b;
-  letter-spacing: 0.03em;
-  margin-bottom: 2px;
+  letter-spacing: 0.01em;
+  margin-bottom: 4px;
+  line-height: 1.05;
 }
 .foundation-title {
-  font-size: 1.14rem;
+  font-size: 1.3rem;
   font-weight: bold;
   color: #e53935;
-  margin-bottom: 14px;
-  letter-spacing: 0.02em;
+  margin-bottom: 16px;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
 }
 
 /* --- Login Box --- */
 .login-box {
   width: 370px;
-  max-width: 99vw;
+  max-width: 96vw;
   background: #fff;
   padding: 35px 22px 32px 22px;
   border-radius: 18px;
   box-shadow: 0 2px 18px #bdd5f570;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   margin: 0 auto;
 }
 
+/* --- Google Button --- */
 .google-btn {
-  width: 100%;
+  width: 90%;
+  max-width: 300px;
   background: #14345b;
   color: #fff;
   border: none;
@@ -133,10 +99,15 @@ html, body {
   text-align: center;
   margin: 3px 0 10px 0;
   font-size: 1em;
+  width: 100%;
 }
 
+/* --- Inputs --- */
 .login-box input[type="email"],
 .login-box input[type="password"] {
+  width: 90%;
+  max-width: 300px;
+  box-sizing: border-box;
   padding: 11px 14px;
   border-radius: 6px;
   border: 1.6px solid #b1bed1;
@@ -145,40 +116,43 @@ html, body {
   margin-bottom: 11px;
   background: #f7fbfd;
   transition: border-color 0.13s;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 .login-box input:focus {
   border-color: #0f3d6b;
   background: #fff;
 }
 
-.email-btn {
-  width: 100%;
-  background: #123e6b;
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 11px;
-  margin-bottom: 8px;
+/* --- Email & Register Buttons --- */
+.email-btn,
+.register-btn {
+  width: 90%;
+  max-width: 300px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
   font-size: 1.05rem;
   font-weight: 600;
+  border-radius: 7px;
+  padding: 11px;
+  border: none;
   cursor: pointer;
   transition: background 0.18s;
+}
+.email-btn {
+  background: #123e6b;
+  color: #fff;
+  margin-bottom: 8px;
 }
 .email-btn:hover {
   background: #0c2d4d;
 }
 .register-btn {
-  width: 100%;
   background: #18a889;
   color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 11px;
-  font-size: 1.05rem;
-  font-weight: 600;
-  cursor: pointer;
   margin-bottom: 2px;
-  transition: background 0.18s;
 }
 .register-btn:hover {
   background: #107c61;
@@ -191,22 +165,22 @@ html, body {
   margin-top: 6px;
 }
 
-/* Responsive for Mobile */
 @media (max-width: 600px) {
   .school-title {
-    font-size: 1.22rem;
+    font-size: 1.45rem;
   }
-  .splash-school-title {
-    font-size: 1.1rem;
+  .foundation-title {
+    font-size: 0.9rem;
   }
   .login-box {
     width: 97vw;
     padding: 14px 3vw 19px 3vw;
   }
-  .login-outer {
-    padding-bottom: 8vw;
-  }
-  .foundation-title {
-    font-size: 0.98rem;
+  .google-btn,
+  .login-box input,
+  .email-btn,
+  .register-btn {
+    width: 98%;
+    max-width: 99vw;
   }
 }
