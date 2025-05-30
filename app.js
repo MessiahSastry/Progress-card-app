@@ -12,20 +12,37 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const provider = new firebase.auth.GoogleAuthProvider();
 
-const isLoginPage = window.location.pathname.includes("index.html") || window.location.pathname.endsWith("/");
+document.addEventListener("DOMContentLoaded", function() {
+  // Splash logic
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('splash-hide');
+    setTimeout(() => {
+      const loginOuter = document.getElementById('loginOuter');
+      loginOuter.style.transition = "opacity 1s";
+      loginOuter.style.opacity = 1;
+      attachLoginEvents(); // Attach listeners only after login is shown!
+    }, 600);
+  }, 1600);
 
-if (isLoginPage) {
-  function setupLoginListeners() {
-    document.getElementById("googleSignIn").onclick = function() {
+  function attachLoginEvents() {
+    // Make sure elements exist before adding listeners!
+    const googleBtn = document.getElementById("googleSignIn");
+    const emailBtn = document.getElementById("emailSignIn");
+    const registerBtn = document.getElementById("registerBtn");
+    const errorBox = document.getElementById("loginError");
+
+    if (!googleBtn || !emailBtn || !registerBtn) return;
+
+    googleBtn.onclick = function() {
       auth.signInWithPopup(provider)
         .then(() => {
           window.location.href = "dashboard.html";
         })
         .catch(error => {
-          document.getElementById("loginError").innerText = error.message;
+          errorBox.innerText = error.message;
         });
     };
-    document.getElementById("emailSignIn").onclick = function() {
+    emailBtn.onclick = function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       auth.signInWithEmailAndPassword(email, password)
@@ -33,10 +50,10 @@ if (isLoginPage) {
           window.location.href = "dashboard.html";
         })
         .catch(error => {
-          document.getElementById("loginError").innerText = error.message;
+          errorBox.innerText = error.message;
         });
     };
-    document.getElementById("registerBtn").onclick = function() {
+    registerBtn.onclick = function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       auth.createUserWithEmailAndPassword(email, password)
@@ -44,20 +61,8 @@ if (isLoginPage) {
           window.location.href = "dashboard.html";
         })
         .catch(error => {
-          document.getElementById("loginError").innerText = error.message;
+          errorBox.innerText = error.message;
         });
     };
   }
-
-  window.onload = function() {
-    setTimeout(() => {
-      document.getElementById('splash').classList.add('splash-hide');
-      setTimeout(() => {
-        document.getElementById('loginOuter').style.transition = "opacity 1s";
-        document.getElementById('loginOuter').style.opacity = 1;
-        // Most important: attach listeners AFTER login box is shown!
-        setupLoginListeners();
-      }, 600);
-    }, 1600);
-  };
-}
+});
