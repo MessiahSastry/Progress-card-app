@@ -2,23 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>St. Patrick's Progress Card App</title>
+  <title>St. Patrick's School | Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
-  <!-- Firebase scripts -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <!-- Google icon (FontAwesome) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-  <!-- Splash Screen -->
-  <div class="splash" id="splash">
-    <img src="logo.png" alt="School Logo" style="width:85px;height:85px;margin-bottom:10px;">
-    <div class="splash-title">St. <span style="text-transform:uppercase;">Patrick’s School</span></div>
-    <div class="splash-subtitle">IIT & NEET FOUNDATION</div>
-  </div>
-
-  <!-- Login/Register Area -->
-  <div class="school-title" id="main-title" style="display:none;">
+  <!-- School Title -->
+  <div class="school-title" id="main-title">
     <span style="color:#e53935;">S</span>
     <span style="color:#fbc02d;">t.</span>
     <span style="color:#43a047;">P</span>
@@ -31,24 +23,23 @@
     <span style="color:#1e88e5;">'s</span>
     <span style="color:#e53935;">School</span>
   </div>
-  <div class="login-box" id="main-login" style="display:none;">
-    <h2>IIT & NEET FOUNDATION</h2>
-    <button class="google-btn" id="googleSignIn">Sign in with Google</button>
-    <div class="or-divider">or</div>
-    <input type="email" id="email" placeholder="Email" autocomplete="username"/>
-    <input type="password" id="password" placeholder="Password" autocomplete="current-password"/>
-    <button class="email-btn" id="emailSignIn">Sign in with Email</button>
-    <button class="register-btn" id="registerBtn">Register (New User)</button>
-    <div id="loginError" class="login-error"></div>
+  <div class="login-outer">
+    <div class="login-box">
+      <div class="login-subtitle">IIT & NEET FOUNDATION</div>
+      <button class="google-btn" id="googleSignIn">
+        <i class="fa-brands fa-google"></i>
+        <span>Sign in with Google</span>
+      </button>
+      <div class="or-divider">or</div>
+      <input type="email" id="email" placeholder="Email" autocomplete="username"/>
+      <input type="password" id="password" placeholder="Password" autocomplete="current-password"/>
+      <button class="email-btn" id="emailSignIn">Sign in with Email</button>
+      <button class="register-btn" id="registerBtn">Register (New User)</button>
+      <div id="loginError" class="login-error"></div>
+    </div>
   </div>
-  <script>
-    // Splash: hide after 2 seconds, show login form
-    setTimeout(function() {
-      document.getElementById('splash').style.display = 'none';
-      document.getElementById('main-title').style.display = '';
-      document.getElementById('main-login').style.display = '';
-    }, 2000);
-  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
