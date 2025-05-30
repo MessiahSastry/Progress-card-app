@@ -2,53 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>St. Patrick's School | Login</title>
+  <title>St. Patrick's Progress Card App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <!-- FontAwesome for Google Icon -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <!-- Firebase scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </head>
 <body>
   <!-- Splash Screen -->
   <div class="splash" id="splash">
-    <div class="splash-logo">
-      <img src="logo.png" alt="School Logo" style="width:80px;height:80px;">
-    </div>
-    <div class="splash-school-title">St. Patrick's School</div>
-    <div class="splash-foundation">IIT & NEET FOUNDATION</div>
+    <img src="logo.png" alt="School Logo" class="splash-logo">
+    <div class="splash-title">St. Patrick's School</div>
+    <div class="splash-subtitle">IIT & NEET FOUNDATION</div>
   </div>
-  <div class="login-outer" id="loginOuter" style="opacity:0;">
+  <!-- Login Outer Container (hidden until splash fades) -->
+  <div id="loginOuter" class="login-container" style="opacity:0;">
     <div class="login-header">
       <div class="school-title">St. Patrick's School</div>
-      <div class="foundation-title">IIT & NEET FOUNDATION</div>
+      <div class="school-subtitle">IIT & NEET FOUNDATION</div>
     </div>
     <div class="login-box">
-      <button class="google-btn" id="googleSignIn">
-        <i class="fa-brands fa-google"></i>
-        <span>Sign in with Google</span>
+      <button id="googleSignIn" class="btn-google">
+        <i class="fab fa-google"></i> Sign in with Google
       </button>
-      <div class="or-divider">or</div>
-      <input type="email" id="email" placeholder="Email" autocomplete="username"/>
-      <input type="password" id="password" placeholder="Password" autocomplete="current-password"/>
-      <button class="email-btn" id="emailSignIn">Sign in with Email</button>
-      <button class="register-btn" id="registerBtn">Register (New User)</button>
+      <div class="divider">or</div>
+      <input type="email" id="email" placeholder="Email" autocomplete="username" />
+      <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
+      <button id="forgotPasswordBtn" type="button" class="forgot-btn">Forgot Password?</button>
+      <button id="emailSignIn" class="btn-email">Sign in with Email</button>
+      <button id="registerBtn" class="btn-register">Register (New User)</button>
       <div id="loginError" class="login-error"></div>
     </div>
   </div>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="app.js"></script>
-  <script>
-    // Splash transition logic with fade-in/fade-out
-    window.onload = function() {
-      setTimeout(() => {
-        document.getElementById('splash').classList.add('splash-hide');
-        // Fade in login screen after splash
-        setTimeout(() => {
-          document.getElementById('loginOuter').style.transition = "opacity 1s";
-          document.getElementById('loginOuter').style.opacity = 1;
-        }, 600); // Match to splash-hide transition
-      }, 1600); // Show splash for 1.6s
-    }
-  </script>
 </body>
 </html>
