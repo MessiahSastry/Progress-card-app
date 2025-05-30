@@ -2,70 +2,99 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  font-family: 'Segoe UI', Arial, sans-serif;
   background: #f2f7fb;
-  font-family: 'Segoe UI', 'Arial', sans-serif;
 }
 
-body {
-  min-height: 100vh;
+/* --- Splash Screen --- */
+.splash {
+  position: fixed;
+  z-index: 9999;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 1;
+  transition: opacity 1s;
 }
-
-/* School Title */
-.school-title {
-  font-size: 2.6rem;
-  text-align: center;
+.splash-logo {
+  opacity: 0;
+  animation: fadeIn 1.2s 0.1s forwards;
+}
+.splash-school-title {
+  font-size: 2.1rem;
   font-weight: bold;
-  margin-top: 34px;
-  margin-bottom: 6px;
-  background: transparent;
-  letter-spacing: 0.07em; /* Reduce gap between letters */
-  width: 100%;
+  color: #0f3d6b;
+  margin-top: 12px;
+  opacity: 0;
+  animation: fadeIn 1.2s 0.2s forwards;
+  letter-spacing: 0.04em;
+}
+.splash-foundation {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #e53935;
+  margin-top: 3px;
+  opacity: 0;
+  animation: fadeIn 1.2s 0.4s forwards;
+  letter-spacing: 0.03em;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.splash-hide {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s;
 }
 
-@media (max-width: 600px) {
-  .school-title {
-    font-size: 1.5rem;
-    margin-top: 19px;
-    margin-bottom: 2px;
-  }
-}
-
-/* White background fills entire screen */
+/* --- Login Layout --- */
 .login-outer {
   min-height: 100vh;
   width: 100vw;
   background: #fff;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
+.login-header {
+  margin-top: 0;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.school-title {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #0f3d6b;
+  letter-spacing: 0.03em;
+  margin-bottom: 2px;
+}
+.foundation-title {
+  font-size: 1.14rem;
+  font-weight: bold;
+  color: #e53935;
+  margin-bottom: 14px;
+  letter-spacing: 0.02em;
+}
 
-/* Login Box */
+/* --- Login Box --- */
 .login-box {
   width: 370px;
-  max-width: 98vw;
+  max-width: 99vw;
   background: #fff;
   padding: 35px 22px 32px 22px;
   border-radius: 18px;
-  box-shadow: 0 2px 16px #bdd5f570;
+  box-shadow: 0 2px 18px #bdd5f570;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   margin: 0 auto;
 }
 
-/* Subtitle: IIT & NEET FOUNDATION */
-.login-subtitle {
-  text-align: center;
-  color: #0f3d6b;
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  margin-bottom: 18px;
-  white-space: nowrap;
-}
-
-/* Google Button */
 .google-btn {
   width: 100%;
   background: #14345b;
@@ -84,7 +113,7 @@ body {
   gap: 12px;
 }
 .google-btn i {
-  font-size: 1.23em;
+  font-size: 1.25em;
   background: #fff;
   color: #14345b;
   border-radius: 50%;
@@ -106,7 +135,6 @@ body {
   font-size: 1em;
 }
 
-/* Inputs */
 .login-box input[type="email"],
 .login-box input[type="password"] {
   padding: 11px 14px;
@@ -123,7 +151,6 @@ body {
   background: #fff;
 }
 
-/* Email & Register Buttons */
 .email-btn {
   width: 100%;
   background: #123e6b;
@@ -162,4 +189,24 @@ body {
   min-height: 24px;
   text-align: center;
   margin-top: 6px;
+}
+
+/* Responsive for Mobile */
+@media (max-width: 600px) {
+  .school-title {
+    font-size: 1.22rem;
+  }
+  .splash-school-title {
+    font-size: 1.1rem;
+  }
+  .login-box {
+    width: 97vw;
+    padding: 14px 3vw 19px 3vw;
+  }
+  .login-outer {
+    padding-bottom: 8vw;
+  }
+  .foundation-title {
+    font-size: 0.98rem;
+  }
 }
