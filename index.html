@@ -11,12 +11,12 @@
   <!-- Splash Screen -->
   <div class="splash" id="splash">
     <div class="splash-logo">
-      <img src="logo.png" alt="School Logo" style="width:75px;height:75px;">
+      <img src="logo.png" alt="School Logo" style="width:80px;height:80px;">
     </div>
     <div class="splash-school-title">St. Patrick's School</div>
     <div class="splash-foundation">IIT & NEET FOUNDATION</div>
   </div>
-  <div class="login-outer">
+  <div class="login-outer" id="loginOuter" style="opacity:0;">
     <div class="login-header">
       <div class="school-title">St. Patrick's School</div>
       <div class="foundation-title">IIT & NEET FOUNDATION</div>
@@ -42,6 +42,11 @@
     window.onload = function() {
       setTimeout(() => {
         document.getElementById('splash').classList.add('splash-hide');
+        // Fade in login screen after splash
+        setTimeout(() => {
+          document.getElementById('loginOuter').style.transition = "opacity 1s";
+          document.getElementById('loginOuter').style.opacity = 1;
+        }, 600); // Match to splash-hide transition
       }, 1600); // Show splash for 1.6s
     }
   </script>
