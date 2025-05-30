@@ -20,28 +20,33 @@ document.addEventListener("DOMContentLoaded", function() {
       const loginOuter = document.getElementById('loginOuter');
       loginOuter.style.transition = "opacity 1s";
       loginOuter.style.opacity = 1;
-      attachLoginEvents(); // Attach listeners only after login is shown!
+      attachLoginEvents();
     }, 600);
   }, 1600);
 
   function attachLoginEvents() {
-    // Make sure elements exist before adding listeners!
+    // Elements
     const googleBtn = document.getElementById("googleSignIn");
     const emailBtn = document.getElementById("emailSignIn");
     const registerBtn = document.getElementById("registerBtn");
+    const forgotBtn = document.getElementById("forgotPasswordBtn");
     const errorBox = document.getElementById("loginError");
 
-    if (!googleBtn || !emailBtn || !registerBtn) return;
+    if (!googleBtn || !emailBtn || !registerBtn || !forgotBtn) return;
 
+    // Google Sign-In
     googleBtn.onclick = function() {
       auth.signInWithPopup(provider)
         .then(() => {
           window.location.href = "dashboard.html";
         })
         .catch(error => {
+          errorBox.style.color = "#e53935";
           errorBox.innerText = error.message;
         });
     };
+
+    // Email/Password Sign-In
     emailBtn.onclick = function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -50,9 +55,12 @@ document.addEventListener("DOMContentLoaded", function() {
           window.location.href = "dashboard.html";
         })
         .catch(error => {
+          errorBox.style.color = "#e53935";
           errorBox.innerText = error.message;
         });
     };
+
+    // Register New User
     registerBtn.onclick = function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -61,6 +69,26 @@ document.addEventListener("DOMContentLoaded", function() {
           window.location.href = "dashboard.html";
         })
         .catch(error => {
+          errorBox.style.color = "#e53935";
+          errorBox.innerText = error.message;
+        });
+    };
+
+    // Forgot Password
+    forgotBtn.onclick = function() {
+      const email = document.getElementById('email').value.trim();
+      if (!email) {
+        errorBox.style.color = "#e53935";
+        errorBox.innerText = "Enter your email above and click again.";
+        return;
+      }
+      auth.sendPasswordResetEmail(email)
+        .then(() => {
+          errorBox.style.color = "#18a889";
+          errorBox.innerText = "Password reset email sent. Check your inbox!";
+        })
+        .catch(error => {
+          errorBox.style.color = "#e53935";
           errorBox.innerText = error.message;
         });
     };
