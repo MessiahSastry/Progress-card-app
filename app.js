@@ -8,21 +8,10 @@ const firebaseConfig = {
   messagingSenderId: "671416933178",
   appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
 };
-
-// --- Firebase SDK Setup ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import {
-  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, deleteDoc, query, where
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-
-// --- Initialize Firebase ---
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const provider = new firebase.auth.GoogleAuthProvider();
+const db = firebase.firestore();
 
 // === Splash Screen Logic ===
 window.onload = function() {
