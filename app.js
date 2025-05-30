@@ -42,7 +42,7 @@ function showLoginScreen() {
 }
 
 window.googleSignIn = function() {
-  auth.signInWithRedirect(provider);
+  auth.signInWithPopup(provider);
 };
 
 // === Auth State Listener ===
