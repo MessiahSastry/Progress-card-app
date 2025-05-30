@@ -1,139 +1,215 @@
-:root {
-  --blue: #0f3d6b;
-  --border-radius: 18px;
-  --section-colors: #e74c3c,#fdc600,#27ae60,#2980b9,#e67e22,#9b59b6,#f39c12,#e84393,#00b894,#fdc600;
-}
-html, body { margin: 0; padding: 0; height: 100%; background: #fff; font-family: 'Segoe UI', Arial, sans-serif; color: #222; }
-body { min-height: 100vh; }
-
-/* SPLASH SCREEN */
+/* === Splash Screen Styles === */
 .splash {
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  position: fixed; inset: 0; z-index: 2000; background: #fff;
-  animation: fadeIn 1s;
-}
-.splash img {
-  width: 160px; height: 160px; margin-bottom: 18px; border-radius: 36px;
-  box-shadow: 0 5px 50px #2980b975;
-  animation: pulse 1.7s infinite;
-  background: #fff;
-}
-.splash-title {
-  font-size: 2em; font-weight: 900; letter-spacing: 1.1px;
-  margin-bottom: 6px; text-align: center;
-}
-.splash-subtitle {
-  font-size: 1.15em; font-weight: 500; margin-bottom: 2px; letter-spacing: 1px; color: var(--blue);
-}
-@keyframes fadeIn { from { opacity: 0;} to { opacity: 1;} }
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 #fff3; }
-  50% { box-shadow: 0 6px 32px #0f3d6b85; }
-  100% { box-shadow: 0 0 0 #fff3; }
-}
-.hidden { display: none !important; }
-
-.fixed-header {
-  background: var(--blue);
-  color: #fff;
   position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 10;
-  padding: 26px 0 15px 0;
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
-  box-shadow: 0 2px 8px #bbb5;
-  text-align: center;
+  z-index: 99999;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.5s;
 }
+.splash.hidden { opacity: 0; pointer-events: none; }
+
+/* === School Title Colors (Header) === */
 .school-title {
   font-size: 2.1em;
-  font-weight: 900;
-  letter-spacing: 1.1px;
-  display: flex;
-  justify-content: center;
-  gap: 2.2px;
-  user-select: none;
-  margin-bottom: 3px;
-  line-height: 1.08;
-  flex-wrap: wrap;
-}
-.school-title span:nth-child(1) { color: #e74c3c; }
-.school-title span:nth-child(2) { color: #fdc600; }
-.school-title span:nth-child(3) { color: #27ae60; }
-.school-title span:nth-child(4) { color: #2980b9; }
-.school-title span:nth-child(5) { color: #e67e22; }
-.school-title span:nth-child(6) { color: #9b59b6; }
-.school-title span:nth-child(7) { color: #f39c12; }
-.school-title span:nth-child(8) { color: #e84393; }
-.school-title span:nth-child(9) { color: #00b894; }
-.school-title span:nth-child(10) { color: #fdc600; }
-.school-title span:nth-child(11) { color: #27ae60; }
-.school-title span:nth-child(12) { color: #2980b9; }
-.school-title span:nth-child(13) { color: #e67e22; }
-.school-title span:nth-child(14) { color: #9b59b6; }
-.school-title span:nth-child(15) { color: #e74c3c; }
-.school-title span:nth-child(16) { color: #fdc600; }
-.school-title span:nth-child(17) { color: #00b894; }
-.school-title span:nth-child(18) { color: #f39c12; }
-.subtitle { font-size: 1.15em; font-weight: 500; margin-bottom: 2px; letter-spacing: 1px; }
-#logoutBtn {
-  position: absolute; top: 22px; right: 26px; color: #fff; background: #e74c3c; border: none; border-radius: 8px;
-  padding: 6px 18px; font-size: 1em; font-weight: 600; cursor: pointer; z-index: 25;
-}
-#logoutBtn:hover { background: #c62828; }
-.main-content {
-  padding: 0 0 90px 0;
-  max-width: 680px;
-  margin: 0 auto;
-  padding-top: 130px;
-  min-height: 70vh;
-  box-sizing: border-box;
-}
-.screen-title {
-  position: sticky;
-  top: 85px;
-  z-index: 9;
-  background: #fff;
-  padding: 14px 0 8px 0;
-  font-size: 1.53em;
-  font-weight: 700;
-  color: var(--blue);
+  font-weight: bold;
   text-align: center;
-  letter-spacing: .02em;
-  margin: 0 0 8px 0;
-  border-bottom: 1.5px solid #e7eaf0;
+  padding: 12px 0 6px 0;
+  width: 100%;
+  background: transparent;
+  letter-spacing: 2px;
 }
-/* ... You can add more style rules from your own CSS file here ... */
-.fab {
-  position: fixed; bottom: 65px; right: 16px; width: 52px; height: 52px;
-  background: var(--blue); color: #fff;
-  border-radius: 50%; font-size: 2em; border: none; cursor: pointer;
+
+/* === Header & Subtitles === */
+.fixed-header {
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 1px 4px #bdd5f543;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
   z-index: 100;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 2px 2px 13px #bdd5f54d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.settings-btn {
-  position: fixed; bottom: 14px; right: 22px;
-  background: #fff; color: var(--blue); border-radius: 50%; border: 2px solid var(--blue);
-  width: 41px; height: 41px; font-size: 1.33em;
-  box-shadow: 1px 1px 8px #d8e2f164;
-  display: flex; align-items: center; justify-content: center;
+.subtitle {
+  text-align: center;
+  color: #0f3d6b;
+  margin-bottom: 4px;
+  font-size: 1.15em;
+  font-weight: 600;
+}
+
+/* === Login/Register Centering & Styling === */
+.login-container {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+}
+
+.login-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #fff;
+  padding: 32px 28px 28px 28px;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px #bdd5f56b;
+  width: 340px;
+  max-width: 92vw;
+}
+
+.login-box h2 {
+  font-size: 2.1em;
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.login-box .subtitle {
+  text-align: center;
+  color: #0f3d6b;
+  margin-bottom: 8px;
+  font-size: 1.12em;
+  font-weight: 600;
+}
+
+.login-box input[type="email"],
+.login-box input[type="password"] {
+  padding: 11px 14px;
+  border-radius: 6px;
+  border: 1px solid #0f3d6b46;
+  font-size: 1em;
+  outline: none;
+  margin-bottom: 0px;
+}
+
+.login-box button {
+  padding: 11px 0;
+  border-radius: 8px;
+  border: none;
+  font-size: 1.1em;
+  font-weight: 700;
+  margin-bottom: 4px;
   cursor: pointer;
-  z-index: 102;
+  box-shadow: 1px 2px 8px #bdd5f54d;
+  transition: background 0.2s;
 }
-/* Responsive */
-@media (max-width:650px) {
-  .main-content { padding-top: 120px; }
-  .class-btn { flex-basis: calc(94%/3); }
-  .school-title { font-size: 1.7em; }
-  .screen-title { font-size:1.1em; top: 76px; }
-  .left-title { font-size:1em;}
+.login-box .btn-email {
+  background: #0f3d6b;
+  color: #fff;
+  margin-bottom: 4px;
 }
-@media (max-width:430px) {
-  .fixed-header { font-size: 0.94em; }
-  .main-content { padding-top: 100px; }
-  .class-btn { flex-basis: calc(98%/3); font-size: 1em;}
-  .school-title { font-size: 1.25em; }
-  .screen-title { font-size:1em; top: 62px; }
-  .left-title { font-size:0.96em;}
+.login-box .btn-register {
+  background: #18a889;
+  color: #fff;
+}
+.login-box .btn-google {
+  background: #14345b;
+  color: #fff;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-box .btn-google i {
+  margin-right: 12px;
+  font-size: 1.2em;
+}
+
+@media (max-width: 600px) {
+  .login-box {
+    padding: 18px 6vw 20px 6vw;
+    width: 95vw;
+    min-width: unset;
+    box-shadow: 0 1px 10px #bdd5f57c;
+  }
+}
+
+/* === Main Content Area === */
+.main-content {
+  width: 100%;
+  margin: 0 auto;
+  margin-top: 90px;
+  padding-bottom: 60px;
+}
+
+/* === Floating Add Button === */
+.fab {
+  position: fixed;
+  bottom: 90px;
+  right: 30px;
+  background: #0f3d6b;
+  color: #fff;
+  font-size: 2.2em;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 1px 4px 16px #0f3d6b32;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+  transition: background 0.2s;
+}
+
+.settings-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 32px;
+  background: #fff;
+  color: #0f3d6b;
+  font-size: 2.1em;
+  border-radius: 50%;
+  width: 54px;
+  height: 54px;
+  border: 2px solid #0f3d6b34;
+  box-shadow: 1px 2px 8px #bdd5f54d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 121;
+  transition: border 0.2s;
+}
+
+.settings-btn:active, .fab:active {
+  background: #183f6b;
+  color: #fff;
+}
+
+.logout-btn {
+  background: #c92f2f;
+  color: #fff;
+  font-size: 1em;
+  border-radius: 9px;
+  padding: 8px 20px;
+  margin-left: 14px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* === Utility === */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+  background: #fff;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
