@@ -1,232 +1,196 @@
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background: #f2f7fb;
-}
-
-/* --- Splash Screen --- */
+/* === Splash Screen Styles === */
 .splash {
   position: fixed;
-  z-index: 9999;
-  top: 0; left: 0; width: 100vw; height: 100vh;
+  z-index: 99999;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background: #fff;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  opacity: 1;
-  transition: opacity 0.7s;
+  transition: opacity 0.6s;
 }
 .splash-logo {
-  opacity: 0;
-  animation: fadeIn 1.2s 0.1s forwards;
+  width: 90px;
+  height: 90px;
+  margin-bottom: 14px;
+  animation: splash-in 1s cubic-bezier(0.7, 0, 0.3, 1);
 }
-.splash-school-title {
-  font-size: 2.2rem;
-  font-weight: bold;
+.splash-title {
+  font-size: 2.2em;
   color: #0f3d6b;
-  margin-top: 13px;
-  opacity: 0;
-  animation: fadeIn 1.1s 0.3s forwards;
-  letter-spacing: 0.01em;
-}
-.splash-foundation {
-  font-size: 1.2rem;
   font-weight: bold;
-  color: #e53935;
-  margin-top: 4px;
-  opacity: 0;
-  animation: fadeIn 1s 0.5s forwards;
-  letter-spacing: 0.01em;
+  letter-spacing: 1.2px;
+  text-align: center;
+  margin-bottom: 6px;
+  animation: fade-in 1.2s cubic-bezier(0.7, 0, 0.3, 1);
 }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(22px);}
-  to { opacity: 1; transform: translateY(0);}
+.splash-subtitle {
+  font-size: 1.13em;
+  color: #c92f2f;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 1px;
+  animation: fade-in 1.3s cubic-bezier(0.7, 0, 0.3, 1);
 }
-.splash-hide {
+.splash.splash-hide {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.7s;
+}
+@keyframes splash-in {
+  from { transform: scale(0.7) rotate(-30deg); opacity: 0;}
+  to   { transform: scale(1) rotate(0deg); opacity: 1;}
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-/* --- Login Centered Outer --- */
-.login-outer {
-  min-height: 100vh;
-  width: 100vw;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  transition: opacity 1s;
-}
-
-/* --- Login Header --- */
+/* === School Title (Login Header) === */
 .login-header {
-  margin-top: 0;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
   text-align: center;
 }
 .school-title {
-  font-size: 2.6rem;
-  font-weight: bold;
+  font-size: 2.3em;
   color: #0f3d6b;
-  letter-spacing: 0.01em;
-  margin-bottom: 4px;
-  line-height: 1.05;
-}
-.foundation-title {
-  font-size: 1.3rem;
   font-weight: bold;
-  color: #e53935;
-  margin-bottom: 16px;
-  letter-spacing: 0.01em;
-  line-height: 1.05;
-}
-
-/* --- Login Box --- */
-.login-box {
-  width: 370px;
-  max-width: 96vw;
-  background: #fff;
-  padding: 35px 22px 32px 22px;
-  border-radius: 18px;
-  box-shadow: 0 2px 18px #bdd5f570;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 auto;
-}
-
-/* --- Google Button --- */
-.google-btn {
-  width: 90%;
-  max-width: 300px;
-  background: #14345b;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 13px;
-  margin-bottom: 15px;
-  font-size: 1.08rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-.google-btn i {
-  font-size: 1.25em;
-  background: #fff;
-  color: #14345b;
-  border-radius: 50%;
-  padding: 3px;
-  width: 1.5em;
-  height: 1.5em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.google-btn:hover {
-  background: #0f2542;
-}
-
-.or-divider {
-  color: #8b98aa;
-  text-align: center;
-  margin: 3px 0 10px 0;
-  font-size: 1em;
-  width: 100%;
-}
-
-.login-box input[type="email"],
-.login-box input[type="password"] {
-  width: 90%;
-  max-width: 300px;
-  box-sizing: border-box;
-  padding: 11px 14px;
-  border-radius: 6px;
-  border: 1.6px solid #b1bed1;
-  font-size: 1em;
-  outline: none;
-  margin-bottom: 11px;
-  background: #f7fbfd;
-  transition: border-color 0.13s;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-.login-box input:focus {
-  border-color: #0f3d6b;
-  background: #fff;
-}
-
-.email-btn,
-.register-btn {
-  width: 90%;
-  max-width: 300px;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  font-size: 1.05rem;
-  font-weight: 600;
-  border-radius: 7px;
-  padding: 11px;
-  border: none;
-  cursor: pointer;
-  transition: background 0.18s;
-}
-.email-btn {
-  background: #123e6b;
-  color: #fff;
-  margin-bottom: 8px;
-}
-.email-btn:hover {
-  background: #0c2d4d;
-}
-.register-btn {
-  background: #18a889;
-  color: #fff;
+  letter-spacing: 1.1px;
   margin-bottom: 2px;
 }
-.register-btn:hover {
-  background: #107c61;
-}
-.login-error {
-  color: #e53935;
-  font-size: 1em;
-  min-height: 24px;
-  text-align: center;
-  margin-top: 6px;
+.school-subtitle {
+  font-size: 1.2em;
+  color: #c92f2f;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
 }
 
+/* === Login/Register Centering & Styling === */
+.login-container {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background: #fff;
+  padding-top: 7vh;
+}
+
+.login-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #fff;
+  padding: 28px 20px 24px 20px;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px #bdd5f56b;
+  width: 96vw;
+  max-width: 400px;
+  align-items: stretch;
+}
+
+/* Google Button */
+.btn-google {
+  background: #14345b;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  padding: 14px 0;
+  border-radius: 10px;
+  font-size: 1.17em;
+  box-shadow: 0 1px 10px #bdd5f570;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 7px;
+  cursor: pointer;
+  transition: background 0.17s;
+}
+.btn-google i {
+  font-size: 1.45em;
+  margin-right: 13px;
+}
+.btn-google:hover { background: #183f6b; }
+
+/* Divider */
+.divider {
+  text-align: center;
+  color: #a0a0a0;
+  margin: -3px 0 0 0;
+  font-size: 1.03em;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* Inputs */
+.login-box input[type="email"],
+.login-box input[type="password"] {
+  padding: 11px 14px;
+  border-radius: 7px;
+  border: 1.3px solid #0f3d6b42;
+  font-size: 1.05em;
+  outline: none;
+  margin-bottom: 0px;
+}
+
+/* Buttons */
+.login-box button {
+  padding: 12px 0;
+  border-radius: 9px;
+  border: none;
+  font-size: 1.09em;
+  font-weight: 700;
+  margin-bottom: 4px;
+  cursor: pointer;
+  box-shadow: 1px 2px 8px #bdd5f54d;
+  transition: background 0.18s;
+}
+.btn-email {
+  background: #0f3d6b;
+  color: #fff;
+}
+.btn-email:hover { background: #183f6b; }
+
+.btn-register {
+  background: #18a889;
+  color: #fff;
+}
+.btn-register:hover { background: #127865; }
+
+/* Forgot Password */
+.forgot-btn {
+  background: none;
+  border: none;
+  color: #0f3d6b;
+  font-size: 1em;
+  margin-bottom: 10px;
+  margin-top: -3px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-weight: 600;
+  transition: color 0.2s;
+  width: fit-content;
+  text-align: left;
+}
+.forgot-btn:hover { color: #d32f2f; }
+
+/* Error/Info Message */
+.login-error {
+  text-align: center;
+  font-size: 1.05em;
+  min-height: 22px;
+  margin-top: 4px;
+  color: #e53935;
+}
+
+/* Responsive */
 @media (max-width: 600px) {
-  .school-title {
-    font-size: 1.45rem;
-  }
-  .foundation-title {
-    font-size: 0.9rem;
-  }
-  .splash-school-title {
-    font-size: 1.1rem;
-  }
-  .splash-foundation {
-    font-size: 0.78rem;
-  }
-  .login-box {
-    width: 97vw;
-    padding: 14px 3vw 19px 3vw;
-  }
-  .google-btn,
-  .login-box input,
-  .email-btn,
-  .register-btn {
-    width: 98%;
-    max-width: 99vw;
-  }
+  .login-header .school-title { font-size: 1.43em; }
+  .login-header .school-subtitle { font-size: 1em; }
+  .login-box { padding: 16px 4vw 18px 4vw; max-width: 97vw; }
 }
