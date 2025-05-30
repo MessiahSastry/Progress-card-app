@@ -34,19 +34,51 @@ function showLoginScreen() {
         <span style="color:#fdc600">o</span><span style="color:#00b894">o</span><span style="color:#f39c12">l</span>
       </h2>
       <div style="font-size:1.18em;color:#0f3d6b;margin-bottom:18px;font-weight:600;">IIT & NEET FOUNDATION</div>
-            <input id="email" type="email" placeholder="Email" style="margin:8px 0;padding:8px;width:220px;" />
-      <input id="password" type="password" placeholder="Password" style="margin:8px 0;padding:8px;width:220px;" />
-      <button onclick="emailSignIn()" style="margin:6px 0 2px 0;width:220px;background:#0f3d6b;color:white;">Sign in with Email</button>
-      <button onclick="emailRegister()" style="margin:2px 0 12px 0;width:220px;background:#17a589;color:white;">Register</button>
-      <button onclick="googleSignIn()" style="font-size:1.21em;padding:11px 39px;border-radius:10px;border:none;background:#0f3d6b;color:#fff;cursor:pointer;box-shadow:1px 2px 8px #bdd5f54d;">
+
+      <!-- Google Sign-in Button -->
+      <button onclick="googleSignIn()" style="font-size:1.21em;padding:11px 39px;border-radius:10px;border:none;background:#0f3d6b;color:#fff;cursor:pointer;box-shadow:1px 2px 8px #bdd5f54d;margin-bottom:25px;">
         <i class="fa fa-google" style="margin-right:10px;"></i>Sign in with Google
       </button>
+
+      <!-- Email Sign-in/Register Form -->
+      <div style="background:#f4f8fb;border-radius:12px;padding:25px 30px 16px 30px;box-shadow:1px 1px 10px #0f3d6b22;">
+        <input type="email" id="email" placeholder="Email" style="padding:8px 12px;font-size:1em;margin-bottom:12px;width:220px;border-radius:7px;border:1px solid #bbb;display:block;">
+        <input type="password" id="password" placeholder="Password" style="padding:8px 12px;font-size:1em;margin-bottom:14px;width:220px;border-radius:7px;border:1px solid #bbb;display:block;">
+        <button onclick="emailSignIn()" style="font-size:1em;padding:7px 24px;border-radius:7px;border:none;background:#1877f2;color:#fff;cursor:pointer;margin-right:10px;">
+          Sign in with Email
+        </button>
+        <button onclick="emailRegister()" style="font-size:1em;padding:7px 24px;border-radius:7px;border:none;background:#39ac37;color:#fff;cursor:pointer;">
+          Register (New User)
+        </button>
+      </div>
     </div>
   `;
 }
-
 window.googleSignIn = function() {
   auth.signInWithPopup(provider);
+};
+window.emailSignIn = function() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  auth.signInWithEmailAndPassword(email, password)
+    .then(userCredential => {
+      showAcademicYearScreen();
+    })
+    .catch(error => {
+      alert("Email Sign-in error: " + error.message);
+    });
+};
+window.emailRegister = function() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(userCredential => {
+      alert("Registration successful! You are now signed in.");
+      showAcademicYearScreen();
+    })
+    .catch(error => {
+      alert("Registration error: " + error.message);
+    });
 };
 
 // === Auth State Listener ===
