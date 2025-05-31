@@ -1,3 +1,6 @@
+// =============================
+// FORCE SPLASH HIDE AND LOGIN SHOW
+// =============================
 window.onload = function () {
   setTimeout(() => {
     // Hide splash
@@ -22,15 +25,10 @@ window.onload = function () {
     }
   }, 1200);
 };
-window.onload = function () {
-  setTimeout(() => {
-    var splash = document.getElementById('splash');
-    if (splash) splash.style.display = "none";
-    var loginRoot = document.getElementById('login-root');
-    if (loginRoot) loginRoot.style.display = "block";
-  }, 1200);
-};
-// ====== Firebase Setup ======
+
+// =============================
+// FIREBASE INITIALIZATION
+// =============================
 const firebaseConfig = {
   apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
   authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -39,68 +37,45 @@ const firebaseConfig = {
   messagingSenderId: "671416933178",
   appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
 };
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-// Load Firebase
-try {
-  firebase.initializeApp(firebaseConfig);
-} catch(e) {}
-
-// ---- Force Splash to Hide and Login to Show ----
-function showLoginScreen() {
-  document.getElementById('login-root').style.display = 'block';
-  document.getElementById("login-root").innerHTML = `
-    <div class="login-box">
-      <h2>St. Patrick’s School</h2>
-      <div class="subtitle">IIT & NEET FOUNDATION</div>
-      <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Password">
-      <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
-      <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
-      <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google"></i>Sign in with Google</button>
-      <button class="btn-email" style="background:#fff;color:#0f3d6b;border:1px solid #0f3d6b;" onclick="forgotPassword()">Forgot Password?</button>
-    </div>`;
-}
-
-function alwaysRemoveSplash() {
-  const splash = document.getElementById('splash');
-  if (splash) splash.style.display = "none";
-  showLoginScreen();
-}
-
-if (window.location.pathname.includes("index.html") || window.location.pathname === "/") {
-  window.showLoginScreen = showLoginScreen;
-  window.emailSignIn = function () {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
-    if (!email || !password) return alert('Enter email and password!');
-    firebase.auth().signInWithEmailAndPassword(email, password)
-      .then(() => window.location.href = "dashboard.html")
-      .catch(err => alert(err.message));
-  };
-  window.emailRegister = function () {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
-    if (!email || !password) return alert('Enter email and password!');
-    firebase.auth().createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        alert("Registration successful! You are now signed in.");
-        window.location.href = "dashboard.html";
-      })
-      .catch(err => alert(err.message));
-  };
-  window.googleSignIn = function () {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider)
-      .then(() => window.location.href = "dashboard.html")
-      .catch(err => alert(err.message));
-  };
-  window.forgotPassword = function () {
-    const email = document.getElementById('email').value.trim();
-    if (!email) return alert('Enter your email to reset password.');
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(() => alert("Password reset email sent."))
-      .catch(err => alert(err.message));
-  };
+// =============================
+// LOGIN FUNCTIONS
+// =============================
+window.emailSignIn = function () {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+  if (!email || !password) return alert('Enter email and password!');
+  firebase.auth().signInWithEmailAndPassword(email, password)
+    .then(() => window.location.href = "dashboard.html")
+    .catch(err => alert(err.message));
+};
+window.emailRegister = function () {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+  if (!email || !password) return alert('Enter email and password!');
+  firebase.auth().createUserWithEmailAndPassword(email, password)
+    .then(() => {
+      alert("Registration successful! You are now signed in.");
+      window.location.href = "dashboard.html";
+    })
+    .catch(err => alert(err.message));
+};
+window.googleSignIn = function () {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider)
+    .then(() => window.location.href = "dashboard.html")
+    .catch(err => alert(err.message));
+};
+window.forgotPassword = function () {
+  const email = document.getElementById('email').value.trim();
+  if (!email) return alert('Enter your email to reset password.');
+  firebase.auth().sendPasswordResetEmail(email)
+    .then(() => alert("Password reset email sent."))
+    .catch(err => alert(err.message));
+};
 
   // -- THIS IS THE GUARANTEED PART --
   setTimeout(alwaysRemoveSplash, 1200);
