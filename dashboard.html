@@ -2,73 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard | St. Patrick's Progress Card App</title>
+  <title>Dashboard | St. Patrick's Progress Card</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Icons and Styles -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <!-- Firebase scripts -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-  <!-- jsPDF, SheetJS (Excel), Chart.js, QRCode.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Chart.js, jsPDF, XLSX for graphs, PDF, Excel -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-  <!-- DASHBOARD HEADER -->
-  <div class="fixed-header dashboard-header">
-    <div class="school-title">St. Patrick's School</div>
-    <div class="school-subtitle">IIT & NEET FOUNDATION</div>
+  <!-- Fixed Header -->
+  <div class="fixed-header">
+    <div class="school-title">St. Patrick’s School</div>
+    <div class="subtitle">IIT & NEET FOUNDATION</div>
   </div>
-
-  <!-- MAIN DASHBOARD CONTENT -->
-  <div class="main-content dashboard-content" id="dashboard-main">
-    <!-- Section title -->
-    <div class="screen-title" id="class-title">Select a Class</div>
-    <!-- Class Buttons Grid -->
-    <div class="class-list" id="class-list">
-      <!-- Filled dynamically -->
-    </div>
-    <!-- Class Performance Graph Area (hidden until needed) -->
-    <div id="performance-graph-container" style="display:none; margin-top:24px;">
-      <canvas id="performance-graph"></canvas>
-    </div>
-    <!-- Excel download, CSV upload (admin/teacher only, shown by JS) -->
-    <div class="class-actions" id="class-actions" style="display:none;">
-      <button class="excel-btn" id="excel-download-btn"><i class="fa fa-file-excel"></i> Download Class Marks (Excel)</button>
-      <label class="csv-upload-label">
-        <i class="fa fa-upload"></i> Import Students (CSV)
-        <input type="file" id="csv-upload-input" accept=".csv" style="display:none;">
-      </label>
-    </div>
-  </div>
-
-  <!-- Floating + (Add Class) Button -->
-  <button class="fab" id="fab" title="Add Class">
-    <i class="fa fa-plus"></i>
-  </button>
-  
-  <!-- Floating Settings Button (below FAB) -->
+  <div class="main-content" id="main-area"></div>
+  <!-- Floating Add Button -->
+  <button class="fab" id="fab" title="Add">+</button>
+  <!-- Settings Button -->
   <button class="settings-btn" id="settings-btn" title="Settings">
     <i class="fa fa-cog"></i>
   </button>
-
-  <!-- POPUPS/Modals (for Add/Edit, Settings, PDF, Hall Ticket, Graph, Timetable, QR, etc.) -->
-  <div id="popup-area"></div>
-
-  <!-- File Inputs for Memo/Hall Ticket Images (hidden, triggered by PDF/HT buttons) -->
-  <input type="file" id="memo-img-upload" accept="image/*" style="display:none" />
-  <input type="file" id="hall-img-upload" accept="image/*" style="display:none" />
-  <input type="file" id="teacher-signature-upload" accept="image/*" style="display:none" />
-
-  <!-- QR code display for marks memo (hidden, shown in popup/PDF) -->
-  <div id="qrcode-temp" style="display:none;"></div>
-
-  <!-- Dashboard logic (handles everything: UI, Firestore, PDF, Excel, CSV, Hall Ticket, QR, Graphs, etc.) -->
-  <script src="dashboard.js"></script>
+  <!-- Popups will be injected here -->
+  <input type="file" id="csvImportInput" style="display:none;" accept=".csv" />
+  <script src="app.js"></script>
 </body>
 </html>
