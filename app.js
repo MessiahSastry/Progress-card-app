@@ -1,5 +1,29 @@
 window.onload = function () {
   setTimeout(() => {
+    // Hide splash
+    var splash = document.getElementById('splash');
+    if (splash) splash.style.display = "none";
+    // Show login
+    var loginRoot = document.getElementById('login-root');
+    if (loginRoot) {
+      loginRoot.style.display = "block";
+      loginRoot.innerHTML = `
+        <div class="login-box">
+          <h2>St. Patrick’s School</h2>
+          <div class="subtitle">IIT & NEET FOUNDATION</div>
+          <input type="email" id="email" placeholder="Email">
+          <input type="password" id="password" placeholder="Password">
+          <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
+          <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
+          <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google"></i>Sign in with Google</button>
+          <button class="btn-email" style="background:#fff;color:#0f3d6b;border:1px solid #0f3d6b;" onclick="forgotPassword()">Forgot Password?</button>
+        </div>
+      `;
+    }
+  }, 1200);
+};
+window.onload = function () {
+  setTimeout(() => {
     var splash = document.getElementById('splash');
     if (splash) splash.style.display = "none";
     var loginRoot = document.getElementById('login-root');
