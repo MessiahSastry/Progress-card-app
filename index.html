@@ -4,39 +4,25 @@
   <meta charset="UTF-8" />
   <title>St. Patrick's Progress Card App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- FontAwesome for Google Icon -->
+  <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
-  <!-- Firebase scripts -->
+  <!-- Firebase compat scripts -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 </head>
 <body>
   <!-- Splash Screen -->
   <div class="splash" id="splash">
-    <img src="logo.png" alt="School Logo" class="splash-logo">
-    <div class="splash-title">St. Patrick's School</div>
+    <img src="logo.png" alt="School Logo">
+    <div class="splash-title">St. <span style="text-transform:uppercase;">Patrick’s School</span></div>
     <div class="splash-subtitle">IIT & NEET FOUNDATION</div>
   </div>
-  <!-- Login Outer Container (hidden until splash fades) -->
-  <div id="loginOuter" class="login-container" style="opacity:0;">
-    <div class="login-header">
-      <div class="school-title">St. Patrick's School</div>
-      <div class="school-subtitle">IIT & NEET FOUNDATION</div>
-    </div>
-    <div class="login-box">
-      <button id="googleSignIn" class="btn-google">
-        <i class="fab fa-google"></i> Sign in with Google
-      </button>
-      <div class="divider">or</div>
-      <input type="email" id="email" placeholder="Email" autocomplete="username" />
-      <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
-      <button id="forgotPasswordBtn" type="button" class="forgot-btn">Forgot Password?</button>
-      <button id="emailSignIn" class="btn-email">Sign in with Email</button>
-      <button id="registerBtn" class="btn-register">Register (New User)</button>
-      <div id="loginError" class="login-error"></div>
-    </div>
-  </div>
+  <div id="login-root"></div>
+
+  <!-- Main App Script -->
   <script src="app.js"></script>
 </body>
 </html>
