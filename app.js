@@ -370,4 +370,4 @@ if (window.location.pathname.includes("dashboard.html")) {
     };
     reader.readAsText(file);
   });
-}
+
