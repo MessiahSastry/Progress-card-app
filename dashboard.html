@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>St. Patrick's Progress Card Dashboard</title>
+  <meta charset="UTF-8" />
+  <title>Dashboard - St. Patrick's Progress Card App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
@@ -10,12 +10,15 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-  <div class="splash hidden" id="splash">
-    <img src="logo.png" alt="School Logo">
+  <div class="splash" id="splash">
+    <img src="logo.png" alt="School Logo" style="width:150px; margin-bottom:18px;">
+    <div class="splash-title">St. Patrick’s School</div>
+    <div class="splash-subtitle">IIT & NEET FOUNDATION</div>
   </div>
-  <!-- Header -->
   <div class="fixed-header" id="header">
     <div class="school-title" id="school-title">
       <span>S</span><span>t</span><span>.</span><span>P</span><span>a</span><span>t</span><span>r</span><span>i</span><span>c</span><span>k</span><span>'</span><span>s</span><span>S</span><span>c</span><span>h</span><span>o</span><span>o</span><span>l</span>
@@ -24,13 +27,11 @@
     <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
   </div>
   <div class="main-content" id="main-area"></div>
-  <!-- Floating Action (+) -->
   <button class="fab" id="fab" title="Add"></button>
-  <!-- Settings Icon -->
-  <button class="settings-btn" id="settings-btn" title="Settings">
-    <i class="fa fa-cog"></i>
-  </button>
-  <!-- Popups injected here -->
+  <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
+  <div id="popup-bg" class="hidden"></div>
+  <div id="popup" class="hidden"></div>
+  <input type="file" id="memo-img-upload" accept="image/png" style="display:none;" />
   <script src="app.js"></script>
 </body>
 </html>
