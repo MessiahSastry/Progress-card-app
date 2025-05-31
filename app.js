@@ -1,3 +1,11 @@
+window.onload = function () {
+  setTimeout(() => {
+    var splash = document.getElementById('splash');
+    if (splash) splash.style.display = "none";
+    var loginRoot = document.getElementById('login-root');
+    if (loginRoot) loginRoot.style.display = "block";
+  }, 1200);
+};
 // ====== Firebase Setup ======
 const firebaseConfig = {
   apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
