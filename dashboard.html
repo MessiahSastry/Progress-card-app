@@ -4,42 +4,29 @@
   <meta charset="UTF-8" />
   <title>St. Patrick's Progress Card Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
   <!-- Firebase compat scripts -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-  <!-- Chart.js & jsPDF for performance graphs and PDF downloads -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-  <div class="fixed-header" id="header" style="display:none;">
-    <!-- School Title -->
-    <div class="school-title" id="school-title">
-      <span style="color:#e74c3c">S</span><span style="color:#fdc600">t</span><span style="color:#27ae60">.</span>
-      <span style="color:#2980b9">P</span><span style="color:#e67e22">a</span><span style="color:#9b59b6">t</span>
-      <span style="color:#f39c12">r</span><span style="color:#e84393">i</span><span style="color:#00b894">c</span>
-      <span style="color:#fdc600">k</span><span style="color:#27ae60">'</span><span style="color:#2980b9">s</span>
-      <span style="color:#e67e22">S</span><span style="color:#9b59b6">c</span><span style="color:#e74c3c">h</span>
-      <span style="color:#fdc600">o</span><span style="color:#00b894">o</span><span style="color:#f39c12">l</span>
-    </div>
+  <div class="fixed-header" id="header">
+    <div class="school-title" id="school-title">St. Patrick’s School</div>
     <div class="subtitle" id="header-subtitle">IIT & NEET FOUNDATION</div>
-    <div class="subtitle" id="header-year"></div>
     <button id="logoutBtn" class="logout-btn" onclick="logout()">Logout</button>
   </div>
-  <div class="main-content" id="main-area"></div>
+  <div class="main-content" id="main-area">
+    <!-- Content will be inserted here by app.js -->
+  </div>
   <button class="fab" id="fab" title="Add" style="display:none;">+</button>
   <button class="settings-btn" id="settings-btn" title="Settings" style="display:none;">
     <i class="fa fa-cog"></i>
   </button>
-  <!-- CSV Import Input -->
   <input type="file" id="csvImportInput" style="display:none;" accept=".csv">
-
-  <!-- Main App Script -->
   <script src="app.js"></script>
 </body>
 </html>
