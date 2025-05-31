@@ -353,7 +353,26 @@ if (window.location.pathname.includes("dashboard.html")) {
   window.showCSVImport = function () {
     document.getElementById('csvImportInput').click();
   };
+  if (document.getElementById('csvImportInput')) {
   document.getElementById('csvImportInput').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(ev) {
+      let lines = ev.target.result.split(/\r?\n/);
+      for (let line of lines) {
+        let [roll, name, father] = line.split(',');
+        if (roll && name) {
+          await addStudent(currentYear, currentClass, currentSection, { name, father, roll });
+        }
+      }
+      alert('Students imported!');
+      showStudentList();
+    };
+    reader.readAsText(file);
+  });
+}
+
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
