@@ -67,7 +67,17 @@ window.forgotPassword = function () {
     .then(() => alert("Password reset email sent."))
     .catch(err => alert(err.message));
 };
-
+// ===== Dashboard Auth Check =====
+firebase.auth().onAuthStateChanged(function(user) {
+  if (!user) {
+    // Not logged in, redirect to login page
+    window.location.href = "index.html";
+  } else {
+    // User is signed in.
+    // Proceed with loading dashboard features!
+    // Optionally: load user-specific data here.
+  }
+});
 // -- D A S H B O A R D  L O G I C  --
 const academicYear = localStorage.getItem('academicYear') || "2024-25"; // Default/fake year
 const classNames = [
