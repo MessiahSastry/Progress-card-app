@@ -153,6 +153,7 @@ html, body {
   align-items: flex-start;
   gap: 8px;
   margin-top: 14px;
+  margin-left: 12px;
 }
 .student-list {
   display: flex;
@@ -227,7 +228,6 @@ html, body {
   font-size: 2em;
   color: #fff;
 }
-
 .settings-btn {
   width: 46px;
   height: 46px;
@@ -236,7 +236,6 @@ html, body {
   z-index: 103;
 }
 .settings-btn i { pointer-events: none; }
-
 /* Popups/Modal */
 #popup-bg, #popup {
   position: fixed;
