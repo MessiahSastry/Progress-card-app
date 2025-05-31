@@ -23,7 +23,6 @@ window.onload = function () {
     }
   }, 1200);
 };
-
 const firebaseConfig = {
   apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
   authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -100,16 +99,13 @@ function dashboardAppInit() {
   let currentClass = null, currentSection = null, currentStudent = null;
   let sectionColors = colorPalette;
   let subjectsByExam = {}; // For Exam Settings
-
   // DOM refs
   const mainArea = document.getElementById("main-area");
   const fab = document.getElementById("fab");
   const settingsBtn = document.getElementById("settings-btn");
   const headerExam = document.getElementById("header-exam");
-
   // == Splash & App Load ==
   showSplashThen(loadAcademicYears);
-
   function showSplashThen(cb) {
     const splash = document.getElementById('splash');
     if (splash) splash.classList.remove('hidden');
@@ -118,7 +114,6 @@ function dashboardAppInit() {
       cb && cb();
     }, 1000);
   }
-
   // == Academic Years ==
   function loadAcademicYears() {
     db.collection('years').orderBy('name', 'desc').get().then(snap => {
@@ -132,7 +127,6 @@ function dashboardAppInit() {
       }
     });
   }
-
   // == Main Dashboard: Classes ==
   function showDashboard() {
     headerExam.textContent = academicYear || '';
@@ -183,21 +177,21 @@ function dashboardAppInit() {
       });
   };
   function renderSectionList(classId, className, sections) {
-    let html = `<div class="screen-title">${className} (Class Name)</div>
-      <div class="section-list">`;
-    sections.forEach((sec, idx) => {
-      let color = colorPalette[idx % colorPalette.length];
-      html += `<div class="section-chip" style="border-color:${color}"
-        onclick="showStudents('${classId}','${sec.id}','${className}','${sec.name}')">${sec.name}</div>`;
-    });
-    html += "</div>";
-    mainArea.innerHTML = html;
-    showFAB("Add Section", () => showAddSectionPopup(classId, className));
-    showSettingsBtn("class", classId, className);
-    setScreenTitle(`${className} - Sections`);
-    setHistory(() => renderSectionList(classId, className, sections));
-  }
-  window.showStudents = function(classId, sectionId, className, sectionName) {
+  let html = `<div class="screen-title">${className} (Class Name)</div>
+    <div class="section-list">`;
+  sections.forEach((sec, idx) => {
+    let color = colorPalette[idx % colorPalette.length];
+    html += `<div class="section-chip" style="border-color:${color}"
+      onclick="showStudents('${classId}','${sec.id}','${className}','${sec.name}')">${sec.name}</div>`;
+  });
+  html += "</div>";
+  mainArea.innerHTML = html;
+  showFAB("Add Section", () => showAddSectionPopup(classId, className));
+  settingsBtn.style.display = "none";
+  setScreenTitle(`${className} - Sections`);
+  setHistory(() => renderSectionList(classId, className, sections));
+}
+ window.showStudents = function(classId, sectionId, className, sectionName) {
     db.collection('years').doc(academicYear).collection('classes').doc(classId)
       .collection('sections').doc(sectionId).collection('students').orderBy('roll').get()
       .then(snap => {
