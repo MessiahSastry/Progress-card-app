@@ -17,7 +17,7 @@ window.onload = function () {
           </div>
           <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
           <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
-         <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google" style="margin-right:10px;font-size:1.15em;"></i>Sign in with Google</button>
+        <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google" style="margin-right:10px;font-size:1.3em;vertical-align:middle;"></i>Sign in with Google</button>
         </div>
       `;
     }
@@ -35,6 +35,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// Add this block for persistent login
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
 window.emailSignIn = function () {
   const email = document.getElementById('email').value.trim();
