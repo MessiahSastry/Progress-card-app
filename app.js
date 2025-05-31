@@ -411,7 +411,7 @@ window.showAddYearPopup = function() {
     let popup = document.getElementById("popup");
     if (popup) popup.classList.add("hidden");
   }
-  function showPopup(html) {
+ function showPopup(html) {
   let bg = document.getElementById("popup-bg");
   let popup = document.getElementById("popup");
   if (bg) {
@@ -422,11 +422,21 @@ window.showAddYearPopup = function() {
     popup.innerHTML = html;
     popup.classList.remove("hidden");
   }
-  // Also: clicking the background closes popup
+  // Close popup when clicking the overlay (not the popup)
   if (bg) {
     bg.onclick = function(e) {
       if (e.target === bg) closePopup();
     };
+  }
+  // Enable Cancel/Close button for dynamically created popups
+  if (popup) {
+    const cancelBtn = popup.querySelector('.cancel-btn');
+    if (cancelBtn) {
+      cancelBtn.onclick = function(e) {
+        e.preventDefault();
+        closePopup();
+      }
+    }
   }
 }
   // == FAB
