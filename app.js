@@ -17,7 +17,7 @@ window.onload = function () {
           </div>
           <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
           <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
-          <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google"></i>Sign in with Google</button>
+         <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google" style="margin-right:10px;font-size:1.15em;"></i>Sign in with Google</button>
         </div>
       `;
     }
