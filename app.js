@@ -418,18 +418,23 @@ window.showAddYearPopup = function() {
     if (popup) popup.classList.add("hidden");
   }
   function showPopup(html) {
-    let bg = document.getElementById("popup-bg");
-    let popup = document.getElementById("popup");
-    if (bg) {
-      bg.innerHTML = "";
-      bg.classList.remove("hidden");
-    }
-    if (popup) {
-      popup.innerHTML = html;
-      popup.classList.remove("hidden");
-    }
+  let bg = document.getElementById("popup-bg");
+  let popup = document.getElementById("popup");
+  if (bg) {
+    bg.innerHTML = "";
+    bg.classList.remove("hidden");
   }
-
+  if (popup) {
+    popup.innerHTML = html;
+    popup.classList.remove("hidden");
+  }
+  // Also: clicking the background closes popup
+  if (bg) {
+    bg.onclick = function(e) {
+      if (e.target === bg) closePopup();
+    };
+  }
+}
   // == FAB
  function showFAB(label, onClick) {
   fab.innerHTML = ""; 
