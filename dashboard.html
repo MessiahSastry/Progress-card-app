@@ -2,34 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard | St. Patrick's Progress Card</title>
+  <title>St. Patrick's Progress Card App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Favicon/logo -->
+  <link rel="icon" type="image/png" href="logo.png">
+
+  <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
-  <!-- Firebase scripts -->
+
+  <!-- Firebase scripts: DO NOT CHANGE ORDER! -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <!-- Chart.js, jsPDF, XLSX for graphs, PDF, Excel -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
+  <!-- jsPDF and Chart.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <!-- Fixed Header -->
-  <div class="fixed-header">
-    <div class="school-title">St. Patrick’s School</div>
-    <div class="subtitle">IIT & NEET FOUNDATION</div>
+  <!-- Splash Screen -->
+  <div class="splash" id="splash">
+    <img src="logo.png" alt="School Logo" style="width:170px;max-width:70vw;">
+    <div class="splash-title">St. <span style="text-transform:uppercase;">Patrick’s School</span></div>
+    <div class="splash-subtitle">IIT & NEET FOUNDATION</div>
   </div>
+
+  <!-- Auth/Login screen will be injected here -->
+  <div id="auth-area"></div>
+
+  <!-- Header -->
+  <div class="fixed-header" id="header" style="display:none;">
+    <div class="school-title" id="school-title">
+      <span style="color:#e74c3c;">S</span><span style="color:#fdc600;">t</span><span>.</span>
+      <span style="color:#27ae60;">P</span><span style="color:#2980b9;">a</span>
+      <span style="color:#e67e22;">t</span><span style="color:#9b59b6;">r</span>
+      <span style="color:#f39c12;">i</span><span style="color:#e84393;">c</span>
+      <span style="color:#00b894;">k</span><span style="color:#fdc600;">'</span>
+      <span style="color:#27ae60;">s</span><span style="color:#2980b9;">S</span>
+      <span style="color:#e67e22;">c</span><span style="color:#9b59b6;">h</span>
+      <span style="color:#e74c3c;">o</span><span style="color:#fdc600;">o</span>
+      <span style="color:#00b894;">l</span>
+    </div>
+    <div class="subtitle" id="header-subtitle">IIT & NEET FOUNDATION</div>
+    <div class="subtitle" id="header-year"></div>
+    <button id="logoutBtn" class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Main Content -->
   <div class="main-content" id="main-area"></div>
-  <!-- Floating Add Button -->
-  <button class="fab" id="fab" title="Add">+</button>
-  <!-- Settings Button -->
-  <button class="settings-btn" id="settings-btn" title="Settings">
+
+  <!-- Add Student Floating Button -->
+  <button class="fab" id="fab" title="Add" onclick="showAddPopup()">+</button>
+  <!-- Settings Icon -->
+  <button class="settings-btn" id="settings-btn" title="Settings" onclick="showSettingsPopup()">
     <i class="fa fa-cog"></i>
   </button>
   <!-- Popups will be injected here -->
-  <input type="file" id="csvImportInput" style="display:none;" accept=".csv" />
+
+  <!-- Your App Logic -->
   <script src="app.js"></script>
 </body>
 </html>
