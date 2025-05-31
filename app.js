@@ -319,7 +319,7 @@ function dashboardAppInit() {
   }
   function showMainSettingsPopup() {
   let html = `
-    <div class="popup">
+    <div class="popup" id="popup">
       <div style="font-weight:600;color:#0f3d6b;margin-bottom:12px;font-size:1.08em;">Main Settings</div>
       <div class="option-row" style="flex-direction:column;gap:14px;">
         <button class="option-btn" onclick="showAddYearPopup()">Add Academic Year</button>
@@ -328,7 +328,10 @@ function dashboardAppInit() {
       </div>
     </div>
   `;
-  showPopup(html);
+  // Set BOTH popup and popup-bg innerHTML for closing to work
+  document.getElementById('popup').innerHTML = html;
+  document.getElementById('popup-bg').classList.remove("hidden");
+  document.getElementById('popup').classList.remove("hidden");
 }
 window.showAddYearPopup = function() {
     let html = `
