@@ -1,17 +1,3 @@
-html, body {
-  width: 100%;
-  min-width: 0;
-  max-width: 100vw;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden !important;
-  overflow-y: auto;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background: #fff;
-}
-
 /* === Splash Screen Styles === */
 .splash {
   position: fixed;
@@ -24,91 +10,85 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  transition: opacity 0.6s;
+  transition: opacity 0.5s, transform 0.6s cubic-bezier(0.16,1,0.3,1);
 }
-.splash-logo {
-  width: 160px;
-  height: 160px;
-  margin-bottom: 18px;
-  opacity: 0;
-  transform: scale(0.7);
-  animation: splash-zoomin 1.3s cubic-bezier(0.7,0,0.3,1) 0.05s forwards;
-}
-@keyframes splash-zoomin {
-  0% {
-    opacity: 0;
-    transform: scale(0.7);
-  }
-  45% {
-    opacity: 1;
-    transform: scale(1.18);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.splash-title {
-  font-size: 2.2em;
-  color: #0f3d6b;
-  font-weight: bold;
-  letter-spacing: 1.2px;
-  text-align: center;
-  margin-bottom: 6px;
-  animation: fade-in 1.2s cubic-bezier(0.7, 0, 0.3, 1);
-}
-.splash-subtitle {
-  font-size: 1.13em;
-  color: #c92f2f;
-  text-align: center;
-  font-weight: 700;
-  letter-spacing: 1px;
-  animation: fade-in 1.3s cubic-bezier(0.7, 0, 0.3, 1);
-}
-.splash.splash-hide {
+.splash.hidden {
   opacity: 0;
   pointer-events: none;
+  transform: scale(1.1) translateY(100px);
 }
-@keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+.splash img {
+  width: 110px;
+  margin-bottom: 20px;
+  animation: logoZoom 1.4s cubic-bezier(0.17,0.67,0.83,0.67);
 }
-
-/* === School Title (Login Header) === */
-.login-header {
-  margin-bottom: 22px;
+@keyframes logoZoom {
+  0% { transform: scale(0.6); opacity: 0;}
+  60% { transform: scale(1.25); opacity: 1;}
+  100% { transform: scale(1); }
+}
+.splash-title {
+  font-size: 2.1em;
+  font-weight: bold;
+  color: #0f3d6b;
+  margin-bottom: 8px;
   text-align: center;
 }
-.school-title {
-  font-size: 2.3em;
-  color: #0f3d6b;
+.splash-subtitle {
+  color: #e6333c;
   font-weight: bold;
-  letter-spacing: 1.1px;
-  margin-bottom: 2px;
+  font-size: 1.15em;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+/* === School Title/Subtitle === */
+.school-title {
+  font-size: 2.4em;
+  font-weight: 900;
+  text-align: center;
+  padding: 12px 0 6px 0;
+  width: 100%;
+  background: transparent;
+  letter-spacing: 0.5px;
+  color: #fff;
+  line-height: 1.16em;
 }
 .school-subtitle {
-  font-size: 1.2em;
-  color: #c92f2f;
+  font-size: 1.12em;
+  color: #fff;
   font-weight: 700;
+  text-align: center;
   letter-spacing: 1px;
-  margin-bottom: 8px;
+}
+
+/* === Dashboard Header === */
+.fixed-header, .dashboard-header {
+  width: 100vw;
+  background: #0f3d6b;
+  box-shadow: 0 2px 12px #0f3d6b3a;
+  border-bottom-left-radius: 38px;
+  border-bottom-right-radius: 38px;
+  padding: 36px 0 18px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* === Login/Register Centering & Styling === */
 .login-container {
   min-height: 100vh;
-  height: 100vh;
   width: 100vw;
-  max-width: 100vw;
-  overflow: hidden;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   background: #fff;
-  padding-top: 0;
-  padding-bottom: 0;
+  overflow-x: hidden;
 }
 
 .login-box {
@@ -116,156 +96,361 @@ html, body {
   flex-direction: column;
   gap: 12px;
   background: #fff;
-  padding: 28px 20px 24px 20px;
+  padding: 32px 18px 28px 18px;
   border-radius: 18px;
   box-shadow: 0 2px 16px #bdd5f56b;
-  width: 100%;
-  max-width: 400px;
-  align-items: center;
-  margin: 0 auto;
-  box-sizing: border-box;
+  width: 330px;
+  max-width: 96vw;
 }
 
-/* Inputs */
+.login-box h2 {
+  font-size: 2em;
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.login-box .subtitle {
+  text-align: center;
+  color: #e6333c;
+  margin-bottom: 8px;
+  font-size: 1.08em;
+  font-weight: 600;
+}
+
 .login-box input[type="email"],
 .login-box input[type="password"] {
-  width: 100%;
-  max-width: 320px;
-  box-sizing: border-box;
   padding: 11px 14px;
-  border-radius: 7px;
-  border: 1.3px solid #0f3d6b42;
-  font-size: 1.05em;
+  border-radius: 6px;
+  border: 1px solid #0f3d6b46;
+  font-size: 1em;
   outline: none;
-  background: #f7fbfd;
+  margin-bottom: 0px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Buttons */
 .login-box button {
-  width: 100%;
-  max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 12px 0;
-  border-radius: 9px;
+  padding: 11px 0;
+  border-radius: 8px;
   border: none;
-  font-size: 1.09em;
+  font-size: 1.07em;
   font-weight: 700;
   margin-bottom: 4px;
   cursor: pointer;
   box-shadow: 1px 2px 8px #bdd5f54d;
-  transition: background 0.18s;
-  display: block;
+  transition: background 0.2s;
+  width: 100%;
 }
-
-.btn-google {
-  background: #14345b;
+.login-box .btn-email {
+  background: #0f3d6b;
   color: #fff;
-  font-weight: 700;
-  border: none;
-  box-shadow: 0 1px 10px #bdd5f570;
+  margin-bottom: 4px;
+}
+.login-box .btn-register {
+  background: #18a889;
+  color: #fff;
+}
+.login-box .btn-google {
+  background: #fff;
+  color: #0f3d6b;
+  margin-top: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 7px;
-  transition: background 0.17s;
+  border: 1.7px solid #0f3d6b5d;
+  font-weight: 700;
 }
-.btn-google i {
-  font-size: 1.45em;
-  margin-right: 13px;
+.login-box .btn-google i {
+  margin-right: 12px;
+  font-size: 1.2em;
 }
-.btn-google:hover { background: #183f6b; }
-
-.btn-email { background: #0f3d6b; color: #fff; }
-.btn-email:hover { background: #183f6b; }
-.btn-register { background: #18a889; color: #fff; }
-.btn-register:hover { background: #127865; }
-
-.divider {
-  text-align: center;
-  color: #a0a0a0;
-  margin: -3px 0 0 0;
-  font-size: 1.03em;
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
-/* Forgot Password */
-.forgot-btn {
-  width: 100%;
-  max-width: 320px;
-  text-align: left;
-  background: none;
-  border: none;
+.login-box .forgot-link {
+  margin: 8px 0 0 0;
+  text-align: right;
   color: #0f3d6b;
-  font-size: 1em;
-  margin-bottom: 10px;
-  margin-top: -3px;
-  cursor: pointer;
   text-decoration: underline;
-  padding: 0;
-  font-weight: 600;
-  transition: color 0.2s;
+  font-size: 0.97em;
+  cursor: pointer;
 }
-.forgot-btn:hover { color: #d32f2f; }
-
-/* Error/Info Message */
-.login-error {
-  text-align: center;
-  font-size: 1.05em;
-  min-height: 22px;
-  margin-top: 4px;
-  color: #e53935;
+.login-box .forgot-link:hover {
+  color: #e6333c;
 }
 
-/* Responsive */
-@media (max-width: 500px) {
-  .login-header .school-title { font-size: 1.43em; }
-  .login-header .school-subtitle { font-size: 1em; }
-  .login-box { padding: 14px 3vw 18px 3vw; max-width: 97vw; }
-  .login-box input[type="email"],
-  .login-box input[type="password"],
-  .login-box button,
-  .btn-google, .btn-email, .btn-register, .forgot-btn {
-    max-width: 95vw;
-    box-sizing: border-box;
+@media (max-width: 600px) {
+  .login-box {
+    padding: 18px 2vw 18px 2vw;
+    width: 99vw;
+    min-width: unset;
+    box-shadow: 0 1px 10px #bdd5f57c;
   }
 }
-.dashboard-header {
-  width: 96vw;
-  max-width: 600px;
-  margin: 18px auto 18px auto;
-  background: #0f3d6b;
-  border-radius: 0 0 34px 34px;
-  box-shadow: 0 3px 14px #bdd5f547;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 0 18px 0;
+
+/* === Main Content Area === */
+.main-content,
+.dashboard-content {
+  width: 100vw;
+  margin: 0 auto;
+  margin-top: 105px;
+  padding-bottom: 80px;
+  min-height: 80vh;
+  box-sizing: border-box;
 }
-.dashboard-header .school-title {
-  font-size: 2.1em;
+
+.screen-title {
+  font-size: 1.24em;
   font-weight: bold;
-  color: #fff;
   text-align: center;
-  margin-bottom: 2px;
+  color: #0f3d6b;
+  margin: 18px 0 10px 0;
   letter-spacing: 1.5px;
 }
-.dashboard-header .school-subtitle {
-  font-size: 1.15em;
-  color: #fff;
+
+/* === CLASS LIST GRID === */
+.class-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 16px;
+  justify-content: center;
+  padding: 0 3vw;
+}
+.class-list .class-btn {
+  flex: 1 0 45%;
+  min-width: 140px;
+  max-width: 48vw;
+  font-size: 1.18em;
+  padding: 22px 0;
+  margin: 4px;
+  border-radius: 38px;
+  border: 3px solid #18a889;
+  background: #fff;
+  color: #18a889;
   font-weight: 700;
   text-align: center;
-  letter-spacing: 1px;
+  box-shadow: 0 1px 8px #bdd5f526;
+  transition: all 0.18s;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  outline: none;
 }
-@media (max-width: 500px) {
-  .dashboard-header {
-    width: 98vw;
-    padding: 22px 0 11px 0;
-    margin: 7px auto 10px auto;
-    border-radius: 0 0 19px 19px;
-  }
-  .dashboard-header .school-title { font-size: 1.3em; }
-  .dashboard-header .school-subtitle { font-size: 1em; }
+.class-list .class-btn:nth-child(1) { border-color: #e74c3c; color: #e74c3c; }
+.class-list .class-btn:nth-child(2) { border-color: #fdc600; color: #fdc600; }
+.class-list .class-btn:nth-child(3) { border-color: #27ae60; color: #27ae60; }
+.class-list .class-btn:nth-child(4) { border-color: #2980b9; color: #2980b9; }
+.class-list .class-btn:nth-child(5) { border-color: #e67e22; color: #e67e22; }
+.class-list .class-btn:nth-child(6) { border-color: #9b59b6; color: #9b59b6; }
+.class-list .class-btn:nth-child(7) { border-color: #f39c12; color: #f39c12; }
+.class-list .class-btn:nth-child(8) { border-color: #e84393; color: #e84393; }
+.class-list .class-btn:nth-child(9) { border-color: #00b894; color: #00b894; }
+.class-list .class-btn:nth-child(10) { border-color: #0f3d6b; color: #0f3d6b; }
+.class-list .class-btn:active {
+  background: #f4f8fb;
+  box-shadow: 0 2px 10px #bdd5f529;
+}
+
+/* === FLOATING BUTTONS (FAB & SETTINGS) === */
+.fab {
+  position: fixed;
+  bottom: 94px;
+  right: 26px;
+  background: #0f3d6b;
+  color: #fff;
+  font-size: 2em;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 1px 4px 16px #0f3d6b32;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+  transition: background 0.2s;
+}
+.fab:active {
+  background: #185c9b;
+}
+.settings-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 32px;
+  background: #fff;
+  color: #0f3d6b;
+  font-size: 2em;
+  border-radius: 50%;
+  width: 54px;
+  height: 54px;
+  border: 2px solid #0f3d6b3d;
+  box-shadow: 1px 2px 8px #bdd5f54d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 121;
+  transition: border 0.2s;
+}
+.settings-btn:active {
+  background: #e6f3fb;
+  color: #0f3d6b;
+}
+
+/* === ACTIONS BAR FOR EXCEL/CSV (Admin/Teacher) === */
+.class-actions {
+  margin: 22px 0 8px 0;
+  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 18px;
+}
+.excel-btn {
+  background: #18a889;
+  color: #fff;
+  font-size: 1.09em;
+  padding: 11px 22px;
+  border: none;
+  border-radius: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 8px #bdd5f529;
+  transition: background 0.18s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.csv-upload-label {
+  background: #14345b;
+  color: #fff;
+  font-size: 1.09em;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 8px #bdd5f529;
+  transition: background 0.18s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* === POPUPS / MODALS === */
+#popup-area {
+  z-index: 200;
+}
+.popup-bg {
+  position: fixed;
+  z-index: 201;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(34,43,78,0.13);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: popupFadeIn 0.3s;
+}
+@keyframes popupFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.popup {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px #0f3d6b28;
+  padding: 26px 24px 20px 24px;
+  min-width: 270px;
+  max-width: 92vw;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.popup label {
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.popup input[type="text"], .popup input[type="email"], .popup input[type="password"], .popup input[type="number"] {
+  padding: 9px 13px;
+  border-radius: 7px;
+  border: 1px solid #0f3d6b34;
+  font-size: 1em;
+  margin-bottom: 7px;
+  outline: none;
+}
+.popup .btn-row {
+  display: flex;
+  gap: 14px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+.popup .cancel-btn {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1em;
+}
+.popup button:not(.cancel-btn) {
+  background: #18a889;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1em;
+}
+.popup .option-btn {
+  background: #0f3d6b;
+  color: #fff;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: none;
+  font-size: 1.09em;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 7px;
+}
+.popup .option-btn:active {
+  background: #133974;
+}
+
+/* === Graph Section (Performance) === */
+#performance-graph-container {
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px 6vw 12px 6vw;
+  margin-top: 18px;
+  box-shadow: 0 1px 9px #bdd5f533;
+  max-width: 100vw;
+  overflow-x: auto;
+}
+#performance-graph {
+  width: 100vw;
+  min-width: 300px;
+  max-width: 680px;
+  height: 240px;
+}
+
+/* === QR Code (hidden, for PDF) === */
+#qrcode-temp {
+  display: none;
+}
+
+/* === Utility === */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+  background: #fff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
 }
