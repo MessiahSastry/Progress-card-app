@@ -5,8 +5,6 @@ body, html {
   background: #f9fbff;
   font-family: 'Segoe UI', Arial, sans-serif;
 }
-
-/* Splash Screen */
 .splash {
   position: fixed;
   z-index: 99999;
@@ -27,8 +25,6 @@ body, html {
   100% { transform: scale(1); }
 }
 .splash.hidden { opacity: 0; pointer-events: none; }
-
-/* Center login root */
 #login-root {
   min-height: 100vh;
   width: 100vw;
@@ -46,22 +42,21 @@ body, html {
   max-width: 95vw;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
-
-.login-box h2 {
-  font-size: 2em;
+.login-box h2, .login-box .school-title {
+  font-size: 1.8em;
   font-weight: 900;
   text-align: center;
   letter-spacing: 2px;
-  margin-bottom: 6px;
+  margin-bottom: 0px;
 }
 .login-box .subtitle {
   color: #14345b;
-  font-size: 1.13em;
+  font-size: 1.11em;
   text-align: center;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 .login-box input[type="email"], .login-box input[type="password"] {
   padding: 11px 14px;
@@ -69,6 +64,22 @@ body, html {
   border: 1px solid #0f3d6b46;
   font-size: 1em;
   outline: none;
+}
+.login-box .forgot-row {
+  width: 100%;
+  text-align: right;
+  margin-top: -7px;
+  margin-bottom: 4px;
+}
+.login-box .forgot-row button {
+  background: none;
+  border: none;
+  color: #0f3d6b;
+  font-size: 1em;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-weight: 700;
 }
 .login-box button {
   padding: 12px 0;
@@ -89,8 +100,6 @@ body, html {
   display: flex; align-items: center; justify-content: center;
 }
 .btn-google i { margin-right: 12px; font-size: 1.2em; }
-.login-box .btn-email[style] { /* forgot password button */ background: #fff; color: #0f3d6b; border: 1px solid #0f3d6b; }
-
 @media (max-width: 600px) {
   .login-box {
     padding: 18px 4vw 18px 4vw;
