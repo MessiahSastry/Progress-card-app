@@ -372,21 +372,3 @@ if (window.location.pathname.includes("dashboard.html")) {
     reader.readAsText(file);
   });
 }
-
-    const file = e.target.files[0];
-    if (!file) 
-    const reader = new FileReader();
-    reader.onload = async function(ev) {
-      let lines = ev.target.result.split(/\r?\n/);
-      for (let line of lines) {
-        let [roll, name, father] = line.split(',');
-        if (roll && name) {
-          await addStudent(currentYear, currentClass, currentSection, { name, father, roll });
-        }
-      }
-      alert('Students imported!');
-      showStudentList();
-    };
-    reader.readAsText(file);
-  });
-
