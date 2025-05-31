@@ -374,7 +374,7 @@ if (window.location.pathname.includes("dashboard.html")) {
 }
 
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) 
     const reader = new FileReader();
     reader.onload = async function(ev) {
       let lines = ev.target.result.split(/\r?\n/);
