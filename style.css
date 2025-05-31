@@ -1,4 +1,4 @@
-/* === Splash Screen Styles === */
+/* Splash Screen */
 .splash {
   position: fixed;
   z-index: 99999;
@@ -10,76 +10,43 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  transition: opacity 0.5s, transform 0.6s cubic-bezier(0.16,1,0.3,1);
+  transition: opacity 0.5s;
+  animation: splashZoom 1.5s;
 }
-.splash.hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(1.1) translateY(100px);
-}
-.splash img {
-  width: 110px;
-  margin-bottom: 20px;
-  animation: logoZoom 1.4s cubic-bezier(0.17,0.67,0.83,0.67);
-}
-@keyframes logoZoom {
-  0% { transform: scale(0.6); opacity: 0;}
-  60% { transform: scale(1.25); opacity: 1;}
+@keyframes splashZoom {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
   100% { transform: scale(1); }
 }
-.splash-title {
-  font-size: 2.1em;
-  font-weight: bold;
-  color: #0f3d6b;
-  margin-bottom: 8px;
-  text-align: center;
-}
-.splash-subtitle {
-  color: #e6333c;
-  font-weight: bold;
-  font-size: 1.15em;
-  text-align: center;
-  letter-spacing: 2px;
-}
+.splash.hidden { opacity: 0; pointer-events: none; }
 
-/* === School Title/Subtitle === */
-.school-title {
-  font-size: 2.4em;
-  font-weight: 900;
-  text-align: center;
-  padding: 12px 0 6px 0;
-  width: 100%;
-  background: transparent;
-  letter-spacing: 0.5px;
-  color: #fff;
-  line-height: 1.16em;
-}
-.school-subtitle {
-  font-size: 1.12em;
-  color: #fff;
-  font-weight: 700;
-  text-align: center;
-  letter-spacing: 1px;
-}
-
-/* === Dashboard Header === */
-.fixed-header, .dashboard-header {
+/* School Title Header */
+.fixed-header {
   width: 100vw;
   background: #0f3d6b;
-  box-shadow: 0 2px 12px #0f3d6b3a;
-  border-bottom-left-radius: 38px;
-  border-bottom-right-radius: 38px;
-  padding: 36px 0 18px 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  color: #fff;
+  padding: 18px 0 5px 0;
+  box-shadow: 0 1px 4px #bdd5f543;
+  position: sticky;
+  top: 0; left: 0;
+  z-index: 100;
+  text-align: center;
+}
+.school-title {
+  font-size: 2.2em;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.subtitle {
+  color: #fff;
+  font-size: 1.1em;
+  font-weight: 600;
+  margin-bottom: 0;
 }
 
-/* === Login/Register Centering & Styling === */
+/* Login/Register */
 .login-container {
   min-height: 100vh;
   width: 100vw;
@@ -88,177 +55,87 @@
   justify-content: center;
   align-items: center;
   background: #fff;
-  overflow-x: hidden;
 }
-
 .login-box {
   display: flex;
   flex-direction: column;
   gap: 12px;
   background: #fff;
-  padding: 32px 18px 28px 18px;
+  padding: 28px 20px 20px 20px;
   border-radius: 18px;
   box-shadow: 0 2px 16px #bdd5f56b;
-  width: 330px;
-  max-width: 96vw;
+  width: 340px;
+  max-width: 95vw;
 }
-
 .login-box h2 {
-  font-size: 2em;
+  font-size: 2.1em;
   text-align: center;
   font-weight: 900;
   letter-spacing: 2px;
   margin-bottom: 4px;
 }
-
 .login-box .subtitle {
   text-align: center;
-  color: #e6333c;
+  color: #0f3d6b;
   margin-bottom: 8px;
-  font-size: 1.08em;
+  font-size: 1.12em;
   font-weight: 600;
 }
-
-.login-box input[type="email"],
-.login-box input[type="password"] {
+.login-box input[type="email"], .login-box input[type="password"] {
   padding: 11px 14px;
   border-radius: 6px;
   border: 1px solid #0f3d6b46;
   font-size: 1em;
   outline: none;
   margin-bottom: 0px;
-  width: 100%;
-  box-sizing: border-box;
 }
-
 .login-box button {
   padding: 11px 0;
   border-radius: 8px;
   border: none;
-  font-size: 1.07em;
+  font-size: 1.1em;
   font-weight: 700;
   margin-bottom: 4px;
   cursor: pointer;
   box-shadow: 1px 2px 8px #bdd5f54d;
   transition: background 0.2s;
-  width: 100%;
 }
-.login-box .btn-email {
-  background: #0f3d6b;
-  color: #fff;
-  margin-bottom: 4px;
-}
-.login-box .btn-register {
-  background: #18a889;
-  color: #fff;
-}
+.login-box .btn-email { background: #0f3d6b; color: #fff; margin-bottom: 4px; }
+.login-box .btn-register { background: #18a889; color: #fff; }
 .login-box .btn-google {
-  background: #fff;
-  color: #0f3d6b;
+  background: #14345b;
+  color: #fff;
   margin-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.7px solid #0f3d6b5d;
-  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
 }
-.login-box .btn-google i {
-  margin-right: 12px;
-  font-size: 1.2em;
-}
-.login-box .forgot-link {
-  margin: 8px 0 0 0;
-  text-align: right;
-  color: #0f3d6b;
-  text-decoration: underline;
-  font-size: 0.97em;
-  cursor: pointer;
-}
-.login-box .forgot-link:hover {
-  color: #e6333c;
-}
+.login-box .btn-google i { margin-right: 12px; font-size: 1.2em; }
 
 @media (max-width: 600px) {
   .login-box {
-    padding: 18px 2vw 18px 2vw;
-    width: 99vw;
+    padding: 18px 4vw 18px 4vw;
+    width: 98vw;
     min-width: unset;
     box-shadow: 0 1px 10px #bdd5f57c;
   }
 }
 
-/* === Main Content Area === */
-.main-content,
-.dashboard-content {
+/* Main Content Area */
+.main-content {
   width: 100vw;
   margin: 0 auto;
-  margin-top: 105px;
-  padding-bottom: 80px;
+  margin-top: 90px;
+  padding-bottom: 60px;
   min-height: 80vh;
-  box-sizing: border-box;
 }
 
-.screen-title {
-  font-size: 1.24em;
-  font-weight: bold;
-  text-align: center;
-  color: #0f3d6b;
-  margin: 18px 0 10px 0;
-  letter-spacing: 1.5px;
-}
-
-/* === CLASS LIST GRID === */
-.class-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px 16px;
-  justify-content: center;
-  padding: 0 3vw;
-}
-.class-list .class-btn {
-  flex: 1 0 45%;
-  min-width: 140px;
-  max-width: 48vw;
-  font-size: 1.18em;
-  padding: 22px 0;
-  margin: 4px;
-  border-radius: 38px;
-  border: 3px solid #18a889;
-  background: #fff;
-  color: #18a889;
-  font-weight: 700;
-  text-align: center;
-  box-shadow: 0 1px 8px #bdd5f526;
-  transition: all 0.18s;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  outline: none;
-}
-.class-list .class-btn:nth-child(1) { border-color: #e74c3c; color: #e74c3c; }
-.class-list .class-btn:nth-child(2) { border-color: #fdc600; color: #fdc600; }
-.class-list .class-btn:nth-child(3) { border-color: #27ae60; color: #27ae60; }
-.class-list .class-btn:nth-child(4) { border-color: #2980b9; color: #2980b9; }
-.class-list .class-btn:nth-child(5) { border-color: #e67e22; color: #e67e22; }
-.class-list .class-btn:nth-child(6) { border-color: #9b59b6; color: #9b59b6; }
-.class-list .class-btn:nth-child(7) { border-color: #f39c12; color: #f39c12; }
-.class-list .class-btn:nth-child(8) { border-color: #e84393; color: #e84393; }
-.class-list .class-btn:nth-child(9) { border-color: #00b894; color: #00b894; }
-.class-list .class-btn:nth-child(10) { border-color: #0f3d6b; color: #0f3d6b; }
-.class-list .class-btn:active {
-  background: #f4f8fb;
-  box-shadow: 0 2px 10px #bdd5f529;
-}
-
-/* === FLOATING BUTTONS (FAB & SETTINGS) === */
+/* Floating Add Button */
 .fab {
   position: fixed;
-  bottom: 94px;
-  right: 26px;
+  bottom: 90px; right: 30px;
   background: #0f3d6b;
   color: #fff;
-  font-size: 2em;
-  width: 60px;
-  height: 60px;
+  font-size: 2.2em;
+  width: 60px; height: 60px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
@@ -269,20 +146,15 @@
   z-index: 120;
   transition: background 0.2s;
 }
-.fab:active {
-  background: #185c9b;
-}
 .settings-btn {
   position: fixed;
-  bottom: 24px;
-  right: 32px;
+  bottom: 24px; right: 32px;
   background: #fff;
   color: #0f3d6b;
-  font-size: 2em;
+  font-size: 2.1em;
   border-radius: 50%;
-  width: 54px;
-  height: 54px;
-  border: 2px solid #0f3d6b3d;
+  width: 54px; height: 54px;
+  border: 2px solid #0f3d6b34;
   box-shadow: 1px 2px 8px #bdd5f54d;
   cursor: pointer;
   display: flex;
@@ -291,166 +163,51 @@
   z-index: 121;
   transition: border 0.2s;
 }
-.settings-btn:active {
-  background: #e6f3fb;
-  color: #0f3d6b;
-}
+.settings-btn:active, .fab:active { background: #183f6b; color: #fff; }
 
-/* === ACTIONS BAR FOR EXCEL/CSV (Admin/Teacher) === */
-.class-actions {
-  margin: 22px 0 8px 0;
-  text-align: center;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px 18px;
-}
-.excel-btn {
-  background: #18a889;
-  color: #fff;
-  font-size: 1.09em;
-  padding: 11px 22px;
-  border: none;
-  border-radius: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 1px 8px #bdd5f529;
-  transition: background 0.18s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.csv-upload-label {
-  background: #14345b;
-  color: #fff;
-  font-size: 1.09em;
-  padding: 11px 20px;
-  border: none;
-  border-radius: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 1px 8px #bdd5f529;
-  transition: background 0.18s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* === POPUPS / MODALS === */
-#popup-area {
-  z-index: 200;
-}
+/* Popup styles (general) */
 .popup-bg {
-  position: fixed;
-  z-index: 201;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(34,43,78,0.13);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: popupFadeIn 0.3s;
-}
-@keyframes popupFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  position: fixed; z-index: 9999; top:0; left:0; right:0; bottom:0;
+  background: rgba(40,54,79,0.12);
+  display: flex; align-items: center; justify-content: center;
 }
 .popup {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 32px #0f3d6b28;
-  padding: 26px 24px 20px 24px;
-  min-width: 270px;
-  max-width: 92vw;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  border-radius: 14px;
+  padding: 28px 18px;
+  min-width: 310px;
+  box-shadow: 0 2px 18px #23488b24;
+  max-width: 90vw;
+  display: flex; flex-direction: column; gap: 14px;
 }
-.popup label {
-  font-weight: 600;
+.btn-row { display: flex; gap: 13px; margin-top: 18px; }
+.cancel-btn { background: #aaa; color:#fff; font-weight:600; border:none; border-radius:6px; padding: 7px 22px;}
+.popup input, .popup select { padding: 8px 9px; border-radius: 7px; border:1px solid #ddd; font-size: 1em; }
+
+.screen-title {
+  text-align: center; color: #0f3d6b;
+  font-size: 1.3em; font-weight: 700;
+  margin: 24px 0 12px 0;
+}
+
+/* Lists */
+.class-list, .section-list, .student-list { display: flex; flex-direction: column; gap: 12px; margin: 18px 0 24px 0; }
+.class-btn, .section-chip {
+  font-size: 1.19em; padding: 11px 0; border-radius: 9px; border: 2px solid #0f3d6b34; background: #f6f8ff;
+  font-weight: 700; color: #14345b; margin-bottom: 2px;
+  cursor: pointer; transition: 0.14s;
+}
+.section-chip { border: 2px solid #14345b; color: #14345b; background: #f7f7fc; padding: 8px 0;}
+.student-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 18px; border-radius: 7px;
+  background: #eaf2fb;
   margin-bottom: 3px;
 }
-.popup input[type="text"], .popup input[type="email"], .popup input[type="password"], .popup input[type="number"] {
-  padding: 9px 13px;
-  border-radius: 7px;
-  border: 1px solid #0f3d6b34;
-  font-size: 1em;
-  margin-bottom: 7px;
-  outline: none;
-}
-.popup .btn-row {
-  display: flex;
-  gap: 14px;
-  justify-content: flex-end;
-  margin-top: 10px;
-}
-.popup .cancel-btn {
-  background: #e74c3c;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1em;
-}
-.popup button:not(.cancel-btn) {
-  background: #18a889;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1em;
-}
-.popup .option-btn {
-  background: #0f3d6b;
-  color: #fff;
-  padding: 10px 0;
-  border-radius: 8px;
-  border: none;
-  font-size: 1.09em;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  margin-bottom: 7px;
-}
-.popup .option-btn:active {
-  background: #133974;
-}
 
-/* === Graph Section (Performance) === */
-#performance-graph-container {
-  background: #fff;
-  border-radius: 16px;
-  padding: 12px 6vw 12px 6vw;
-  margin-top: 18px;
-  box-shadow: 0 1px 9px #bdd5f533;
-  max-width: 100vw;
-  overflow-x: auto;
-}
-#performance-graph {
-  width: 100vw;
-  min-width: 300px;
-  max-width: 680px;
-  height: 240px;
-}
-
-/* === QR Code (hidden, for PDF) === */
-#qrcode-temp {
-  display: none;
-}
-
-/* === Utility === */
+/* Utility */
 body, html {
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   font-family: 'Segoe UI', 'Arial', sans-serif;
-  background: #fff;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-::-webkit-scrollbar {
-  width: 0;
-  background: transparent;
+  background: #fff; min-height: 100vh; overflow-x: hidden;
 }
