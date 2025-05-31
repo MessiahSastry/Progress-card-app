@@ -315,21 +315,19 @@ function dashboardAppInit() {
     }
   }
   function showMainSettingsPopup() {
-    let html = `
-      <div class="popup-bg" id="popup-bg">
-        <div class="popup">
-          <div style="font-weight:600;color:#0f3d6b;margin-bottom:12px;font-size:1.08em;">Main Settings</div>
-          <div class="option-row" style="flex-direction:column;gap:14px;">
-            <button class="option-btn" onclick="showAddYearPopup()">Add Academic Year</button>
-            <button class="option-btn" onclick="logout()">Logout</button>
-            <button class="option-btn" onclick="closePopup()">Close</button>
-          </div>
-        </div>
+  let html = `
+    <div class="popup">
+      <div style="font-weight:600;color:#0f3d6b;margin-bottom:12px;font-size:1.08em;">Main Settings</div>
+      <div class="option-row" style="flex-direction:column;gap:14px;">
+        <button class="option-btn" onclick="showAddYearPopup()">Add Academic Year</button>
+        <button class="option-btn" onclick="logout()">Logout</button>
+        <button class="option-btn" onclick="closePopup()">Close</button>
       </div>
-    `;
-    showPopup(html);
-  }
-  window.showAddYearPopup = function() {
+    </div>
+  `;
+  showPopup(html);
+}
+window.showAddYearPopup = function() {
     let html = `
       <div class="popup-bg" id="popup-bg">
         <form class="popup" onsubmit="addAcademicYear(event)">
