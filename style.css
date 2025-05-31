@@ -7,7 +7,6 @@ html, body {
   min-width: 100vw;
   overflow-x: hidden;
 }
-
 .splash {
   position: fixed;
   z-index: 9999;
@@ -19,7 +18,6 @@ html, body {
   background: #eaf1fa;
   transition: opacity 0.5s;
 }
-
 .splash-title {
   font-size: 2.1em;
   font-weight: bold;
@@ -30,7 +28,6 @@ html, body {
   font-size: 1.15em;
   color: #1467b7;
 }
-
 .school-title {
   font-size: 1.6em;
   font-weight: bold;
@@ -46,7 +43,6 @@ html, body {
   font-weight: 500;
   margin-bottom: 0.6em;
 }
-
 #login-root {
   display: flex;
   flex-direction: column;
@@ -54,7 +50,6 @@ html, body {
   justify-content: center;
   min-height: 100vh;
 }
-
 .login-box {
   width: 96vw;
   max-width: 350px;
@@ -68,7 +63,6 @@ html, body {
   align-items: stretch;
   gap: 12px;
 }
-
 .login-box input {
   padding: 10px 12px;
   font-size: 1.08em;
@@ -79,7 +73,6 @@ html, body {
   transition: border-color .2s;
 }
 .login-box input:focus { outline: none; border-color: #0f3d6b; }
-
 .btn-email, .btn-register, .btn-google {
   font-size: 1em;
   border: none;
@@ -101,7 +94,6 @@ html, body {
   margin-bottom: 0;
 }
 .btn-google i { margin-right: 7px; }
-
 .forgot-row {
   display: flex;
   justify-content: flex-end;
@@ -148,12 +140,19 @@ html, body {
   margin-top: 18px;
   letter-spacing: 0.5px;
 }
-.class-list, .section-list {
+.class-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px 8px;
   justify-items: center;
   align-items: center;
+}
+.section-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
 }
 .student-list {
   display: flex;
