@@ -67,154 +67,127 @@ window.forgotPassword = function () {
   // -- THIS IS THE GUARANTEED PART --
   setTimeout(alwaysRemoveSplash, 1200);
 // ======== Dashboard logic (unchanged, as before) ========
+// Only run on dashboard.html
 if (window.location.pathname.includes("dashboard.html")) {
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  auth.onAuthStateChanged(user => {
+  firebase.auth().onAuthStateChanged(user => {
     if (!user) window.location.href = "index.html";
     else initDashboard(user);
   });
 
-  let currentYear = null, currentClass = null, currentSection = null;
+  let currentYear = "2024-25"; // You can make this dynamic or let user select
+  let currentClass = null;
+  let currentSection = null;
   let mainArea = document.getElementById('main-area');
 
-  // ... Rest of your dashboard logic ...
-  // (Copy your previous dashboard code below as needed)
-}
-  // Helper: Fetchers
-  async function fetchYears() {
-    let snap = await db.collection("years").get();
-    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.id.localeCompare(a.id));
-  }
-  async function fetchClasses(yearId) {
-    let snap = await db.collection("years").doc(yearId).collection("classes").get();
-    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-  async function fetchSections(yearId, classId) {
-    let snap = await db.collection("years").doc(yearId).collection("classes").doc(classId).collection("sections").get();
-    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-  async function fetchStudents(yearId, classId, sectionId) {
-    let snap = await db.collection("years").doc(yearId).collection("classes").doc(classId).collection("sections").doc(sectionId).collection("students").get();
-    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  // Helper: Reference
+  function dbRef(...path) {
+    return path.reduce((ref, part) => ref.collection(part), firebase.firestore());
   }
 
-  // Helper: Adders
-  async function addClass(yearId, name) {
-    await db.collection("years").doc(yearId).collection("classes").add({ name });
-    showClassList();
-  }
-  async function addSection(yearId, classId, name) {
-    await db.collection("years").doc(yearId).collection("classes").doc(classId).collection("sections").add({ name });
-    showSectionList();
-  }
-  async function addStudent(yearId, classId, sectionId, data) {
-    await db.collection("years").doc(yearId).collection("classes").doc(classId).collection("sections").doc(sectionId).collection("students").add(data);
-    showStudentList();
-  }
-
-  // UI SCREENS
+  // DASHBOARD MAIN
   function initDashboard(user) {
-    showYearSelector();
-    setupFAB();
-    setupSettingsBtn();
     document.getElementById("header").style.display = "block";
-  }
-
-  // Academic Year selection
-  async function showYearSelector() {
-    const years = await fetchYears();
-    mainArea.innerHTML = `<div class="screen-title">Select Academic Year</div>
-      <div style="display:flex;flex-direction:column;align-items:center;margin-top:20px;">
-        ${years.map(y => `<button class="class-btn" onclick="setYear('${y.id}')">${y.id}</button>`).join("")}
-      </div>`;
-    currentYear = null;
-    document.getElementById("fab").style.display = "none";
-    document.getElementById("settings-btn").style.display = "none";
-  }
-  window.setYear = function (yearId) {
-    currentYear = yearId;
     showClassList();
-  };
-
-  // Class list
-  async function showClassList() {
-    if (!currentYear) return showYearSelector();
-    const classes = await fetchClasses(currentYear);
-    mainArea.innerHTML = `<div class="screen-title">Select a Class</div>
-      <div class="class-list">
-        ${classes.map(c => `<button class="class-btn" onclick="setClass('${c.id}')">${c.name}</button>`).join("")}
-      </div>`;
     document.getElementById("fab").style.display = "flex";
     document.getElementById("fab").onclick = showAddClassPopup;
     document.getElementById("settings-btn").style.display = "flex";
-    currentClass = null;
+    document.getElementById("settings-btn").onclick = () => alert('Settings coming soon!');
+  }
+
+  // 1. Show all classes
+  async function showClassList() {
+    currentClass = null; currentSection = null;
+    let snap = await firebase.firestore().collection("years").doc(currentYear).collection("classes").get();
+    let classes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    mainArea.innerHTML = `
+      <div class="screen-title">Select a Class</div>
+      <div class="class-list">
+        ${classes.map(c => `<button class="class-btn" onclick="setClass('${c.id}')">${c.name}</button>`).join("")}
+      </div>
+    `;
+    document.getElementById("fab").onclick = showAddClassPopup;
   }
   window.setClass = function (classId) {
     currentClass = classId;
     showSectionList();
   };
 
-  // Section list
+  // 2. Show all sections in class
   async function showSectionList() {
-    if (!currentYear || !currentClass) return showClassList();
-    const sections = await fetchSections(currentYear, currentClass);
-    mainArea.innerHTML = `<div class="screen-title">Sections</div>
+    currentSection = null;
+    let snap = await firebase.firestore().collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").get();
+    let sections = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    mainArea.innerHTML = `
+      <div class="screen-title">Sections</div>
       <div class="section-list">
         ${sections.map(s => `<div class="section-chip" onclick="setSection('${s.id}')">${s.name}</div>`).join("")}
-      </div>`;
+      </div>
+    `;
     document.getElementById("fab").onclick = showAddSectionPopup;
-    currentSection = null;
   }
   window.setSection = function (sectionId) {
     currentSection = sectionId;
     showStudentList();
   };
 
-  // Student list
+  // 3. Show students in section
   async function showStudentList() {
-    if (!currentYear || !currentClass || !currentSection) return showSectionList();
-    const students = await fetchStudents(currentYear, currentClass, currentSection);
-    mainArea.innerHTML = `<div class="screen-title">Students</div>
+    let snap = await firebase.firestore().collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").doc(currentSection).collection("students").get();
+    let students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    mainArea.innerHTML = `
+      <div class="screen-title">Students</div>
       <div class="student-list">
-        ${students.map(stu => `<div class="student-row"><span class="roll-no">${stu.roll || ''}</span> ${stu.name || ''}
-        <button onclick="editStudent('${stu.id}')">Edit</button>
-        <button onclick="deleteStudent('${stu.id}')">Delete</button></div>`).join("")}
-      </div>`;
+        ${students.map(stu => `
+          <div class="student-row">
+            <span><b>${stu.roll || ''}</b> ${stu.name || ''}</span>
+            <button onclick="editStudent('${stu.id}')">Edit</button>
+            <button onclick="deleteStudent('${stu.id}')">Delete</button>
+          </div>
+        `).join("")}
+      </div>
+    `;
     document.getElementById("fab").onclick = showAddStudentPopup;
   }
 
-  // POPUPS
+  // ADD/EDIT POPUPS
   function showAddClassPopup() {
     showPopup(`<form class="popup" onsubmit="submitAddClass(event)">
       <label>Class Name</label>
       <input name="className" maxlength="20" required>
-      <div class="btn-row"><button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
-      <button>Add</button></div>
+      <div class="btn-row">
+        <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        <button>Add</button>
+      </div>
     </form>`);
   }
   window.submitAddClass = function (e) {
     e.preventDefault();
     let val = e.target.className.value.trim();
     if (!val) return;
-    addClass(currentYear, val);
-    closePopup();
+    firebase.firestore().collection("years").doc(currentYear).collection("classes").add({ name: val }).then(() => {
+      closePopup();
+      showClassList();
+    });
   };
 
   function showAddSectionPopup() {
     showPopup(`<form class="popup" onsubmit="submitAddSection(event)">
       <label>Section Name</label>
       <input name="sectionName" maxlength="20" required>
-      <div class="btn-row"><button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
-      <button>Add</button></div>
+      <div class="btn-row">
+        <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        <button>Add</button>
+      </div>
     </form>`);
   }
   window.submitAddSection = function (e) {
     e.preventDefault();
     let val = e.target.sectionName.value.trim();
     if (!val) return;
-    addSection(currentYear, currentClass, val);
-    closePopup();
+    firebase.firestore().collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").add({ name: val }).then(() => {
+      closePopup();
+      showSectionList();
+    });
   };
 
   function showAddStudentPopup() {
@@ -225,8 +198,10 @@ if (window.location.pathname.includes("dashboard.html")) {
       <input name="fatherName" maxlength="35" required>
       <label>Roll Number</label>
       <input name="rollNo" type="number" min="1" max="999" required>
-      <div class="btn-row"><button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
-      <button>Add</button></div>
+      <div class="btn-row">
+        <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        <button>Add</button>
+      </div>
     </form>`);
   }
   window.submitAddStudent = function (e) {
@@ -235,11 +210,45 @@ if (window.location.pathname.includes("dashboard.html")) {
     let father = e.target.fatherName.value.trim();
     let roll = e.target.rollNo.value.trim();
     if (!name || !father || !roll) return;
-    addStudent(currentYear, currentClass, currentSection, { name, father, roll, marks: {} });
-    closePopup();
+    firebase.firestore().collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").doc(currentSection).collection("students").add({ name, father, roll }).then(() => {
+      closePopup();
+      showStudentList();
+    });
   };
 
-  // Popup helpers
+  // Edit/Delete Student
+  window.editStudent = function (studentId) {
+    firebase.firestore().collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").doc(currentSection).collection("students").doc(studentId).get().then(doc => {
+      let s = doc.data();
+      showPopup(`<form class="popup" onsubmit="submitEditStudent(event, '${studentId}')">
+        <label>Student Name</label>
+        <input name="studentName" value="${s.name}" required>
+        <label>Father's Name</label>
+        <input name="fatherName" value="${s.father}" required>
+        <label>Roll Number</label>
+        <input name="rollNo" type="number" value="${s.roll}" required>
+        <div class="btn-row">
+          <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+          <button>Save</button>
+        </div>
+      </form>`);
+    });
+  }
+  window.submitEditStudent = function (e, studentId) {
+    e.preventDefault();
+    let name = e.target.studentName.value.trim();
+    let father = e.target.fatherName.value.trim();
+    let roll = e.target.rollNo.value.trim();
+    firebase.firestore().collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").doc(currentSection).collection("students").doc(studentId)
+      .update({ name, father, roll }).then(() => { closePopup(); showStudentList(); });
+  }
+  window.deleteStudent = function (studentId) {
+    if (!confirm("Delete this student?")) return;
+    firebase.firestore().collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").doc(currentSection).collection("students").doc(studentId).delete()
+      .then(showStudentList);
+  }
+
+  // POPUP HELPERS
   let lastPopup = null;
   function showPopup(html) {
     closePopup();
@@ -255,112 +264,10 @@ if (window.location.pathname.includes("dashboard.html")) {
   }
   window.closePopup = closePopup;
 
-  // EDIT/DELETE STUDENT
-  window.editStudent = function (studentId) {
-    db.collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").doc(currentSection).collection("students").doc(studentId).get()
-      .then(doc => {
-        let s = doc.data();
-        showPopup(`<form class="popup" onsubmit="submitEditStudent(event, '${studentId}')">
-          <label>Student Name</label>
-          <input name="studentName" value="${s.name}" required>
-          <label>Father's Name</label>
-          <input name="fatherName" value="${s.father}" required>
-          <label>Roll Number</label>
-          <input name="rollNo" type="number" value="${s.roll}" required>
-          <div class="btn-row"><button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
-          <button>Save</button></div>
-        </form>`);
-      });
-  }
-  window.submitEditStudent = function (e, studentId) {
-    e.preventDefault();
-    let name = e.target.studentName.value.trim();
-    let father = e.target.fatherName.value.trim();
-    let roll = e.target.rollNo.value.trim();
-    db.collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").doc(currentSection).collection("students").doc(studentId)
-      .update({ name, father, roll }).then(() => { closePopup(); showStudentList(); });
-  }
-  window.deleteStudent = function (studentId) {
-    if (!confirm("Delete this student?")) return;
-    db.collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").doc(currentSection).collection("students").doc(studentId).delete()
-      .then(showStudentList);
-  }
-
-  // FAB & SETTINGS BUTTON
-  function setupFAB() {
-    document.getElementById("fab").onclick = () => {};
-    document.getElementById("fab").style.display = "none";
-  }
-  function setupSettingsBtn() {
-    document.getElementById("settings-btn").onclick = showSettingsPopup;
-  }
-
-  // SETTINGS & ACTIONS POPUP
-  function showSettingsPopup() {
-    showPopup(`<div class="popup">
-      <div style="font-weight:600;color:#0f3d6b;margin-bottom:9px;font-size:1.08em;">Settings & Actions</div>
-      <div class="option-row" style="flex-direction:column;gap:11px;">
-        <button class="option-btn" onclick="showExamSettingsPopup()">Exam Settings</button>
-        <button class="option-btn" onclick="showEnterMarksPopup()">Enter Marks</button>
-        <button class="option-btn" onclick="showTimetablePopup()">Enter Timetable</button>
-        <button class="option-btn" onclick="downloadProgressCards()">Download Progress Cards (PDF)</button>
-        <button class="option-btn" onclick="downloadHallTickets()">Download Hall Tickets (PDF)</button>
-        <button class="option-btn" onclick="showPerformanceGraph()">Performance Graph</button>
-        <button class="option-btn" onclick="downloadExcel()">Export Class Marks (Excel)</button>
-        <button class="option-btn" onclick="showCSVImport()">Import Students (CSV)</button>
-        <button class="option-btn" onclick="logout()">Logout</button>
-        <button class="option-btn" onclick="closePopup()">Close</button>
-      </div>
-    </div>`);
-  }
+  // LOGOUT
   window.logout = function () {
-    auth.signOut();
+    firebase.auth().signOut();
     window.location.href = "index.html";
   }
-
-  // EXAM/MARKS/TIMETABLE POPUPS
-  window.showExamSettingsPopup = function () {
-    alert('Exam settings popup coming soon (per class).');
-  };
-  window.showEnterMarksPopup = function () {
-    alert('Marks entry popup coming soon (per section, per subject).');
-  };
-  window.showTimetablePopup = function () {
-    alert('Timetable entry popup coming soon (per exam).');
-  };
-
-  // PDF/EXCEL/GRAPH/CSV
-  window.downloadProgressCards = function () {
-    alert('Progress card PDF export coming soon!');
-  };
-  window.downloadHallTickets = function () {
-    alert('Hall ticket PDF export coming soon!');
-  };
-  window.showPerformanceGraph = function () {
-    alert('Performance graph/chart coming soon!');
-  };
-  window.downloadExcel = function () {
-    alert('Excel download coming soon!');
-  };
-  window.showCSVImport = function () {
-    document.getElementById('csvImportInput').click();
-  };
-  if (document.getElementById('csvImportInput')) {
-  document.getElementById('csvImportInput').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async function(ev) {
-      let lines = ev.target.result.split(/\r?\n/);
-      for (let line of lines) {
-        let [roll, name, father] = line.split(',');
-        if (roll && name) {
-          await addStudent(currentYear, currentClass, currentSection, { name, father, roll });
-        }
-      }
-      alert('Students imported!');
-      showStudentList();
-    };
-    reader.readAsText(file);
-  });
 }
+
