@@ -2,31 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>St. Patrick's Progress Card Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard – St. Patrick's School</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="style.css">
-  <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <!-- Firebase compat scripts -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 </head>
 <body>
-  <div class="fixed-header" id="header">
-    <div class="school-title" id="school-title">St. Patrick’s School</div>
-    <div class="subtitle" id="header-subtitle">IIT & NEET FOUNDATION</div>
-    <button id="logoutBtn" class="logout-btn" onclick="logout()">Logout</button>
+  <!-- Header -->
+  <div class="fixed-header">
+    <div class="school-title">
+      <span>S</span><span>t</span><span>.</span>
+      <span>P</span><span>a</span><span>t</span><span>r</span><span>i</span><span>c</span><span>k</span>
+      <span>'</span><span>s</span>
+      <span>S</span><span>c</span><span>h</span><span>o</span><span>o</span><span>l</span>
+    </div>
+    <div class="subtitle">IIT & NEET FOUNDATION</div>
   </div>
-  <div class="main-content" id="main-area">
-    <!-- Content will be inserted here by app.js -->
+  <!-- Main Content -->
+  <div class="main-content" id="main-content">
+    <div class="section-title">Select a Class</div>
+    <div id="class-list" class="class-list"></div>
   </div>
-  <button class="fab" id="fab" title="Add" style="display:none;">+</button>
-  <button class="settings-btn" id="settings-btn" title="Settings" style="display:none;">
-    <i class="fa fa-cog"></i>
-  </button>
-  <input type="file" id="csvImportInput" style="display:none;" accept=".csv">
+
+  <!-- Floating Action Buttons -->
+  <button class="fab" id="fab" title="Add Class"><i class="fa fa-plus"></i></button>
+  <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
+
+  <!-- Popups -->
+  <div id="popup-bg" class="popup-bg hidden">
+    <div id="popup" class="popup"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
