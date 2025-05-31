@@ -7,11 +7,13 @@ const firebaseConfig = {
   messagingSenderId: "671416933178",
   appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
 
-// ========== LOGIN/REGISTER PAGE LOGIC ==========
+// Load Firebase
+try {
+  firebase.initializeApp(firebaseConfig);
+} catch(e) {}
+
+// ---- Force Splash to Hide and Login to Show ----
 function showLoginScreen() {
   document.getElementById('login-root').style.display = 'block';
   document.getElementById("login-root").innerHTML = `
@@ -27,7 +29,7 @@ function showLoginScreen() {
     </div>`;
 }
 
-function removeSplashAndShowLogin() {
+function alwaysRemoveSplash() {
   const splash = document.getElementById('splash');
   if (splash) splash.style.display = "none";
   showLoginScreen();
@@ -39,7 +41,7 @@ if (window.location.pathname.includes("index.html") || window.location.pathname 
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
     if (!email || !password) return alert('Enter email and password!');
-    auth.signInWithEmailAndPassword(email, password)
+    firebase.auth().signInWithEmailAndPassword(email, password)
       .then(() => window.location.href = "dashboard.html")
       .catch(err => alert(err.message));
   };
@@ -47,7 +49,7 @@ if (window.location.pathname.includes("index.html") || window.location.pathname 
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
     if (!email || !password) return alert('Enter email and password!');
-    auth.createUserWithEmailAndPassword(email, password)
+    firebase.auth().createUserWithEmailAndPassword(email, password)
       .then(() => {
         alert("Registration successful! You are now signed in.");
         window.location.href = "dashboard.html";
@@ -56,25 +58,26 @@ if (window.location.pathname.includes("index.html") || window.location.pathname 
   };
   window.googleSignIn = function () {
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider)
+    firebase.auth().signInWithPopup(provider)
       .then(() => window.location.href = "dashboard.html")
       .catch(err => alert(err.message));
   };
   window.forgotPassword = function () {
     const email = document.getElementById('email').value.trim();
     if (!email) return alert('Enter your email to reset password.');
-    auth.sendPasswordResetEmail(email)
+    firebase.auth().sendPasswordResetEmail(email)
       .then(() => alert("Password reset email sent."))
       .catch(err => alert(err.message));
   };
 
-  window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(removeSplashAndShowLogin, 1200);
-  });
+  // -- THIS IS THE GUARANTEED PART --
+  setTimeout(alwaysRemoveSplash, 1200);
 }
 
-// ========== DASHBOARD LOGIC ==========
+// ======== Dashboard logic (unchanged, as before) ========
 if (window.location.pathname.includes("dashboard.html")) {
+  const auth = firebase.auth();
+  const db = firebase.firestore();
   auth.onAuthStateChanged(user => {
     if (!user) window.location.href = "index.html";
     else initDashboard(user);
@@ -83,6 +86,9 @@ if (window.location.pathname.includes("dashboard.html")) {
   let currentYear = null, currentClass = null, currentSection = null;
   let mainArea = document.getElementById('main-area');
 
+  // ... Rest of your dashboard logic ...
+  // (Copy your previous dashboard code below as needed)
+}
   // Helper: Fetchers
   async function fetchYears() {
     let snap = await db.collection("years").get();
