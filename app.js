@@ -71,13 +71,19 @@ window.forgotPassword = function () {
 
 // ===== Dashboard Auth Check =====
 firebase.auth().onAuthStateChanged(function(user) {
-  if (!user && location.pathname.includes('dashboard.html')) {
-    window.location.href = "index.html";
-  } else if (user && location.pathname.includes('dashboard.html')) {
-    dashboardAppInit();
+  if (!user) {
+    if (location.pathname.includes('dashboard.html')) {
+      window.location.href = "index.html";
+    }
+    // No action needed on index.html, user will see login form.
+  } else {
+    if (location.pathname.includes('index.html') || location.pathname === "/" || location.pathname === "") {
+      window.location.href = "dashboard.html";
+    } else if (location.pathname.includes('dashboard.html')) {
+      dashboardAppInit();
+    }
   }
 });
-
 // ==== DASHBOARD LOGIC STARTS HERE ====
 function dashboardAppInit() {
   // Global state
