@@ -95,9 +95,9 @@ html, body {
 }
 .btn-register { background: #1db954; }
 .btn-google {
-  background: #fff;
-  color: #d44336;
-  border: 1.5px solid #d44336;
+  background: #1762a7; 
+  color: #fff; 
+  border: none;
   margin-bottom: 0;
 }
 .btn-google i { margin-right: 7px; }
