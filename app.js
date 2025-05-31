@@ -11,32 +11,30 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// ========== LOGIN/REGISTER PAGE LOGIC ==========
+function showLoginScreen() {
+  document.getElementById('login-root').style.display = 'block';
+  document.getElementById("login-root").innerHTML = `
+    <div class="login-box">
+      <h2>St. Patrick’s School</h2>
+      <div class="subtitle">IIT & NEET FOUNDATION</div>
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
+      <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
+      <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google"></i>Sign in with Google</button>
+      <button class="btn-email" style="background:#fff;color:#0f3d6b;border:1px solid #0f3d6b;" onclick="forgotPassword()">Forgot Password?</button>
+    </div>`;
+}
+
 function removeSplashAndShowLogin() {
   const splash = document.getElementById('splash');
   if (splash) splash.style.display = "none";
   showLoginScreen();
 }
 
-// ========== LOGIN/REGISTER PAGE LOGIC ==========
 if (window.location.pathname.includes("index.html") || window.location.pathname === "/") {
-  window.onload = function () {
-    setTimeout(removeSplashAndShowLogin, 1200);
-  };
-
-  window.showLoginScreen = function () {
-    document.getElementById("login-root").innerHTML = `
-      <div class="login-box">
-        <h2>St. Patrick’s School</h2>
-        <div class="subtitle">IIT & NEET FOUNDATION</div>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
-        <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
-        <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
-        <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google"></i>Sign in with Google</button>
-        <button class="btn-email" style="background:#fff;color:#0f3d6b;border:1px solid #0f3d6b;" onclick="forgotPassword()">Forgot Password?</button>
-      </div>`;
-  };
-
+  window.showLoginScreen = showLoginScreen;
   window.emailSignIn = function () {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
@@ -69,21 +67,23 @@ if (window.location.pathname.includes("index.html") || window.location.pathname 
       .then(() => alert("Password reset email sent."))
       .catch(err => alert(err.message));
   };
+
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(removeSplashAndShowLogin, 1200);
+  });
 }
 
 // ========== DASHBOARD LOGIC ==========
 if (window.location.pathname.includes("dashboard.html")) {
-  // Auth check (redirect to login if not authenticated)
   auth.onAuthStateChanged(user => {
     if (!user) window.location.href = "index.html";
     else initDashboard(user);
   });
 
-  // GLOBAL state
-  let currentYear = null, currentClass = null, currentSection = null, currentExam = null;
+  let currentYear = null, currentClass = null, currentSection = null;
   let mainArea = document.getElementById('main-area');
 
-  // ===== Helper: Fetchers =====
+  // Helper: Fetchers
   async function fetchYears() {
     let snap = await db.collection("years").get();
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.id.localeCompare(a.id));
@@ -101,7 +101,7 @@ if (window.location.pathname.includes("dashboard.html")) {
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
 
-  // ===== Helper: Adders =====
+  // Helper: Adders
   async function addClass(yearId, name) {
     await db.collection("years").doc(yearId).collection("classes").add({ name });
     showClassList();
@@ -115,11 +115,12 @@ if (window.location.pathname.includes("dashboard.html")) {
     showStudentList();
   }
 
-  // =================== UI SCREENS ====================
+  // UI SCREENS
   function initDashboard(user) {
     showYearSelector();
     setupFAB();
     setupSettingsBtn();
+    document.getElementById("header").style.display = "block";
   }
 
   // Academic Year selection
@@ -185,7 +186,7 @@ if (window.location.pathname.includes("dashboard.html")) {
     document.getElementById("fab").onclick = showAddStudentPopup;
   }
 
-  // === POPUPS ===
+  // POPUPS
   function showAddClassPopup() {
     showPopup(`<form class="popup" onsubmit="submitAddClass(event)">
       <label>Class Name</label>
@@ -256,7 +257,7 @@ if (window.location.pathname.includes("dashboard.html")) {
   }
   window.closePopup = closePopup;
 
-  // ==== EDIT/DELETE STUDENT ====
+  // EDIT/DELETE STUDENT
   window.editStudent = function (studentId) {
     db.collection("years").doc(currentYear).collection("classes").doc(currentClass).collection("sections").doc(currentSection).collection("students").doc(studentId).get()
       .then(doc => {
@@ -287,7 +288,7 @@ if (window.location.pathname.includes("dashboard.html")) {
       .then(showStudentList);
   }
 
-  // ========== FAB & SETTINGS BUTTON ==========
+  // FAB & SETTINGS BUTTON
   function setupFAB() {
     document.getElementById("fab").onclick = () => {};
     document.getElementById("fab").style.display = "none";
@@ -296,7 +297,7 @@ if (window.location.pathname.includes("dashboard.html")) {
     document.getElementById("settings-btn").onclick = showSettingsPopup;
   }
 
-  // ========== SETTINGS & ACTIONS POPUP ==========
+  // SETTINGS & ACTIONS POPUP
   function showSettingsPopup() {
     showPopup(`<div class="popup">
       <div style="font-weight:600;color:#0f3d6b;margin-bottom:9px;font-size:1.08em;">Settings & Actions</div>
@@ -319,7 +320,7 @@ if (window.location.pathname.includes("dashboard.html")) {
     window.location.href = "index.html";
   }
 
-  // ========== EXAM/MARKS/TIMETABLE POPUPS ==========
+  // EXAM/MARKS/TIMETABLE POPUPS
   window.showExamSettingsPopup = function () {
     alert('Exam settings popup coming soon (per class).');
   };
@@ -330,7 +331,7 @@ if (window.location.pathname.includes("dashboard.html")) {
     alert('Timetable entry popup coming soon (per exam).');
   };
 
-  // ========== PDF/EXCEL/GRAPH/CSV ==========
+  // PDF/EXCEL/GRAPH/CSV
   window.downloadProgressCards = function () {
     alert('Progress card PDF export coming soon!');
   };
