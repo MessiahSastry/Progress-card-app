@@ -133,14 +133,12 @@ html, body {
 .fixed-header #header-exam {
   font-size: 1.13em; font-weight: bold; color: #fdc600; margin: 6px 0 0 0;
 }
-
 .main-content {
   padding: 18px 10px 80px 10px;
   max-width: 510px;
   margin: 0 auto;
   min-height: 60vh;
 }
-
 .screen-title {
   font-size: 1.4em;
   font-weight: bold;
@@ -150,21 +148,27 @@ html, body {
   margin-top: 18px;
   letter-spacing: 0.5px;
 }
-
-.class-list, .section-list, .student-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 14px;
+.class-list, .section-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);   /* Two per row */
+  gap: 24px 22px;
+  justify-items: center;
+  align-items: center;
 }
-
+.student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
 .class-btn, .section-chip {
-  min-width: 88px;
-  padding: 16px 16px;
-  border-radius: 22px;
+  min-width: 140px;
+  min-height: 62px;
+  padding: 18px 0;
+  border-radius: 28px;
   border: 2.7px solid #0f3d6b;
   background: #fff;
-  font-size: 1.1em;
-  font-weight: 600;
+  font-size: 1.28em;
+  font-weight: 700;
   color: #0f3d6b;
   cursor: pointer;
   box-shadow: 0 2px 12px #0f3d6b0a;
@@ -176,7 +180,6 @@ html, body {
   border-width: 3.2px;
   box-shadow: 0 4px 22px #1467b71a;
 }
-
 .student-list {
   flex-direction: column;
   gap: 0px;
@@ -199,7 +202,6 @@ html, body {
   font-weight: bold;
   color: #1467b7;
 }
-
 /* FAB and Settings */
 .fab, .settings-btn {
   position: fixed;
