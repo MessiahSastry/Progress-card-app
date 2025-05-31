@@ -1,3 +1,4 @@
+// ====== Splash/Login (index.html) ======
 window.onload = function () {
   setTimeout(() => {
     var splash = document.getElementById('splash');
@@ -22,6 +23,7 @@ window.onload = function () {
     }
   }, 1200);
 };
+
 const firebaseConfig = {
   apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
   authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -32,6 +34,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
+// ==== Auth Functions ====
 window.emailSignIn = function () {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
@@ -64,27 +67,19 @@ window.forgotPassword = function () {
     .then(() => alert("Password reset email sent."))
     .catch(err => alert(err.message));
 };
-  // -- THIS IS THE GUARANTEED PART --
-  setTimeout(alwaysRemoveSplash, 1200);
+
 // ======== Dashboard logic (unchanged, as before) ========
-// Only run on dashboard.html
 if (window.location.pathname.includes("dashboard.html")) {
   firebase.auth().onAuthStateChanged(user => {
     if (!user) window.location.href = "index.html";
     else initDashboard(user);
   });
 
-  let currentYear = "2024-25"; // You can make this dynamic or let user select
+  let currentYear = "2024-25";
   let currentClass = null;
   let currentSection = null;
   let mainArea = document.getElementById('main-area');
 
-  // Helper: Reference
-  function dbRef(...path) {
-    return path.reduce((ref, part) => ref.collection(part), firebase.firestore());
-  }
-
-  // DASHBOARD MAIN
   function initDashboard(user) {
     document.getElementById("header").style.display = "block";
     showClassList();
@@ -270,4 +265,3 @@ if (window.location.pathname.includes("dashboard.html")) {
     window.location.href = "index.html";
   }
 }
-
