@@ -108,3 +108,196 @@ body, html {
     box-shadow: 0 1px 10px #bdd5f57c;
   }
 }
+:root {
+  --blue: #0f3d6b;
+  --border-radius: 26px;
+  --class-red: #e74c3c;
+  --class-yellow: #fdc600;
+  --class-green: #27ae60;
+  --class-blue: #2980b9;
+  --class-violet: #9b59b6;
+  --class-orange: #e67e22;
+  --class-pink: #e84393;
+  --class-cyan: #00b894;
+  --class-brown: #a0522d;
+}
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: #fff;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #222;
+}
+body { min-height: 100vh; }
+.fixed-header {
+  background: var(--blue);
+  color: #fff;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  padding: 28px 0 22px 0;
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+  box-shadow: 0 2px 8px #bbb5;
+  text-align: center;
+}
+.school-title {
+  font-size: 2.35em;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  user-select: none;
+  margin-bottom: 2px;
+  line-height: 1.08;
+  flex-wrap: wrap;
+}
+.school-title span:nth-child(1)  { color: var(--class-red);}
+.school-title span:nth-child(2)  { color: var(--class-yellow);}
+.school-title span:nth-child(3)  { color: var(--class-green);}
+.school-title span:nth-child(4)  { color: var(--class-blue);}
+.school-title span:nth-child(5)  { color: var(--class-orange);}
+.school-title span:nth-child(6)  { color: var(--class-violet);}
+.school-title span:nth-child(7)  { color: var(--class-pink);}
+.school-title span:nth-child(8)  { color: var(--class-green);}
+.school-title span:nth-child(9)  { color: var(--class-blue);}
+.school-title span:nth-child(10) { color: var(--class-yellow);}
+.school-title span:nth-child(11) { color: var(--class-cyan);}
+.school-title span:nth-child(12) { color: var(--class-red);}
+.school-title span:nth-child(13) { color: var(--class-violet);}
+.school-title span:nth-child(14) { color: var(--class-orange);}
+.school-title span:nth-child(15) { color: var(--class-green);}
+.school-title span:nth-child(16) { color: var(--class-blue);}
+.school-title span:nth-child(17) { color: var(--class-yellow);}
+.school-title span:nth-child(18) { color: var(--class-red);}
+.subtitle {
+  font-size: 1.18em;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #fff;
+}
+.main-content {
+  max-width: 720px;
+  margin: 0 auto;
+  margin-top: 130px;
+  padding-bottom: 120px;
+  min-height: 75vh;
+}
+.section-title {
+  font-size: 1.55em;
+  font-weight: bold;
+  color: var(--blue);
+  text-align: center;
+  margin-bottom: 22px;
+  letter-spacing: 0.04em;
+}
+.class-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px 16px;
+  justify-content: center;
+}
+.class-btn {
+  padding: 32px 0;
+  font-size: 1.18em;
+  font-weight: bold;
+  border-radius: 46px;
+  border-width: 4px;
+  border-style: solid;
+  background: #fff;
+  transition: background 0.17s, box-shadow 0.13s;
+  width: 95%;
+  margin: 0 auto;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 2px 2px 18px 0 #e1e6ff35;
+  display: block;
+  text-align: center;
+}
+.class-btn:active,
+.class-btn:focus { background: #f1f6ff;}
+/* Button Color Cycles (change for variety!) */
+.class-btn.c0 { border-color: var(--class-red); color: var(--class-red);}
+.class-btn.c1 { border-color: var(--class-yellow); color: var(--class-yellow);}
+.class-btn.c2 { border-color: var(--class-green); color: var(--class-green);}
+.class-btn.c3 { border-color: var(--class-blue); color: var(--class-blue);}
+.class-btn.c4 { border-color: var(--class-violet); color: var(--class-violet);}
+.class-btn.c5 { border-color: var(--class-orange); color: var(--class-orange);}
+.class-btn.c6 { border-color: var(--class-pink); color: var(--class-pink);}
+.class-btn.c7 { border-color: var(--class-cyan); color: var(--class-cyan);}
+.class-btn.c8 { border-color: var(--class-brown); color: var(--class-brown);}
+.class-btn.c9 { border-color: var(--class-red); color: var(--class-red);}
+.fab {
+  position: fixed;
+  bottom: 80px;
+  right: 22px;
+  width: 60px; height: 60px;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 2em;
+  border: none;
+  box-shadow: 2px 2px 16px #bdd5f54d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 50;
+  transition: background 0.13s;
+}
+.fab:active { background: #0b294a; }
+.settings-btn {
+  position: fixed;
+  bottom: 14px;
+  right: 28px;
+  width: 45px; height: 45px;
+  background: #fff;
+  color: var(--blue);
+  border-radius: 50%;
+  border: 2.5px solid var(--blue);
+  font-size: 1.5em;
+  box-shadow: 1px 1px 10px #d8e2f164;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 52;
+}
+.settings-btn:active { background: #eaf3ff; }
+.popup-bg {
+  display: flex; align-items: center; justify-content: center;
+  position: fixed; inset: 0; z-index: 2000; background: #0005;
+}
+.hidden { display: none !important; }
+.popup {
+  background: #fff; padding: 36px 28px 25px 28px;
+  border-radius: var(--border-radius);
+  min-width: 255px; max-width: 97vw;
+  box-shadow: 0 5px 46px #2d53684a;
+  position: relative;
+  animation: popupIn .18s;
+  text-align: center;
+}
+@keyframes popupIn { from { transform: scale(0.94); opacity: 0;} to {transform:scale(1); opacity: 1;} }
+.popup label { display: block; font-size: 1.12em; margin-bottom: 7px;}
+.popup input, .popup select {
+  width: 100%; padding: 11px 8px; border-radius: 9px;
+  border: 1.2px solid #bbb; margin-bottom: 17px;
+  font-size: 1.09em; box-sizing: border-box; background: #f8fafd;
+  outline: none;
+}
+.popup .btn-row { text-align: right; }
+.popup button {
+  margin-left: 10px; padding: 10px 24px;
+  border-radius: 9px; border: none; background: var(--blue);
+  color: #fff; font-weight: 500; font-size: 1.08em;
+  cursor: pointer; transition: background 0.13s;
+}
+.popup .cancel-btn { background: #bbb; color: #fff; }
+@media (max-width: 640px) {
+  .fixed-header { padding: 16px 0 14px 0; }
+  .school-title { font-size: 1.32em;}
+  .subtitle { font-size: 0.98em;}
+  .main-content { margin-top: 87px;}
+  .class-list { grid-template-columns: 1fr;}
+  .fab { bottom: 68px; right: 14px; width: 53px; height: 53px;}
+  .settings-btn { bottom: 9px; right: 15px; width: 38px; height: 38px; font-size: 1.13em;}
+}
