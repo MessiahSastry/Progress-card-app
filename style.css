@@ -230,12 +230,11 @@ html, body {
 }
 
 .settings-btn {
-  right: 90px;
-  background: #0f3d6b;
-  color: #fff;
+  width: 46px;
+  height: 46px;
   font-size: 1.35em;
-  width: 46px; height: 46px;
-  bottom: 37px;
+  bottom: 34px;
+  z-index: 103;
 }
 .settings-btn i { pointer-events: none; }
 
