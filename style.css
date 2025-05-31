@@ -323,3 +323,6 @@ html, body {
 .option-btn:hover { background: #0f3d6b; }
 
 ::-webkit-scrollbar { width: 0; background: transparent; }
+body:not(.dashboard) .fab {
+  display: none !important;
+}
