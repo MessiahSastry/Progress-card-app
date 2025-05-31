@@ -1,34 +1,27 @@
-// =============================
-// FORCE SPLASH HIDE AND LOGIN SHOW
-// =============================
 window.onload = function () {
   setTimeout(() => {
-    // Hide splash
     var splash = document.getElementById('splash');
     if (splash) splash.style.display = "none";
-    // Show login
     var loginRoot = document.getElementById('login-root');
     if (loginRoot) {
-      loginRoot.style.display = "block";
+      loginRoot.style.display = "flex";
       loginRoot.innerHTML = `
         <div class="login-box">
-          <h2>St. Patrick’s School</h2>
+          <div class="school-title">St. Patrick’s School</div>
           <div class="subtitle">IIT & NEET FOUNDATION</div>
           <input type="email" id="email" placeholder="Email">
           <input type="password" id="password" placeholder="Password">
+          <div class="forgot-row">
+            <button type="button" onclick="forgotPassword()">Forgot Password?</button>
+          </div>
           <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
           <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
           <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google"></i>Sign in with Google</button>
-          <button class="btn-email" style="background:#fff;color:#0f3d6b;border:1px solid #0f3d6b;" onclick="forgotPassword()">Forgot Password?</button>
         </div>
       `;
     }
   }, 1200);
 };
-
-// =============================
-// FIREBASE INITIALIZATION
-// =============================
 const firebaseConfig = {
   apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
   authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -38,12 +31,7 @@ const firebaseConfig = {
   appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
 };
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
 
-// =============================
-// LOGIN FUNCTIONS
-// =============================
 window.emailSignIn = function () {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
@@ -76,7 +64,6 @@ window.forgotPassword = function () {
     .then(() => alert("Password reset email sent."))
     .catch(err => alert(err.message));
 };
-
   // -- THIS IS THE GUARANTEED PART --
   setTimeout(alwaysRemoveSplash, 1200);
 // ======== Dashboard logic (unchanged, as before) ========
