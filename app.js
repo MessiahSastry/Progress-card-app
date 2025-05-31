@@ -79,8 +79,6 @@ window.forgotPassword = function () {
 
   // -- THIS IS THE GUARANTEED PART --
   setTimeout(alwaysRemoveSplash, 1200);
-}
-
 // ======== Dashboard logic (unchanged, as before) ========
 if (window.location.pathname.includes("dashboard.html")) {
   const auth = firebase.auth();
