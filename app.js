@@ -428,11 +428,11 @@ window.showAddYearPopup = function() {
   }
 
   // == FAB
-  function showFAB(label, onClick) {
-    fab.innerHTML = label;
-    fab.onclick = onClick;
-    fab.style.display = "flex";
-  }
+ function showFAB(label, onClick) {
+  fab.innerHTML = ""; 
+  fab.onclick = onClick;
+  fab.style.display = "flex";
+}
   // == Heading for Each Screen ==
   function setScreenTitle(title) {
     document.querySelector(".screen-title").textContent = title;
