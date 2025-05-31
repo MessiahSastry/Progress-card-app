@@ -207,28 +207,27 @@ html, body {
   position: fixed;
   right: 22px;
   border: none;
-  background: #fdc600;
-  color: #0f3d6b;
-  font-size: 1.16em;
-  font-weight: 600;
   border-radius: 50%;
-  box-shadow: 0 2px 18px #fdc60077;
-  width: 54px; height: 54px;
-  z-index: 102;
-  bottom: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  background: #0f3d6b;
+  color: #fff;
+  box-shadow: 0 2px 18px #0f3d6b55;
   transition: background .15s;
 }
 .fab {
-  right: 22px;
-  bottom: 34px;
-  background: #fdc600;
+  width: 56px;
+  height: 56px;
+  bottom: 92px;
+  z-index: 104;
 }
-.fab:active, .settings-btn:active { background: #ffe65c; }
-.fab:before { content: "+"; font-size: 1.7em; color: #0f3d6b; }
+.fab:before {
+  content: "+";
+  font-size: 2em;
+  color: #fff;
+}
 
 .settings-btn {
   right: 90px;
