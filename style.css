@@ -1,3 +1,11 @@
+body, html {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: #f9fbff;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
 /* Splash Screen */
 .splash {
   position: fixed;
@@ -20,66 +28,40 @@
 }
 .splash.hidden { opacity: 0; pointer-events: none; }
 
-/* School Title Header */
-.fixed-header {
-  width: 100vw;
-  background: #0f3d6b;
-  color: #fff;
-  padding: 18px 0 5px 0;
-  box-shadow: 0 1px 4px #bdd5f543;
-  position: sticky;
-  top: 0; left: 0;
-  z-index: 100;
-  text-align: center;
-}
-.school-title {
-  font-size: 2.2em;
-  font-weight: bold;
-  letter-spacing: 1px;
-  color: #fff;
-  margin-bottom: 4px;
-}
-.subtitle {
-  color: #fff;
-  font-size: 1.1em;
-  font-weight: 600;
-  margin-bottom: 0;
-}
-
-/* Login/Register */
-.login-container {
+/* Center login root */
+#login-root {
   min-height: 100vh;
   width: 100vw;
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
   justify-content: center;
   align-items: center;
-  background: #fff;
+  background: #f9fbff;
 }
 .login-box {
+  box-shadow: 0 2px 16px #bdd5f56b;
+  border-radius: 18px;
+  padding: 36px 26px 24px 26px;
+  background: #fff;
+  width: 350px;
+  max-width: 95vw;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: #fff;
-  padding: 28px 20px 20px 20px;
-  border-radius: 18px;
-  box-shadow: 0 2px 16px #bdd5f56b;
-  width: 340px;
-  max-width: 95vw;
+  gap: 14px;
 }
+
 .login-box h2 {
-  font-size: 2.1em;
-  text-align: center;
+  font-size: 2em;
   font-weight: 900;
+  text-align: center;
   letter-spacing: 2px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 .login-box .subtitle {
+  color: #14345b;
+  font-size: 1.13em;
   text-align: center;
-  color: #0f3d6b;
-  margin-bottom: 8px;
-  font-size: 1.12em;
-  font-weight: 600;
+  font-weight: 700;
+  margin-bottom: 16px;
 }
 .login-box input[type="email"], .login-box input[type="password"] {
   padding: 11px 14px;
@@ -87,28 +69,27 @@
   border: 1px solid #0f3d6b46;
   font-size: 1em;
   outline: none;
-  margin-bottom: 0px;
 }
 .login-box button {
-  padding: 11px 0;
+  padding: 12px 0;
   border-radius: 8px;
   border: none;
-  font-size: 1.1em;
+  font-size: 1.12em;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 7px;
   cursor: pointer;
   box-shadow: 1px 2px 8px #bdd5f54d;
   transition: background 0.2s;
 }
-.login-box .btn-email { background: #0f3d6b; color: #fff; margin-bottom: 4px; }
-.login-box .btn-register { background: #18a889; color: #fff; }
-.login-box .btn-google {
+.btn-email { background: #0f3d6b; color: #fff; }
+.btn-register { background: #18a889; color: #fff; }
+.btn-google {
   background: #14345b;
   color: #fff;
-  margin-top: 8px;
   display: flex; align-items: center; justify-content: center;
 }
-.login-box .btn-google i { margin-right: 12px; font-size: 1.2em; }
+.btn-google i { margin-right: 12px; font-size: 1.2em; }
+.login-box .btn-email[style] { /* forgot password button */ background: #fff; color: #0f3d6b; border: 1px solid #0f3d6b; }
 
 @media (max-width: 600px) {
   .login-box {
@@ -117,97 +98,4 @@
     min-width: unset;
     box-shadow: 0 1px 10px #bdd5f57c;
   }
-}
-
-/* Main Content Area */
-.main-content {
-  width: 100vw;
-  margin: 0 auto;
-  margin-top: 90px;
-  padding-bottom: 60px;
-  min-height: 80vh;
-}
-
-/* Floating Add Button */
-.fab {
-  position: fixed;
-  bottom: 90px; right: 30px;
-  background: #0f3d6b;
-  color: #fff;
-  font-size: 2.2em;
-  width: 60px; height: 60px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  box-shadow: 1px 4px 16px #0f3d6b32;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 120;
-  transition: background 0.2s;
-}
-.settings-btn {
-  position: fixed;
-  bottom: 24px; right: 32px;
-  background: #fff;
-  color: #0f3d6b;
-  font-size: 2.1em;
-  border-radius: 50%;
-  width: 54px; height: 54px;
-  border: 2px solid #0f3d6b34;
-  box-shadow: 1px 2px 8px #bdd5f54d;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 121;
-  transition: border 0.2s;
-}
-.settings-btn:active, .fab:active { background: #183f6b; color: #fff; }
-
-/* Popup styles (general) */
-.popup-bg {
-  position: fixed; z-index: 9999; top:0; left:0; right:0; bottom:0;
-  background: rgba(40,54,79,0.12);
-  display: flex; align-items: center; justify-content: center;
-}
-.popup {
-  background: #fff;
-  border-radius: 14px;
-  padding: 28px 18px;
-  min-width: 310px;
-  box-shadow: 0 2px 18px #23488b24;
-  max-width: 90vw;
-  display: flex; flex-direction: column; gap: 14px;
-}
-.btn-row { display: flex; gap: 13px; margin-top: 18px; }
-.cancel-btn { background: #aaa; color:#fff; font-weight:600; border:none; border-radius:6px; padding: 7px 22px;}
-.popup input, .popup select { padding: 8px 9px; border-radius: 7px; border:1px solid #ddd; font-size: 1em; }
-
-.screen-title {
-  text-align: center; color: #0f3d6b;
-  font-size: 1.3em; font-weight: 700;
-  margin: 24px 0 12px 0;
-}
-
-/* Lists */
-.class-list, .section-list, .student-list { display: flex; flex-direction: column; gap: 12px; margin: 18px 0 24px 0; }
-.class-btn, .section-chip {
-  font-size: 1.19em; padding: 11px 0; border-radius: 9px; border: 2px solid #0f3d6b34; background: #f6f8ff;
-  font-weight: 700; color: #14345b; margin-bottom: 2px;
-  cursor: pointer; transition: 0.14s;
-}
-.section-chip { border: 2px solid #14345b; color: #14345b; background: #f7f7fc; padding: 8px 0;}
-.student-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 18px; border-radius: 7px;
-  background: #eaf2fb;
-  margin-bottom: 3px;
-}
-
-/* Utility */
-body, html {
-  margin: 0; padding: 0;
-  font-family: 'Segoe UI', 'Arial', sans-serif;
-  background: #fff; min-height: 100vh; overflow-x: hidden;
 }
