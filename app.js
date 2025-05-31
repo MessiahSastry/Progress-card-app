@@ -11,17 +11,19 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+function removeSplashAndShowLogin() {
+  const splash = document.getElementById('splash');
+  if (splash) splash.style.display = "none";
+  showLoginScreen();
+}
+
 // ========== LOGIN/REGISTER PAGE LOGIC ==========
 if (window.location.pathname.includes("index.html") || window.location.pathname === "/") {
-  // Splash transition
   window.onload = function () {
-    setTimeout(() => {
-      document.getElementById('splash').classList.add('hidden');
-      showLoginScreen();
-    }, 1200);
+    setTimeout(removeSplashAndShowLogin, 1200);
   };
 
-  function showLoginScreen() {
+  window.showLoginScreen = function () {
     document.getElementById("login-root").innerHTML = `
       <div class="login-box">
         <h2>St. Patrick’s School</h2>
@@ -33,7 +35,7 @@ if (window.location.pathname.includes("index.html") || window.location.pathname 
         <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google"></i>Sign in with Google</button>
         <button class="btn-email" style="background:#fff;color:#0f3d6b;border:1px solid #0f3d6b;" onclick="forgotPassword()">Forgot Password?</button>
       </div>`;
-  }
+  };
 
   window.emailSignIn = function () {
     const email = document.getElementById('email').value.trim();
@@ -97,18 +99,6 @@ if (window.location.pathname.includes("dashboard.html")) {
   async function fetchStudents(yearId, classId, sectionId) {
     let snap = await db.collection("years").doc(yearId).collection("classes").doc(classId).collection("sections").doc(sectionId).collection("students").get();
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-  async function fetchSubjects(yearId, classId) {
-    let snap = await db.collection("years").doc(yearId).collection("subjects").get();
-    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-  async function fetchExams(yearId, classId) {
-    let snap = await db.collection("years").doc(yearId).collection("classes").doc(classId).collection("exams").get();
-    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-  async function fetchTimetable(yearId, classId, examId) {
-    let docSnap = await db.collection("years").doc(yearId).collection("classes").doc(classId).collection("exams").doc(examId).get();
-    return docSnap.exists ? docSnap.data().timetable || {} : {};
   }
 
   // ===== Helper: Adders =====
@@ -330,7 +320,6 @@ if (window.location.pathname.includes("dashboard.html")) {
   }
 
   // ========== EXAM/MARKS/TIMETABLE POPUPS ==========
-  // -- You can fill these with Firestore logic as above --
   window.showExamSettingsPopup = function () {
     alert('Exam settings popup coming soon (per class).');
   };
@@ -342,7 +331,6 @@ if (window.location.pathname.includes("dashboard.html")) {
   };
 
   // ========== PDF/EXCEL/GRAPH/CSV ==========
-  // -- To be filled with full implementations as per your template and above fetch functions --
   window.downloadProgressCards = function () {
     alert('Progress card PDF export coming soon!');
   };
