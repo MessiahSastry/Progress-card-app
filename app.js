@@ -598,6 +598,7 @@ function dashboardAppInit() {
 
     // == FAB (Floating Action Button) ==
     function showFAB(label, onClickHandler) {
+        const fab = document.getElementById("fab");
         if (fab) { // Check if fab element was found
             fab.innerHTML = ""; // FAB already has "+" content via :before pseudo-element in CSS
             fab.onclick = null; // Clear previous handler
