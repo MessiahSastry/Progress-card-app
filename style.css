@@ -9,7 +9,7 @@ html, body {
 }
 
 /* Splash Screen Styles */
-#splash { /* Note: Changed .splash to #splash to match the ID in HTML */
+#splash {
   position: fixed;
   z-index: 9999;
   left: 0; top: 0; right: 0; bottom: 0;
@@ -17,35 +17,29 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #eaf1fa; /* Light blue background for the splash screen */
-  transition: opacity 0.5s ease-out; /* Smooth fade-out effect */
-  opacity: 1; /* Initially fully visible */
+  background: #eaf1fa;
+  transition: opacity 0.5s ease-out;
+  opacity: 1;
 }
-
-/* Rule to hide the splash screen */
 #splash.hidden {
-  opacity: 0; /* Make it completely transparent */
-  pointer-events: none; /* Prevent it from blocking clicks/interactions when invisible */
+  opacity: 0;
+  pointer-events: none;
 }
-
-/* Styles for elements inside the splash screen (if you have them) */
 .splash-logo {
-  width: 120px; /* Adjust size as needed for your logo.png */
+  width: 120px;
   height: auto;
   margin-bottom: 20px;
 }
-
-.splash-title { /* This is now the same as .school-title for consistency */
-  font-size: 2.1em; /* You can adjust this specific to splash if different */
+.splash-title {
+  font-size: 2.1em;
   font-weight: bold;
   margin-bottom: 6px;
   color: #0f3d6b;
 }
-.splash-subtitle { /* This is now the same as .subtitle for consistency */
-  font-size: 1.15em; /* You can adjust this specific to splash if different */
+.splash-subtitle {
+  font-size: 1.15em;
   color: #1467b7;
 }
-
 
 /* General School Title and Subtitle */
 .school-title {
@@ -223,17 +217,10 @@ html, body {
   border-width: 3.2px;
   box-shadow: 0 4px 22px #1467b71a;
 }
-
 .section-chip:hover {
   background: #eaf1fa;
   box-shadow: 0 4px 16px #0f3d6b22;
 }
-/* This rule was redundant, combining with .class-btn:hover was better */
-/* .class-btn:hover, .section-chip:hover {
-  transform: translateY(-2px) scale(1.035);
-  border-width: 3.2px;
-  box-shadow: 0 4px 22px #1467b71a;
-} */
 .student-list {
   flex-direction: column;
   gap: 0px;
@@ -302,7 +289,6 @@ button.fab:before {
 }
 #popup-bg.hidden, #popup.hidden { display: none !important; }
 
-/* CORRECTED POPUP CSS BELOW */
 .popup {
   background: #fff;
   border-radius: 22px;
@@ -323,8 +309,6 @@ button.fab:before {
   left: 50%;
   transform: translate(-50%, -50%);
 }
-/* END CORRECTED POPUP CSS */
-
 .popup label, .popup-title {
   font-size: 1.11em;
   color: #1a3760;
