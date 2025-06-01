@@ -302,6 +302,7 @@ html, body {
 }
 #popup-bg.hidden, #popup.hidden { display: none !important; }
 
+/* CORRECTED POPUP CSS BELOW */
 .popup, #popup {
   background: #fff;
   border-radius: 22px;
@@ -309,15 +310,21 @@ html, body {
   padding: 30px 22px 22px 22px;
   max-width: 380px;
   width: 92vw;
-  margin: 0 auto;
-  position: relative;
+  /* margin: 0 auto;  -- Removed as flexbox handles centering */
+  /* REMOVED: position: relative;  -- This was causing the issue */
   z-index: 2010;
   display: flex;
   flex-direction: column;
   gap: 18px;
   align-items: stretch;
   justify-content: center;
+
+  /* ADDED FOR BETTER VERTICAL CENTERING AND SCROLLING */
+  max-height: 90vh; /* Limit height to 90% of viewport height */
+  overflow-y: auto; /* Add scrollbar if content exceeds max-height */
 }
+/* END CORRECTED POPUP CSS */
+
 .popup label, .popup-title {
   font-size: 1.11em;
   color: #1a3760;
