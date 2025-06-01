@@ -73,14 +73,16 @@ firebase.auth().onAuthStateChanged(function(user) {
 
   // On index.html (login page)
   if (isIndex) {
-    if (user) {
-      // User already logged in, go to dashboard
-      if (!window.location.pathname.endsWith('dashboard.html')) {
-        window.location.replace("dashboard.html");
-      }
+  if (user) {
+    // User already logged in, go to dashboard
+    if (!window.location.pathname.endsWith('dashboard.html')) {
+      window.location.replace("dashboard.html");
     }
-    // else, stay on login page
+  } else {
+    // User not logged in, show login UI!
+    showLoginUI();
   }
+}
   // On dashboard.html (main app)
   else if (isDashboard) {
     if (!user) {
