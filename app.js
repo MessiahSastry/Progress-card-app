@@ -401,13 +401,13 @@ function dashboardAppInit() {
 
     // == Settings Button Logic ==
     function showSettingsBtn(mode, ...args) {
+        const settingsBtn = document.getElementById("settings-btn");
         if (settingsBtn) {
             settingsBtn.onclick = null; // Clear previous handler
             // Use a custom property to store/remove the specific handler function
             if (settingsBtn._currentClickHandler) {
                 settingsBtn.removeEventListener('click', settingsBtn._currentClickHandler);
             }
-
             let handler;
             if (mode === "main") {
                 handler = showMainSettingsPopup;
