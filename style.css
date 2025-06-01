@@ -246,31 +246,30 @@ html, body {
 }
 .settings-btn i { pointer-events: none; }
 /* Popups/Modal */
-#popup-bg, #popup {
+#popup-bg {
   position: fixed;
   left: 0; top: 0; right: 0; bottom: 0;
+  background: #0007;
   z-index: 2001;
-}
-#popup-bg {
-  background: #0009;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 #popup-bg.hidden, #popup.hidden { display: none !important; }
-.popup {
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 10px 36px #0f3d6b22;
-  padding: 26px 22px 16px 22px;
-  max-width: 370px;
-  width: 90vw;
+
+#popup {
+  max-width: 410px;
+  width: 97vw;
   margin: 0 auto;
   position: relative;
   z-index: 2010;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 36px #0f3d6b22;
+  padding: 26px 22px 16px 22px;
 }
 .popup label { font-size: 1.03em; color: #0f3d6b; font-weight: 500; }
 .popup input {
