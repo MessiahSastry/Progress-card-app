@@ -79,18 +79,19 @@ window.forgotPassword = function () {
 };
 
 // ===== Dashboard Auth Check =====
+// ===== Dashboard Auth Check =====
 firebase.auth().onAuthStateChanged(function(user) {
   if (!user) {
-    if (location.pathname.includes('dashboard.html')) {
+    // Only redirect if we are on dashboard page and not already logging out
+    if (window.location.pathname.includes('dashboard.html')) {
       window.location.replace("index.html");
     }
-    // No action needed on index.html, user will see login form.
   } else {
-    if (location.pathname.includes('index.html') || location.pathname === "/" || location.pathname === "") {
-      window.location.replace("dashboard.html");
-    } else if (location.pathname.includes('dashboard.html')) {
+    // Only initialize dashboard if we are on dashboard page
+    if (window.location.pathname.includes('dashboard.html')) {
       dashboardAppInit();
     }
+    // Do NOT auto-redirect to dashboard from index.html here (it is handled by the login page logic)
   }
 });
 // ==== DASHBOARD LOGIC STARTS HERE ====
