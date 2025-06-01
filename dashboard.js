@@ -240,20 +240,89 @@ chip.addEventListener('mouseup', function () {
     };
 
     function renderStudentList(classId, sectionId, className, sectionName, students) {
-        let html = `<div class="screen-title">${className} – Section ${sectionName}</div>
-                    <div class="student-list">`;
-        students.forEach(stu => {
-            html += `<div class="student-row"><span class="roll-no">${stu.roll}.</span> ${stu.name}</div>`;
-        });
-        html += "</div>";
-        if (mainArea) {
-            mainArea.innerHTML = html;
-        }
-        showFAB("Add Student", () => showAddStudentPopup(classId, sectionId, className, sectionName));
-        showSettingsBtn("section", classId, sectionId, className, sectionName);
-        setScreenTitle(`${className} – ${sectionName} - Students`);
-        setHistory(() => renderStudentList(classId, sectionId, className, sectionName, students));
+    let html = `<div class="screen-title">${className} – Section ${sectionName}</div>
+                <div class="student-list">`;
+    students.forEach(stu => {
+        html += `<div class="student-row"
+            data-class-id="${classId}"
+            data-section-id="${sectionId}"
+            data-student-id="${stu.id}"
+            data-student-name="${stu.name}">
+            <span class="roll-no">${stu.roll}.</span> ${stu.name}
+        </div>`;
+    });
+    html += "</div>";
+    if (mainArea) {
+        mainArea.innerHTML = html;
     }
+
+    // --- Add this block for long-press on student-row ---
+    document.querySelectorAll('.student-row').forEach(row => {
+        let pressTimer = null;
+        row.addEventListener('mousedown', startPress);
+        row.addEventListener('touchstart', startPress);
+        row.addEventListener('mouseup', clearPress);
+        row.addEventListener('mouseleave', clearPress);
+        row.addEventListener('touchend', clearPress);
+
+        function startPress(e) {
+            pressTimer = setTimeout(() => {
+                showStudentActionPopup(
+                    row.dataset.classId,
+                    row.dataset.sectionId,
+                    row.dataset.studentId,
+                    row.dataset.studentName
+                );
+            }, 700);
+        }
+        function clearPress(e) {
+            clearTimeout(pressTimer);
+        }
+    });
+
+    showFAB("Add Student", () => showAddStudentPopup(classId, sectionId, className, sectionName));
+    showSettingsBtn("section", classId, sectionId, className, sectionName);
+    setScreenTitle(`${className} – ${sectionName} - Students`);
+    setHistory(() => renderStudentList(classId, sectionId, className, sectionName, students));
+}
+function showStudentActionPopup(classId, sectionId, studentId, studentName) {
+    let html = `
+      <div class="popup" id="studentActionPopup">
+        <div style="font-weight:600;color:#0f3d6b;margin-bottom:13px;font-size:1.1em;">
+          Student Actions (${studentName})
+        </div>
+        <div class="option-row" style="flex-direction:column;gap:14px;">
+          <button class="option-btn" id="editStudentBtn">Edit Student</button>
+          <button class="option-btn" id="deleteStudentBtn">Delete Student</button>
+          <button class="option-btn" id="closeStudentActionBtn">Close</button>
+        </div>
+      </div>
+    `;
+    showPopup(html);
+    // You can add Edit logic here later...
+    document.getElementById('deleteStudentBtn').onclick = function () {
+        if (confirm("Are you sure you want to delete?")) {
+            if (confirm("This cannot be undone. Really delete?")) {
+                deleteStudentFromDB(classId, sectionId, studentId);
+            }
+        }
+    };
+    document.getElementById('closeStudentActionBtn').onclick = closePopup;
+}
+function deleteStudentFromDB(classId, sectionId, studentId) {
+    db.collection('years').doc(academicYear)
+      .collection('classes').doc(classId)
+      .collection('sections').doc(sectionId)
+      .collection('students').doc(studentId)
+      .delete()
+      .then(() => {
+        closePopup();
+        showStudents(classId, sectionId); // Refresh the student list
+      })
+      .catch(error => {
+        alert("Error deleting student: " + error.message);
+      });
+}
 
     // == Add Popups ==
     function showAddClassPopup() {
