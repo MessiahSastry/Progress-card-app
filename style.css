@@ -257,7 +257,7 @@ html, body {
   color: #1467b7;
 }
 /* FAB and Settings */
-.fab, .settings-btn {
+button.fab, .settings-btn {
   position: fixed;
   right: 22px;
   border: none;
@@ -271,13 +271,13 @@ html, body {
   box-shadow: 0 2px 18px #0f3d6b55;
   transition: background .15s;
 }
-.fab {
+button.fab {
   width: 56px;
   height: 56px;
   bottom: 92px;
   z-index: 104;
 }
-.fab:before {
+button.fab:before {
   content: "+";
   font-size: 2em;
   color: #fff;
