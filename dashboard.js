@@ -310,18 +310,16 @@ function showStudentActionPopup(classId, sectionId, studentId, studentName) {
     document.getElementById('closeStudentActionBtn').onclick = closePopup;
 }
 function deleteStudentFromDB(classId, sectionId, studentId) {
-    db.collection('years').doc(academicYear)
-      .collection('classes').doc(classId)
-      .collection('sections').doc(sectionId)
-      .collection('students').doc(studentId)
-      .delete()
-      .then(() => {
-        closePopup();
-        showStudents(classId, sectionId); // Refresh the student list
-      })
-      .catch(error => {
-        alert("Error deleting student: " + error.message);
-      });
+  db.collection('years').doc(academicYear)
+    .collection('classes').doc(classId)
+    .collection('sections').doc(sectionId)
+    .collection('students').doc(studentId)
+    .update({ isDeleted: true })
+    .then(() => {
+      closePopup();
+      showStudents(classId, sectionId);
+    })
+    .catch(error => alert("Error soft-deleting student: " + error.message));
 }
 
     // == Add Popups ==
