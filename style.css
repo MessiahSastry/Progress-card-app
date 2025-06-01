@@ -302,14 +302,13 @@ button.fab:before {
 #popup-bg.hidden, #popup.hidden { display: none !important; }
 
 /* CORRECTED POPUP CSS BELOW */
-.popup, #popup {
+.popup {
   background: #fff;
   border-radius: 22px;
   box-shadow: 0 10px 36px #0f3d6b22;
   padding: 30px 22px 22px 22px;
   max-width: 380px;
   width: 92vw;
-  margin: auto;
   z-index: 2010;
   display: flex;
   flex-direction: column;
