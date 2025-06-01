@@ -1,4 +1,3 @@
-// dashboard.js
 if (typeof firebase === "undefined") alert("Firebase not loaded!");
 
 const firebaseConfig = {
@@ -547,12 +546,352 @@ function dashboardAppInit() {
         if (document.getElementById('closeClassActionsBtn')) document.getElementById('closeClassActionsBtn').addEventListener('click', closePopup);
     }
 
-    function showExamSettingsPopup() { alert("Exam Settings coming soon!"); }
-    function showEnterMarksPopup() { alert("Enter Marks coming soon!"); }
-    function downloadClassMemos() { alert("Download Class Marks Memos coming soon! (Will use memo.png)"); }
-    function downloadHallTickets() { alert("Download Hall Tickets coming soon! (No PNG background)"); }
-    function downloadClassExcel() { alert("Download Class Marks Excel coming soon!"); }
-    function showPerformanceGraph() { alert("Performance Graph coming soon!"); }
+    // ========== New Added Functions for Exam Settings and Marks Entry ==========
+
+    function showExamSettingsPopup() {
+        // Load saved exams from Firestore for the current academic year
+        db.collection('years').doc(academicYear).collection('exams').get()
+            .then(snapshot => {
+                let exams = [];
+                snapshot.forEach(doc => {
+                    exams.push({ id: doc.id, ...doc.data() });
+                });
+                renderExamSettings(exams);
+            })
+            .catch(error => alert("Error loading exams: " + error.message));
+    }
+
+    function renderExamSettings(exams) {
+        let html = `<div style="font-weight:600;color:#0f3d6b;margin-bottom:8px;font-size:1.1em;">Saved Exams</div>
+            <div id="examListArea" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;">`;
+        if (exams.length === 0) {
+            html += `<div style="color:#999; font-style: italic;">No exams saved yet.</div>`;
+        } else {
+            exams.forEach(exam => {
+                html += `<div class="option-btn" style="padding: 8px 10px; font-weight: 600; margin-bottom: 6px; cursor:pointer;" data-id="${exam.id}">${exam.name}</div>`;
+            });
+        }
+        html += `</div>
+            <form id="addExamForm" style="margin-top: 15px;">
+                <label>Exam Name</label>
+                <input name="examName" maxlength="30" placeholder="e.g., Formative Assessment 1" required />
+                <div class="btn-row">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit">Add Exam</button>
+                </div>
+            </form>`;
+        showPopup(html, 'addExamForm', addExamToDB);
+
+        // Add click listeners to existing exams for editing/deleting
+        document.querySelectorAll('#examListArea .option-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const examId = btn.dataset.id;
+                openEditExamPopup(examId);
+            });
+        });
+    }
+
+    function addExamToDB(e) {
+        e.preventDefault();
+        const examName = e.target.examName.value.trim();
+        if (!examName) return;
+        db.collection('years').doc(academicYear).collection('exams').add({
+            name: examName,
+            subjects: []
+        })
+        .then(() => {
+            closePopup();
+            showExamSettingsPopup();
+        })
+        .catch(error => alert("Error adding exam: " + error.message));
+    }
+
+    function openEditExamPopup(examId) {
+        // Load exam document
+        db.collection('years').doc(academicYear).collection('exams').doc(examId).get()
+            .then(doc => {
+                if (!doc.exists) {
+                    alert("Exam not found!");
+                    return;
+                }
+                const exam = doc.data();
+                renderEditExamForm(examId, exam.name, exam.subjects || []);
+            })
+            .catch(error => alert("Error loading exam: " + error.message));
+    }
+
+    function renderEditExamForm(examId, examName, subjects) {
+        let html = `
+            <form id="editExamForm" class="popup">
+                <label>Exam Name</label>
+                <input name="examName" maxlength="30" required value="${examName}" />
+                <div style="margin: 15px 0 10px 0; font-weight:600; color:#0f3d6b;">Subjects</div>
+                <div id="subjectListContainer" style="max-height: 180px; overflow-y: auto; margin-bottom: 12px;">`;
+        subjects.forEach((subj, idx) => {
+            html += `
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                    <input type="text" name="subjectName_${idx}" value="${subj.name}" placeholder="Subject Name" required style="flex:1; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd;" />
+                    <input type="number" name="maxMarks_${idx}" value="${subj.max}" placeholder="Max Marks" min="1" max="200" required style="width:80px; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd;" />
+                    <button type="button" class="option-btn" style="width: 70px; padding: 5px;" onclick="removeSubjectField(this)">Remove</button>
+                </div>`;
+        });
+        html += `
+                </div>
+                <button type="button" class="option-btn" style="width: 100%; margin-bottom: 10px;" onclick="addSubjectField()">Add Subject</button>
+                <div class="btn-row">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit">Save Exam</button>
+                </div>
+            </form>
+        `;
+        showPopup(html, 'editExamForm', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const newExamName = formData.get('examName').trim();
+            if (!newExamName) return alert("Exam name required.");
+            let newSubjects = [];
+            let i = 0;
+            while (formData.has(`subjectName_${i}`)) {
+                let name = formData.get(`subjectName_${i}`).trim();
+                let max = parseInt(formData.get(`maxMarks_${i}`), 10);
+                if (name && max > 0) {
+                    newSubjects.push({ name, max });
+                }
+                i++;
+            }
+            if (newSubjects.length === 0) return alert("Add at least one subject.");
+            db.collection('years').doc(academicYear).collection('exams').doc(examId)
+                .update({ name: newExamName, subjects: newSubjects })
+                .then(() => {
+                    alert("Exam updated successfully.");
+                    closePopup();
+                    showExamSettingsPopup();
+                })
+                .catch(error => alert("Error updating exam: " + error.message));
+        });
+
+        // Cancel button handler
+        const cancelBtn = document.querySelector('.cancel-btn');
+        if (cancelBtn) cancelBtn.onclick = closePopup;
+    }
+
+    // Add subject field dynamically in Edit Exam form
+    window.addSubjectField = function() {
+        const container = document.getElementById('subjectListContainer');
+        if (!container) return;
+        const idx = container.children.length;
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.gap = '6px';
+        div.style.marginBottom = '8px';
+        div.innerHTML = `
+            <input type="text" name="subjectName_${idx}" placeholder="Subject Name" required style="flex:1; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd;" />
+            <input type="number" name="maxMarks_${idx}" placeholder="Max Marks" min="1" max="200" required style="width:80px; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd;" />
+            <button type="button" class="option-btn" style="width: 70px; padding: 5px;" onclick="removeSubjectField(this)">Remove</button>`;
+        container.appendChild(div);
+    }
+
+    // Remove subject field button handler
+    window.removeSubjectField = function(btn) {
+        if (btn && btn.parentNode) {
+            btn.parentNode.remove();
+        }
+    }
+
+    // Marks Entry Popup
+    function showEnterMarksPopup() {
+        // Select Section, Exam and Subject
+
+        // Load classes and sections for dropdown
+        db.collection('years').doc(academicYear).collection('classes').get()
+            .then(snap => {
+                let classOptions = [];
+                snap.forEach(doc => {
+                    classOptions.push({ id: doc.id, name: doc.data().name });
+                });
+                renderEnterMarksSelection(classOptions);
+            })
+            .catch(error => alert("Error loading classes: " + error.message));
+    }
+
+    function renderEnterMarksSelection(classesList) {
+        // Load exams for dropdown
+        db.collection('years').doc(academicYear).collection('exams').get()
+            .then(snap => {
+                let examOptions = [];
+                snap.forEach(doc => {
+                    examOptions.push({ id: doc.id, name: doc.data().name, subjects: doc.data().subjects || [] });
+                });
+
+                let html = `
+                    <form id="enterMarksSelectForm" class="popup">
+                        <label>Select Class</label>
+                        <select name="classSelect" id="classSelect" required>
+                            <option value="">Select Class</option>
+                            ${classesList.map(cls => `<option value="${cls.id}">${cls.name}</option>`).join('')}
+                        </select>
+                        <label>Select Section</label>
+                        <select name="sectionSelect" id="sectionSelect" required disabled>
+                            <option value="">Select Section</option>
+                        </select>
+                        <label>Select Exam</label>
+                        <select name="examSelect" id="examSelect" required>
+                            <option value="">Select Exam</option>
+                            ${examOptions.map(exam => `<option value="${exam.id}">${exam.name}</option>`).join('')}
+                        </select>
+                        <label>Select Subject</label>
+                        <select name="subjectSelect" id="subjectSelect" required disabled>
+                            <option value="">Select Subject</option>
+                        </select>
+                        <div class="btn-row">
+                            <button type="button" class="cancel-btn">Cancel</button>
+                            <button type="submit">Proceed</button>
+                        </div>
+                    </form>
+                `;
+
+                showPopup(html, 'enterMarksSelectForm', onEnterMarksSelectionSubmit);
+
+                // Cancel button handler
+                const cancelBtn = document.querySelector('.cancel-btn');
+                if (cancelBtn) cancelBtn.onclick = closePopup;
+
+                // Populate sections on class change
+                const classSelect = document.getElementById('classSelect');
+                const sectionSelect = document.getElementById('sectionSelect');
+                const examSelect = document.getElementById('examSelect');
+                const subjectSelect = document.getElementById('subjectSelect');
+
+                classSelect.addEventListener('change', () => {
+                    const classId = classSelect.value;
+                    if (!classId) {
+                        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                        sectionSelect.disabled = true;
+                        return;
+                    }
+                    sectionSelect.disabled = false;
+                    db.collection('years').doc(academicYear).collection('classes').doc(classId).collection('sections').get()
+                        .then(secSnap => {
+                            let options = '<option value="">Select Section</option>';
+                            secSnap.forEach(secDoc => {
+                                options += `<option value="${secDoc.id}">${secDoc.data().name}</option>`;
+                            });
+                            sectionSelect.innerHTML = options;
+                        })
+                        .catch(() => {
+                            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                            sectionSelect.disabled = true;
+                        });
+                });
+
+                examSelect.addEventListener('change', () => {
+                    const examId = examSelect.value;
+                    subjectSelect.disabled = true;
+                    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                    if (!examId) return;
+                    const exam = examOptions.find(e => e.id === examId);
+                    if (!exam) return;
+                    if (exam.subjects.length > 0) {
+                        subjectSelect.innerHTML = exam.subjects.map(subj => `<option value="${subj.name}">${subj.name} (Max: ${subj.max})</option>`).join('');
+                        subjectSelect.disabled = false;
+                    }
+                });
+            })
+            .catch(error => alert("Error loading exams: " + error.message));
+    }
+
+    function onEnterMarksSelectionSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const classId = form.classSelect.value;
+        const sectionId = form.sectionSelect.value;
+        const examId = form.examSelect.value;
+        const subjectName = form.subjectSelect.value;
+
+        if (!classId || !sectionId || !examId || !subjectName) {
+            alert("Please select all options.");
+            return;
+        }
+
+        // Load students of the selected class and section
+        db.collection('years').doc(academicYear).collection('classes').doc(classId)
+            .collection('sections').doc(sectionId).collection('students').orderBy('roll').get()
+            .then(snap => {
+                let students = [];
+                snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+
+                // Get max marks for selected subject from exam
+                db.collection('years').doc(academicYear).collection('exams').doc(examId).get()
+                    .then(doc => {
+                        if (!doc.exists) {
+                            alert("Exam not found!");
+                            return;
+                        }
+                        const exam = doc.data();
+                        const subjectObj = (exam.subjects || []).find(s => s.name === subjectName);
+                        const max = subjectObj ? subjectObj.max : 100;
+
+                        renderMarksEntryForm(classId, sectionId, examId, subjectName, max, students);
+                    })
+                    .catch(error => alert("Error loading exam data: " + error.message));
+            })
+            .catch(error => alert("Error loading students for marks entry: " + error.message));
+    }
+
+    function renderMarksEntryForm(classId, sectionId, examId, subjectName, max, students) {
+        let html = `
+            <form id="marksEntryForm" class="popup" style="max-height: 80vh; overflow-y: auto;">
+                <div style="font-weight: 600; color: #0f3d6b; margin-bottom: 12px; font-size: 1.1em;">
+                    Enter Marks - ${subjectName} (Max: ${max})
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto;"> 
+                    ${students.map(stu => `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="width: 65%; font-weight: 600;">${stu.roll}. ${stu.name}</div>
+                            <input type="number" style="width: 70px; padding: 5px; border-radius: 6px; border: 1.3px solid #c7d7ea; background: #f7fafd;"
+                                name="marks_${stu.id}" min="0" max="${max}" placeholder="Marks" required />
+                        </div>`).join('')}
+                </div>
+                <div class="btn-row" style="margin-top:10px;">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit">Save Marks</button>
+                </div>
+            </form>
+        `;
+        showPopup(html, 'marksEntryForm', function(e) {
+            e.preventDefault();
+            let formData = new FormData(e.target);
+            let batch = db.batch();
+            students.forEach(stu => {
+                let key = `marks_${stu.id}`;
+                let val = formData.get(key);
+                if (val !== null) {
+                    let marks = parseFloat(val);
+                    if (isNaN(marks) || marks < 0 || marks > max) {
+                        alert(`Invalid marks for ${stu.name}`);
+                        throw new Error("Invalid marks");
+                    }
+                    // Save marks in student subcollection marks/{examId} with subject marks
+                    let marksDoc = db.collection('years').doc(academicYear)
+                        .collection('classes').doc(classId)
+                        .collection('sections').doc(sectionId)
+                        .collection('students').doc(stu.id)
+                        .collection('marks').doc(examId);
+                    batch.set(marksDoc, { [subjectName]: marks }, { merge: true });
+                }
+            });
+            batch.commit().then(() => {
+                alert("Marks saved successfully!");
+                closePopup();
+            }).catch(error => {
+                alert("Error saving marks: " + error.message);
+            });
+        });
+        document.querySelector('.cancel-btn').onclick = closePopup;
+    }
+
+    // ==== Existing helper functions ====
 
     function closePopup() {
         if (popupBg) popupBg.classList.add("hidden");
