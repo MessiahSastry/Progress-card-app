@@ -471,3 +471,4 @@ function setHistory(fn) {
 window.onpopstate = function() {
   if (lastViewFn) lastViewFn();
 };
+}
