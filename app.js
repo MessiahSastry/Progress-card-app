@@ -461,16 +461,18 @@ window.showAddYearPopup = function() {
   }
 
   // == History Logic (Mobile Back Button): Only one step back
-  let lastViewFn = null;
-  function setHistory(fn) {
-    lastViewFn = fn;
-    window.history.pushState({}, '');
-  }
-  window.onpopstate = function() {
-    if (lastViewFn) {
-      lastViewFn();
-      window.history.pushState({}, '');
-    }
+  // == History Logic (Mobile Back Button): Only one step back
+let lastViewFn = null;
+function setHistory(fn) {
+  lastViewFn = fn;
+  // Only push state if not initial load
+  if (window.history.state !== fn) {
+    window.history.pushState({view: true}, '');
   }
 }
-
+window.onpopstate = function(event) {
+  // Prevent infinite loop
+  if (lastViewFn && event.state && event.state.view) {
+    lastViewFn();
+  }
+}
