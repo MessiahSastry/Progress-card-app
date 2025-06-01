@@ -75,12 +75,12 @@ window.forgotPassword = function () {
 firebase.auth().onAuthStateChanged(function(user) {
   if (!user) {
     if (location.pathname.includes('dashboard.html')) {
-      window.location.href = "index.html";
+      window.location.replace("index.html");
     }
     // No action needed on index.html, user will see login form.
   } else {
     if (location.pathname.includes('index.html') || location.pathname === "/" || location.pathname === "") {
-      window.location.href = "dashboard.html";
+      window.location.replace("dashboard.html");
     } else if (location.pathname.includes('dashboard.html')) {
       dashboardAppInit();
     }
