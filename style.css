@@ -179,6 +179,28 @@ html, body {
   display: flex;
   align-items: center;
 }
+.class-btn {
+  min-width: 130px;
+  min-height: 48px;
+  padding: 8px 0;
+  border-radius: 24px;
+  border: 2.7px solid #0f3d6b;
+  background: #fff;
+  font-size: 1.18em;
+  font-weight: 700;
+  color: #0f3d6b;
+  cursor: pointer;
+  box-shadow: 0 2px 12px #0f3d6b0a;
+  transition: transform .16s, border .13s;
+  margin-bottom: 2px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+.class-btn:hover {
+  transform: translateY(-2px) scale(1.035);
+  border-width: 3.2px;
+  box-shadow: 0 4px 22px #1467b71a;
+}
 
 .section-chip:hover {
   background: #eaf1fa;
