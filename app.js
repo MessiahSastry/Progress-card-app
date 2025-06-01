@@ -79,7 +79,6 @@ window.forgotPassword = function () {
 };
 
 // ===== Dashboard Auth Check =====
-// ===== Dashboard Auth Check =====
 let dashboardInitialized = false;
 firebase.auth().onAuthStateChanged(function(user) {
   if (!user) {
