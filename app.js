@@ -33,12 +33,6 @@ function showLoginUI() {
     </div>
   `;
 }
-function showLoginUI() {
-  const loginRoot = document.getElementById('login-root');
-  if (!loginRoot) return;
-  loginRoot.style.display = "flex";
- showLoginUI();
-}
 window.emailSignIn = function () {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
