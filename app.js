@@ -1,4 +1,5 @@
 if (typeof firebase === "undefined") alert("Firebase not loaded!");
+
 const firebaseConfig = {
     apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
     authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -8,20 +9,20 @@ const firebaseConfig = {
     appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
 };
 firebase.initializeApp(firebaseConfig);
+
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// Add this block for persistent login
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-// Global DOM references for the dashboard elements
-// Declare these globally so they are always accessible after the DOM loads.
+// Global DOM references that are reliably present on both login and dashboard pages, or are just global containers
 const mainArea = document.getElementById("main-area");
-const fab = document.getElementById("fab");
-const settingsBtn = document.getElementById("settings-btn");
 const headerExam = document.getElementById("header-exam");
-const popupBg = document.getElementById("popup-bg"); // Get reference to popup background
-const popupDiv = document.getElementById("popup"); // Get reference to popup div
+const popupBg = document.getElementById("popup-bg");
+const popupDiv = document.getElementById("popup");
 
-// Helper function to show login UI (remains the same)
+
 function showLoginUI() {
     const loginRoot = document.getElementById('login-root');
     if (!loginRoot) return;
@@ -42,8 +43,7 @@ function showLoginUI() {
             </button>
         </div>
     `;
-    // Ensure login root is visible after rendering content
-    loginRoot.style.display = 'flex'; // Or block, based on your CSS
+    loginRoot.style.display = 'flex'; // Ensure login root is visible after rendering content
 }
 
 window.emailSignIn = function () {
@@ -54,6 +54,7 @@ window.emailSignIn = function () {
         .then(() => window.location.href = "dashboard.html")
         .catch(err => alert(err.message));
 };
+
 window.emailRegister = function () {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
@@ -65,12 +66,14 @@ window.emailRegister = function () {
         })
         .catch(err => alert(err.message));
 };
+
 window.googleSignIn = function () {
     const provider = new firebase.auth.GoogleAuthProvider();
     firebase.auth().signInWithPopup(provider)
         .then(() => window.location.href = "dashboard.html")
         .catch(err => alert(err.message));
 };
+
 window.forgotPassword = function () {
     const email = document.getElementById('email').value.trim();
     if (!email) return alert('Enter your email to reset password.');
@@ -86,12 +89,12 @@ firebase.auth().onAuthStateChanged(function (user) {
     const isIndex = path.endsWith('index.html') || path === '/' || path === '' || path.includes('Progress-card-app');
     const isDashboard = path.endsWith('dashboard.html');
 
+    // Hide splash screen as soon as auth state is known, regardless of page
+    const splash = document.getElementById('splash');
+    if (splash) splash.classList.add('hidden');
+
     // On index.html (login page)
     if (isIndex) {
-        // Hide splash immediately if on login page
-        const splash = document.getElementById('splash');
-        if (splash) splash.classList.add('hidden');
-
         if (user) {
             // User already logged in, go to dashboard
             if (!window.location.pathname.endsWith('dashboard.html')) {
@@ -104,10 +107,6 @@ firebase.auth().onAuthStateChanged(function (user) {
     }
     // On dashboard.html (main app)
     else if (isDashboard) {
-        // Hide splash immediately on dashboard page
-        const splash = document.getElementById('splash');
-        if (splash) splash.classList.add('hidden');
-
         if (!user) {
             // Not logged in, go back to login
             if (!window.location.pathname.endsWith('index.html')) {
@@ -128,7 +127,13 @@ firebase.auth().onAuthStateChanged(function (user) {
 console.log('dashboardAppInit started'); // This log should now consistently appear if you're on dashboard.html and logged in.
 
 function dashboardAppInit() {
-    // Global state
+    // DOM references for the dashboard elements - GET THEM HERE!
+    // These are now obtained *inside* dashboardAppInit,
+    // ensuring the DOM is ready for them.
+    const fab = document.getElementById("fab");
+    const settingsBtn = document.getElementById("settings-btn");
+
+    // Global state (inside dashboardAppInit as per your design)
     let academicYear = null;
     let yearsList = [];
     let classes = [];
@@ -142,36 +147,6 @@ function dashboardAppInit() {
 
     // Initial load for dashboard
     loadAcademicYears();
-
-    // == Event Listeners for main FAB and Settings buttons ==
-    // Assign these only once when the dashboard is initialized
-    if (fab) {
-        fab.addEventListener('click', function() {
-            // This function is dynamically assigned by showFAB later, but ensure it's here too.
-            // For example, when you renderClassList, showFAB is called.
-            // But if renderClassList errors, the fab might not get its specific handler.
-            // It's best to have a default/fallback here or ensure showFAB always sets it.
-            // For now, let's keep the showFAB logic as it's designed.
-        });
-    }
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', function() {
-            // This function is dynamically assigned by showSettingsBtn later.
-        });
-    }
-    // The specific functions (e.g., showAddClassPopup, showMainSettingsPopup) are assigned
-    // to fab.onclick and settingsBtn.onclick by showFAB and showSettingsBtn functions.
-
-
-    // Helper for splash screen (moved inside dashboardAppInit or made global if used elsewhere)
-    function showSplashThen(cb) {
-        const splash = document.getElementById('splash');
-        if (splash) splash.classList.remove('hidden');
-        setTimeout(() => {
-            if (splash) splash.classList.add('hidden');
-            cb && cb();
-        }, 1000);
-    }
 
 
     // == Academic Years ==
@@ -194,7 +169,9 @@ function dashboardAppInit() {
 
     // == Main Dashboard: Classes ==
     function showDashboard() {
-        headerExam.textContent = academicYear || '';
+        if (headerExam) { // Check if headerExam exists before using
+            headerExam.textContent = academicYear || '';
+        }
         db.collection('years').doc(academicYear).collection('classes').orderBy('order', 'asc').get()
             .then(snap => {
                 classes = [];
@@ -220,19 +197,21 @@ function dashboardAppInit() {
         classesToShow.forEach((cls, idx) => {
             let color = colorPalette[idx % colorPalette.length];
             // Assign handler using event listener in JS, not onclick in HTML string
-            // This requires modifying showClass() to handle the class ID directly
             html += `<button class="class-btn" style="border-color:${color};color:${color};"
                 data-class-id="${cls.id}" data-class-name="${cls.name}">${cls.name}</button>`;
         });
         html += "</div>";
-        mainArea.innerHTML = html;
+        if (mainArea) { // Check if mainArea exists before using
+            mainArea.innerHTML = html;
+        }
+
 
         // Attach event listeners to dynamically created class buttons
         document.querySelectorAll('.class-btn').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 const classId = this.dataset.classId;
                 const className = this.dataset.className;
-                showSections(classId, className);
+                window.showSections(classId, className); // Use window.showSections since it's global
             });
         });
 
@@ -275,21 +254,25 @@ function dashboardAppInit() {
                 data-class-name="${className}" data-section-name="${sec.name}">${sec.name}</div>`;
         });
         html += "</div>";
-        mainArea.innerHTML = html;
+        if (mainArea) { // Check if mainArea exists before using
+            mainArea.innerHTML = html;
+        }
 
         // Attach event listeners to dynamically created section chips
         document.querySelectorAll('.section-chip').forEach(chip => {
-            chip.addEventListener('click', function() {
+            chip.addEventListener('click', function () {
                 const classId = this.dataset.classId;
                 const sectionId = this.dataset.sectionId;
                 const className = this.dataset.className;
                 const sectionName = this.dataset.sectionName;
-                showStudents(classId, sectionId, className, sectionName);
+                window.showStudents(classId, sectionId, className, sectionName); // Use window.showStudents
             });
         });
 
         showFAB("Add Section", () => showAddSectionPopup(classId, className));
-        settingsBtn.style.display = "none"; // Hide settings button for sections if not needed
+        if (settingsBtn) { // Check if settingsBtn exists before using
+            settingsBtn.style.display = "none";
+        }
         setScreenTitle(`${className} - Sections`);
         setHistory(() => renderSectionList(classId, className, sections));
     }
@@ -314,7 +297,9 @@ function dashboardAppInit() {
             html += `<div class="student-row"><span class="roll-no">${stu.roll}.</span> ${stu.name}</div>`;
         });
         html += "</div>";
-        mainArea.innerHTML = html;
+        if (mainArea) { // Check if mainArea exists before using
+            mainArea.innerHTML = html;
+        }
         showFAB("Add Student", () => showAddStudentPopup(classId, sectionId, className, sectionName));
         showSettingsBtn("section", classId, sectionId, className, sectionName);
         setScreenTitle(`${className} – ${sectionName} - Students`);
@@ -332,7 +317,7 @@ function dashboardAppInit() {
                     <button type="submit">Add</button>
                 </div>
             </form>`;
-        showPopup(html, 'addClassForm', addClassToDB); // Pass form ID and submit handler
+        showPopup(html, 'addClassForm', addClassToDB);
     }
 
     window.addClassToDB = function (e) {
@@ -418,13 +403,24 @@ function dashboardAppInit() {
 
     // == Settings Button Logic ==
     function showSettingsBtn(mode, ...args) {
-        // Clear previous event listener to avoid multiple calls if button's function changes
-        settingsBtn.onclick = null; // Important!
-        settingsBtn.style.display = "flex";
-        if (mode === "main") {
-            settingsBtn.onclick = showMainSettingsPopup;
-        } else if (mode === "class" || mode === "section") {
-            settingsBtn.onclick = () => showClassActionsPopup(...args);
+        if (settingsBtn) {
+            settingsBtn.onclick = null; // Clear previous handler
+            // Use a custom property to store/remove the specific handler function
+            if (settingsBtn._currentClickHandler) {
+                settingsBtn.removeEventListener('click', settingsBtn._currentClickHandler);
+            }
+
+            let handler;
+            if (mode === "main") {
+                handler = showMainSettingsPopup;
+            } else if (mode === "class" || mode === "section") {
+                handler = () => showClassActionsPopup(...args);
+            }
+            settingsBtn._currentClickHandler = handler; // Store reference
+            settingsBtn.addEventListener('click', handler); // Attach new handler
+            settingsBtn.style.display = "flex";
+        } else {
+            console.warn("Settings button element not found!");
         }
     }
 
@@ -441,9 +437,16 @@ function dashboardAppInit() {
         showPopup(html); // Render content into popupDiv
 
         // Attach event listeners to new buttons inside the popup
-        document.getElementById('addYearBtn').addEventListener('click', window.showAddYearPopup);
-        document.getElementById('logoutBtn').addEventListener('click', window.logout);
-        document.getElementById('closeSettingsBtn').addEventListener('click', closePopup);
+        // This is crucial for dynamically added content
+        if (document.getElementById('addYearBtn')) {
+            document.getElementById('addYearBtn').addEventListener('click', window.showAddYearPopup);
+        }
+        if (document.getElementById('logoutBtn')) {
+            document.getElementById('logoutBtn').addEventListener('click', window.logout);
+        }
+        if (document.getElementById('closeSettingsBtn')) {
+            document.getElementById('closeSettingsBtn').addEventListener('click', closePopup);
+        }
     }
 
     window.showAddYearPopup = function () {
@@ -504,13 +507,27 @@ function dashboardAppInit() {
         showPopup(html);
 
         // Attach event listeners to dynamically created buttons
-        document.getElementById('examSettingsBtn').addEventListener('click', window.showExamSettingsPopup);
-        document.getElementById('enterMarksBtn').addEventListener('click', window.showEnterMarksPopup);
-        document.getElementById('downloadMemosBtn').addEventListener('click', window.downloadClassMemos);
-        document.getElementById('downloadHallTicketsBtn').addEventListener('click', window.downloadHallTickets);
-        document.getElementById('downloadExcelBtn').addEventListener('click', window.downloadClassExcel);
-        document.getElementById('performanceGraphBtn').addEventListener('click', window.showPerformanceGraph);
-        document.getElementById('closeClassActionsBtn').addEventListener('click', closePopup);
+        if (document.getElementById('examSettingsBtn')) {
+            document.getElementById('examSettingsBtn').addEventListener('click', window.showExamSettingsPopup);
+        }
+        if (document.getElementById('enterMarksBtn')) {
+            document.getElementById('enterMarksBtn').addEventListener('click', window.showEnterMarksPopup);
+        }
+        if (document.getElementById('downloadMemosBtn')) {
+            document.getElementById('downloadMemosBtn').addEventListener('click', window.downloadClassMemos);
+        }
+        if (document.getElementById('downloadHallTicketsBtn')) {
+            document.getElementById('downloadHallTicketsBtn').addEventListener('click', window.downloadHallTickets);
+        }
+        if (document.getElementById('downloadExcelBtn')) {
+            document.getElementById('downloadExcelBtn').addEventListener('click', window.downloadClassExcel);
+        }
+        if (document.getElementById('performanceGraphBtn')) {
+            document.getElementById('performanceGraphBtn').addEventListener('click', window.showPerformanceGraph);
+        }
+        if (document.getElementById('closeClassActionsBtn')) {
+            document.getElementById('closeClassActionsBtn').addEventListener('click', closePopup);
+        }
     }
 
     // ======= ALL FEATURE LOGIC (PLACEHOLDER for now; you must fill with actual logic as per your templates) =======
@@ -540,6 +557,8 @@ function dashboardAppInit() {
         if (popupDiv) popupDiv.classList.add("hidden");
         // Clear innerHTML to remove old event listeners from dynamically added content
         if (popupDiv) popupDiv.innerHTML = '';
+        // Also remove the overlay click listener if it was set
+        if (popupBg) popupBg.onclick = null;
     }
 
     // Modified showPopup to handle dynamic form submission and button clicks more robustly
@@ -569,10 +588,9 @@ function dashboardAppInit() {
         }
 
         // Attach event listener for dynamically created cancel buttons within the popup
-        // This targets all buttons with class 'cancel-btn' within the currently active popup
         if (popupDiv) {
             popupDiv.querySelectorAll('.cancel-btn').forEach(button => {
-                button.addEventListener('click', function(e) {
+                button.addEventListener('click', function (e) {
                     e.preventDefault(); // Prevent default form submission if it's a button inside a form
                     closePopup();
                 });
@@ -582,11 +600,19 @@ function dashboardAppInit() {
 
     // == FAB (Floating Action Button) ==
     function showFAB(label, onClickHandler) {
-        if (fab) {
+        if (fab) { // Check if fab element was found
             fab.innerHTML = ""; // FAB already has "+" content via :before pseudo-element in CSS
             fab.onclick = null; // Clear previous handler
+
+            // Remove old listener if exists using the stored reference
+            if (fab._currentClickHandler) {
+                fab.removeEventListener('click', fab._currentClickHandler);
+            }
+            fab._currentClickHandler = onClickHandler; // Store reference to current handler
             fab.addEventListener('click', onClickHandler); // Attach the new handler
             fab.style.display = "flex";
+        } else {
+            console.warn("FAB element not found!");
         }
     }
 
