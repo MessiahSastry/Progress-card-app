@@ -279,43 +279,51 @@ html, body {
 }
 #popup-bg.hidden, #popup.hidden { display: none !important; }
 
-#popup {
-  max-width: 410px;
-  width: 97vw;
+.popup, #popup {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 10px 36px #0f3d6b22;
+  padding: 30px 22px 22px 22px;
+  max-width: 380px;
+  width: 92vw;
   margin: 0 auto;
   position: relative;
   z-index: 2010;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 10px 36px #0f3d6b22;
-  padding: 26px 22px 16px 22px;
+  gap: 18px;
+  align-items: stretch;
+  justify-content: center;
 }
-.popup label { font-size: 1.03em; color: #0f3d6b; font-weight: 500; }
-.popup input {
+.popup label, .popup-title {
+  font-size: 1.11em;
+  color: #1a3760;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.popup input,
+.popup select {
   padding: 10px 12px;
   font-size: 1.07em;
-  margin-bottom: 8px;
-  border-radius: 6px;
-  border: 1.3px solid #bcd6ef;
+  margin-bottom: 10px;
+  border-radius: 7px;
+  border: 1.3px solid #c7d7ea;
   background: #f7fafd;
   transition: border-color .2s;
 }
-.popup input:focus { outline: none; border-color: #0f3d6b; }
+.popup input:focus, .popup select:focus { outline: none; border-color: #0f3d6b; }
 .btn-row {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
 .popup .cancel-btn {
-  background: #eee;
+  background: #e0e0e0;
   color: #444;
   font-weight: 500;
   border: none;
-  border-radius: 7px;
-  padding: 9px 15px;
+  border-radius: 8px;
+  padding: 11px 20px;
   cursor: pointer;
   transition: background .14s;
 }
@@ -323,14 +331,13 @@ html, body {
   background: #0f3d6b;
   color: #fff;
   border: none;
-  border-radius: 7px;
-  padding: 9px 15px;
+  border-radius: 8px;
+  padding: 11px 20px;
   font-weight: bold;
   cursor: pointer;
   transition: background .14s;
 }
 .popup button:not(.cancel-btn):hover { background: #195084; }
-
 .option-row {
   display: flex;
   flex-direction: column;
