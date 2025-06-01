@@ -12,6 +12,25 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 // Add this block for persistent login
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+function showLoginUI() {
+  const loginRoot = document.getElementById('login-root');
+  if (!loginRoot) return;
+  loginRoot.style.display = "flex";
+  loginRoot.innerHTML = `
+    <div class="login-box">
+      <div class="school-title">St. Patrick’s School</div>
+      <div class="subtitle">IIT & NEET FOUNDATION</div>
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <div class="forgot-row">
+        <button type="button" onclick="forgotPassword()">Forgot Password?</button>
+      </div>
+      <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
+      <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
+      <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google" style="margin-right:10px;font-size:1.3em;vertical-align:middle;"></i>Sign in with Google</button>
+    </div>
+  `;
+}
 window.emailSignIn = function () {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
