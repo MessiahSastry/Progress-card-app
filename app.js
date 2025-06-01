@@ -1,3 +1,4 @@
+if (typeof firebase === "undefined") alert("Firebase not loaded!");
 window.onload = function () {
   setTimeout(() => {
     firebase.auth().onAuthStateChanged(function(user) {
