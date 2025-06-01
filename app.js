@@ -83,53 +83,62 @@ window.forgotPassword = function () {
 };
 
 // ===== Dashboard Auth Check =====
-// ===== Dashboard Auth Check =====
-let dashboardInitialized = false; // Keep this
+let dashboardInitialized = false;
 firebase.auth().onAuthStateChanged(function (user) {
+    console.log("onAuthStateChanged fired!"); // NEW LOG
+    console.log("User object:", user); // NEW LOG
+
     const path = window.location.pathname;
-    // Check if the current path indicates the login page (index.html or the root path)
     const isIndex = path.endsWith('index.html') || path === '/' || path === '' || path.includes('Progress-card-app');
-    // Check if the current path indicates the dashboard page
     const isDashboard = path.endsWith('dashboard.html');
 
-    // **IMPORTANT: Move splash screen hiding here for more robust handling.**
-    // Hide splash screen as soon as auth state is known AND we are sure which page to show.
+    console.log("Current path:", path); // NEW LOG
+    console.log("Is it index page?", isIndex); // NEW LOG
+    console.log("Is it dashboard page?", isDashboard); // NEW LOG
+
     const splash = document.getElementById('splash');
+    console.log("Splash screen element:", splash); // NEW LOG
+    if (splash) {
+        console.log("Splash screen classes:", splash.classList); // NEW LOG
+    }
 
     // On index.html (login page)
     if (isIndex) {
+        console.log("Processing as index page..."); // NEW LOG
         if (user) {
-            // User already logged in, go to dashboard
+            console.log("User logged in on index, redirecting to dashboard..."); // NEW LOG
             if (!window.location.pathname.endsWith('dashboard.html')) {
-                if (splash) splash.classList.add('hidden'); // Hide splash before redirect
+                if (splash) splash.classList.add('hidden');
                 window.location.replace("dashboard.html");
             }
         } else {
-            // User not logged in, show login UI!
-            if (splash) splash.classList.add('hidden'); // Hide splash to show login UI
+            console.log("No user on index, showing login UI..."); // NEW LOG
+            if (splash) splash.classList.add('hidden');
             showLoginUI();
         }
     }
     // On dashboard.html (main app)
     else if (isDashboard) {
+        console.log("Processing as dashboard page..."); // NEW LOG
         if (!user) {
-            // Not logged in, go back to login
+            console.log("No user on dashboard, redirecting to login..."); // NEW LOG
             if (!window.location.pathname.endsWith('index.html')) {
-                if (splash) splash.classList.add('hidden'); // Hide splash before redirect
+                if (splash) splash.classList.add('hidden');
                 window.location.replace("index.html");
             }
         } else {
-            // User is logged in, initialize dashboard
-            if (splash) splash.classList.add('hidden'); // Hide splash to show dashboard content
+            console.log("User logged in on dashboard, initializing dashboard..."); // NEW LOG
+            if (splash) splash.classList.add('hidden');
             if (!dashboardInitialized) {
                 dashboardInitialized = true;
                 dashboardAppInit();
             }
         }
     }
-    // On any other page: (e.g., if you had other pages that needed auth)
-    // For now, no specific action, but the splash will eventually hide
-    // as the auth state resolves.
+    else {
+        console.log("Processing as other page, splash should hide eventually..."); // NEW LOG
+        if (splash) splash.classList.add('hidden'); // Also hide if on an unrecognized page
+    }
 });
 // ==== DASHBOARD LOGIC STARTS HERE ====
 console.log('dashboardAppInit started'); // This log should now consistently appear if you're on dashboard.html and logged in.
