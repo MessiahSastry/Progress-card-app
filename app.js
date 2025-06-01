@@ -130,9 +130,7 @@ function dashboardAppInit() {
     // DOM references for the dashboard elements - GET THEM HERE!
     // These are now obtained *inside* dashboardAppInit,
     // ensuring the DOM is ready for them.
-    const fab = document.getElementById("fab");
-    const settingsBtn = document.getElementById("settings-btn");
-
+   
     // Global state (inside dashboardAppInit as per your design)
     let academicYear = null;
     let yearsList = [];
