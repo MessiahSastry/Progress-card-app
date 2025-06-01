@@ -122,16 +122,26 @@ function dashboardAppInit() {
   const fab = document.getElementById("fab");
   const settingsBtn = document.getElementById("settings-btn");
   const headerExam = document.getElementById("header-exam");
-  // == Splash & App Load ==
-  showSplashThen(loadAcademicYears);
-  function showSplashThen(cb) {
-    const splash = document.getElementById('splash');
-    if (splash) splash.classList.remove('hidden');
-    setTimeout(() => {
-      if (splash) splash.classList.add('hidden');
-      cb && cb();
-    }, 1000);
-  }
+ const path = window.location.pathname;
+const isDashboard = path.endsWith('dashboard.html');
+
+if (isDashboard) {
+  // Dashboard page: skip splash, load immediately
+  loadAcademicYears();
+} else {
+  // Other pages (like login): show splash then load
+  showSplashThen(() => {
+    showLoginUI();  // replace with your login init function if different
+  });
+}
+function showSplashThen(cb) {
+  const splash = document.getElementById('splash');
+  if (splash) splash.classList.remove('hidden');
+  setTimeout(() => {
+    if (splash) splash.classList.add('hidden');
+    cb && cb();
+  }, 1000);
+}
   // == Academic Years ==
  function loadAcademicYears() {
   db.collection('years').orderBy('name', 'desc').get().then(snap => {
