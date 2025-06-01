@@ -85,7 +85,12 @@ function dashboardAppInit() {
         db.collection('years').doc(academicYear).collection('classes').orderBy('order', 'asc').get()
             .then(snap => {
                 classes = [];
-                snap.forEach(doc => classes.push({ id: doc.id, ...doc.data() }));
+                snap.forEach(doc => {
+                  let data = doc.data();
+                  if (!data.isDeleted) {
+                students.push({ id: doc.id, ...data });
+      }
+    });
                 renderClassList();
             }).catch(error => {
                 console.error("Error loading classes:", error);
