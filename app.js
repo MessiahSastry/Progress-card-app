@@ -15,7 +15,6 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 function showLoginUI() {
   const loginRoot = document.getElementById('login-root');
   if (!loginRoot) return;
-  loginRoot.style.display = "flex";
   loginRoot.innerHTML = `
     <div class="login-box">
       <div class="school-title">St. Patrick’s School</div>
@@ -27,9 +26,18 @@ function showLoginUI() {
       </div>
       <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
       <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
-      <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google" style="margin-right:10px;font-size:1.3em;vertical-align:middle;"></i>Sign in with Google</button>
+      <button class="btn-google" onclick="googleSignIn()">
+        <i class="fab fa-google" style="margin-right:10px;font-size:1.3em;vertical-align:middle;"></i>
+        Sign in with Google
+      </button>
     </div>
   `;
+}
+function showLoginUI() {
+  const loginRoot = document.getElementById('login-root');
+  if (!loginRoot) return;
+  loginRoot.style.display = "flex";
+ showLoginUI();
 }
 window.emailSignIn = function () {
   const email = document.getElementById('email').value.trim();
