@@ -19,12 +19,11 @@ const mainArea = document.getElementById("main-area");
 const headerExam = document.getElementById("header-exam");
 const popupBg = document.getElementById("popup-bg");
 const popupDiv = document.getElementById("popup");
-const fab = document.getElementById("fab"); // Get FAB and settings button here
+const fab = document.getElementById("fab");
 const settingsBtn = document.getElementById("settings-btn");
 const splash = document.getElementById('splash');
 
-
-// Global state (inside dashboard.js, but outside the function for persistent state)
+// Global state
 let academicYear = null;
 let yearsList = [];
 let classes = [];
@@ -32,68 +31,51 @@ let colorPalette = [
     "#e74c3c", "#fdc600", "#27ae60", "#2980b9", "#e67e22",
     "#9b59b6", "#f39c12", "#e84393", "#00b894", "#fdc600"
 ];
-let currentClass = null, currentSection = null, currentStudent = null;
 let sectionColors = colorPalette;
-let subjectsByExam = {}; // For Exam Settings
+let subjectsByExam = {};
+let showDeletedStudents = false; // NEW: State for showing deleted students
 
-// Auth state listener specific to dashboard.html
 auth.onAuthStateChanged(function (user) {
-    if (splash) {
-        splash.classList.add('hidden'); // Hide splash on dashboard
-    }
+    if (splash) splash.classList.add('hidden');
     if (!user) {
-        // User not logged in, redirect to login page
-        console.log("No user on dashboard.html, redirecting to index.html...");
         window.location.replace("index.html");
     } else {
-        // User is logged in, initialize dashboard
-        console.log("User IS logged in! Initializing dashboard.");
         dashboardAppInit();
     }
 });
 
 // ==== DASHBOARD LOGIC STARTS HERE ====
 function dashboardAppInit() {
-    console.log('dashboardAppInit started');
-
     loadAcademicYears();
 
-    // == Academic Years ==
     function loadAcademicYears() {
         db.collection('years').orderBy('name', 'desc').get().then(snap => {
             yearsList = [];
             snap.forEach(doc => yearsList.push(doc.id));
-            console.log("Years loaded from Firestore:", yearsList);
             if (yearsList.length > 0) {
                 academicYear = localStorage.getItem('sp_selectedYear') || yearsList[0];
                 showDashboard();
             } else {
-                // If no years, prompt to add one
                 showAddYearPopup();
             }
         }).catch(error => {
-            console.error("Error loading academic years:", error);
             alert("Error loading academic years: " + error.message);
         });
     }
 
-    // == Main Dashboard: Classes ==
     function showDashboard() {
-        if (headerExam) {
-            headerExam.textContent = academicYear || '';
-        }
+        if (headerExam) headerExam.textContent = academicYear || '';
         db.collection('years').doc(academicYear).collection('classes').orderBy('order', 'asc').get()
             .then(snap => {
                 classes = [];
                 snap.forEach(doc => {
-                  let data = doc.data();
-                  if (!data.isDeleted) {
-                students.push({ id: doc.id, ...data });
-      }
-    });
+                    let data = doc.data();
+                    if (!data.isDeleted) {
+                        classes.push({ id: doc.id, ...data });
+                    }
+                });
                 renderClassList();
             }).catch(error => {
-                console.error("Error loading classes:", error);
                 alert("Error loading classes: " + error.message);
             });
     }
@@ -115,9 +97,7 @@ function dashboardAppInit() {
                 data-class-id="${cls.id}" data-class-name="${cls.name}">${cls.name}</button>`;
         });
         html += "</div>";
-        if (mainArea) {
-            mainArea.innerHTML = html;
-        }
+        if (mainArea) mainArea.innerHTML = html;
 
         document.querySelectorAll('.class-btn').forEach(button => {
             button.addEventListener('click', function () {
@@ -147,11 +127,9 @@ function dashboardAppInit() {
                         secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
                         renderSectionList(classDoc.id, className, sections);
                     }).catch(error => {
-                        console.error("Error loading sections:", error);
                         alert("Error loading sections: " + error.message);
                     });
             }).catch(error => {
-                console.error("Error finding class:", error);
                 alert("Error finding class: " + error.message);
             });
     };
@@ -166,283 +144,250 @@ function dashboardAppInit() {
                 data-class-name="${className}" data-section-name="${sec.name}">${sec.name}</div>`;
         });
         html += "</div>";
-        if (mainArea) {
-            mainArea.innerHTML = html;
-        }
+        if (mainArea) mainArea.innerHTML = html;
 
         document.querySelectorAll('.section-chip').forEach(chip => {
-    // Normal click
-    chip.addEventListener('click', function () {
-        const classId = this.dataset.classId;
-        const sectionId = this.dataset.sectionId;
-        const className = this.dataset.className;
-        const sectionName = this.dataset.sectionName;
-        showStudents(classId, sectionId, className, sectionName);
-    });
-    // Long press for actions
-    let pressTimer = null;
-    chip.addEventListener('mousedown', startPress);
-    chip.addEventListener('touchstart', startPress);
-    chip.addEventListener('mouseup', clearPress);
-    chip.addEventListener('mouseleave', clearPress);
-    chip.addEventListener('touchend', clearPress);
+            chip.addEventListener('click', function () {
+                const classId = this.dataset.classId;
+                const sectionId = this.dataset.sectionId;
+                const className = this.dataset.className;
+                const sectionName = this.dataset.sectionName;
+                showStudents(classId, sectionId, className, sectionName);
+            });
+            // Long press
+            let pressTimer = null;
+            chip.addEventListener('mousedown', startPress);
+            chip.addEventListener('touchstart', startPress);
+            chip.addEventListener('mouseup', clearPress);
+            chip.addEventListener('mouseleave', clearPress);
+            chip.addEventListener('touchend', clearPress);
 
-    function startPress(e) {
-        pressTimer = setTimeout(() => {
-            showSectionActionPopup(
-                chip.dataset.classId,
-                chip.dataset.sectionId,
-                chip.dataset.className,
-                chip.dataset.sectionName
-            );
-        }, 700); // 700ms long press
-    }
-    function clearPress(e) {
-        clearTimeout(pressTimer);
-    }
-});
-chip.addEventListener('mouseup', function () {
-        clearTimeout(timer);
-    });
-    chip.addEventListener('mouseleave', function () {
-        clearTimeout(timer);
-    });
-    chip.addEventListener('touchstart', function (e) {
-        timer = setTimeout(() => {
-            const classId = this.dataset.classId;
-            const sectionId = this.dataset.sectionId;
-            const className = this.dataset.className;
-            const sectionName = this.dataset.sectionName;
-            showSectionActionPopup(classId, sectionId, className, sectionName);
-        }, 700);
-    });
-    chip.addEventListener('touchend', function () {
-        clearTimeout(timer);
-    });
-    chip.addEventListener('touchcancel', function () {
-        clearTimeout(timer);
-    });
-});
+            function startPress(e) {
+                pressTimer = setTimeout(() => {
+                    showSectionActionPopup(
+                        chip.dataset.classId,
+                        chip.dataset.sectionId,
+                        chip.dataset.className,
+                        chip.dataset.sectionName
+                    );
+                }, 700);
+            }
+            function clearPress(e) {
+                clearTimeout(pressTimer);
+            }
+        });
+
         showFAB("Add Section", () => showAddSectionPopup(classId, className));
-        if (settingsBtn) {
-            settingsBtn.style.display = "none";
-        }
+        if (settingsBtn) settingsBtn.style.display = "none";
         setScreenTitle(`${className} - Sections`);
         setHistory(() => renderSectionList(classId, className, sections));
     }
 
+    // --- NEW: "Show Deleted" Toggle ---
     function showStudents(classId, sectionId, className, sectionName) {
         db.collection('years').doc(academicYear).collection('classes').doc(classId)
             .collection('sections').doc(sectionId).collection('students').orderBy('roll').get()
             .then(snap => {
                 let students = [];
                 snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-                renderStudentList(classId, sectionId, className, sectionName, students);
+                renderStudentList(classId, sectionId, className, sectionName, students, showDeletedStudents);
             }).catch(error => {
-                console.error("Error loading students:", error);
                 alert("Error loading students: " + error.message);
             });
     };
 
-    function renderStudentList(classId, sectionId, className, sectionName, students) {
-    let html = `<div class="screen-title">${className} – Section ${sectionName}</div>
-                <div class="student-list">`;
-    students.forEach(stu => {
-        html += `<div class="student-row"
-            data-class-id="${classId}"
-            data-section-id="${sectionId}"
-            data-student-id="${stu.id}"
-            data-student-name="${stu.name}">
-            <span class="roll-no">${stu.roll}.</span> ${stu.name}
-        </div>`;
-    });
-    html += "</div>";
-    if (mainArea) {
-        mainArea.innerHTML = html;
+    // Replace renderStudentList completely with this updated function!
+    function renderStudentList(classId, sectionId, className, sectionName, students, showDeleted = false) {
+        let html = `
+            <div class="screen-title">${className} – Section ${sectionName}</div>
+            <div style="margin: 10px 0 16px 0;">
+                <label style="font-size: 0.98em;">
+                    <input type="checkbox" id="showDeletedToggle" ${showDeleted ? 'checked' : ''}>
+                    Show Deleted Students
+                </label>
+            </div>
+            <div class="student-list">
+        `;
+
+        students
+            .filter(stu => showDeleted ? (stu.isDeleted === true) : (!stu.isDeleted || stu.isDeleted === false))
+            .forEach(stu => {
+                html += `
+                <div class="student-row ${stu.isDeleted ? 'deleted-student' : ''}"
+                    data-class-id="${classId}"
+                    data-section-id="${sectionId}"
+                    data-student-id="${stu.id}"
+                    data-student-name="${stu.name}"
+                    data-is-deleted="${!!stu.isDeleted}">
+                    <span class="roll-no">${stu.roll}.</span> ${stu.name}
+                    ${stu.isDeleted ? '<span style="color:#e74c3c;font-size:0.95em;margin-left:7px;">(Deleted)</span>' : ''}
+                </div>`;
+            });
+
+        html += "</div>";
+        if (mainArea) mainArea.innerHTML = html;
+
+        // Toggle handler
+        const showDeletedToggle = document.getElementById('showDeletedToggle');
+        if (showDeletedToggle) {
+            showDeletedToggle.onchange = function () {
+                showDeletedStudents = showDeletedToggle.checked;
+                renderStudentList(classId, sectionId, className, sectionName, students, showDeletedStudents);
+            };
+        }
+
+        // Add long press for student actions
+        document.querySelectorAll('.student-row').forEach(row => {
+            let pressTimer = null;
+            row.addEventListener('mousedown', startPress);
+            row.addEventListener('touchstart', startPress);
+            row.addEventListener('mouseup', clearPress);
+            row.addEventListener('mouseleave', clearPress);
+            row.addEventListener('touchend', clearPress);
+
+            function startPress(e) {
+                pressTimer = setTimeout(() => {
+                    showStudentActionPopup(
+                        row.dataset.classId,
+                        row.dataset.sectionId,
+                        row.dataset.studentId,
+                        row.dataset.studentName,
+                        row.dataset.isDeleted === "true"
+                    );
+                }, 700);
+            }
+            function clearPress(e) {
+                clearTimeout(pressTimer);
+            }
+        });
+
+        showFAB("Add Student", () => showAddStudentPopup(classId, sectionId, className, sectionName));
+        showSettingsBtn("section", classId, sectionId, className, sectionName);
+        setScreenTitle(`${className} – ${sectionName} - Students`);
+        setHistory(() => renderStudentList(classId, sectionId, className, sectionName, students, showDeletedStudents));
     }
 
-    // --- Add this block for long-press on student-row ---
-    document.querySelectorAll('.student-row').forEach(row => {
-        let pressTimer = null;
-        row.addEventListener('mousedown', startPress);
-        row.addEventListener('touchstart', startPress);
-        row.addEventListener('mouseup', clearPress);
-        row.addEventListener('mouseleave', clearPress);
-        row.addEventListener('touchend', clearPress);
-
-        function startPress(e) {
-            pressTimer = setTimeout(() => {
-                showStudentActionPopup(
-                    row.dataset.classId,
-                    row.dataset.sectionId,
-                    row.dataset.studentId,
-                    row.dataset.studentName
-                );
-            }, 700);
+    // Updated student action popup to support restore
+    function showStudentActionPopup(classId, sectionId, studentId, studentName, isDeleted) {
+        let html = `
+          <div class="popup" id="studentActionPopup">
+            <div style="font-weight:600;color:#0f3d6b;margin-bottom:13px;font-size:1.1em;">
+              Student Actions (${studentName})
+            </div>
+            <div class="option-row" style="flex-direction:column;gap:14px;">
+              ${!isDeleted
+                ? `<button class="option-btn" id="editStudentBtn">Edit Student</button>
+                   <button class="option-btn" id="deleteStudentBtn">Delete Student</button>`
+                : `<button class="option-btn" id="restoreStudentBtn">Restore Student</button>`
+              }
+              <button class="option-btn" id="closeStudentActionBtn">Close</button>
+            </div>
+          </div>
+        `;
+        showPopup(html);
+        if (!isDeleted && document.getElementById('deleteStudentBtn')) {
+            document.getElementById('deleteStudentBtn').onclick = function () {
+                if (confirm("Are you sure you want to delete?")) {
+                    if (confirm("This cannot be undone. Really delete?")) {
+                        deleteStudentFromDB(classId, sectionId, studentId);
+                    }
+                }
+            };
         }
-        function clearPress(e) {
-            clearTimeout(pressTimer);
-        }
-    });
-
-    showFAB("Add Student", () => showAddStudentPopup(classId, sectionId, className, sectionName));
-    showSettingsBtn("section", classId, sectionId, className, sectionName);
-    setScreenTitle(`${className} – ${sectionName} - Students`);
-    setHistory(() => renderStudentList(classId, sectionId, className, sectionName, students));
-}
-function showStudentActionPopup(classId, sectionId, studentId, studentName) {
-    let html = `
-      <div class="popup" id="studentActionPopup">
-        <div style="font-weight:600;color:#0f3d6b;margin-bottom:13px;font-size:1.1em;">
-          Student Actions (${studentName})
-        </div>
-        <div class="option-row" style="flex-direction:column;gap:14px;">
-          <button class="option-btn" id="editStudentBtn">Edit Student</button>
-          <button class="option-btn" id="deleteStudentBtn">Delete Student</button>
-          <button class="option-btn" id="closeStudentActionBtn">Close</button>
-        </div>
-      </div>
-    `;
-    showPopup(html);
-    // You can add Edit logic here later...
-    document.getElementById('deleteStudentBtn').onclick = function () {
-        if (confirm("Are you sure you want to delete?")) {
-            if (confirm("This cannot be undone. Really delete?")) {
-                deleteStudentFromDB(classId, sectionId, studentId);
+        if (isDeleted && document.getElementById('restoreStudentBtn')) {
+            document.getElementById('restoreStudentBtn').onclick = function () {
+                restoreStudentInDB(classId, sectionId, studentId);
             }
         }
-    };
-    document.getElementById('closeStudentActionBtn').onclick = closePopup;
-}
-function deleteStudentFromDB(classId, sectionId, studentId) {
-  db.collection('years').doc(academicYear)
-    .collection('classes').doc(classId)
-    .collection('sections').doc(sectionId)
-    .collection('students').doc(studentId)
-    .update({ isDeleted: true })
-    .then(() => {
-      closePopup();
-      showStudents(classId, sectionId);
-    })
-    .catch(error => alert("Error soft-deleting student: " + error.message));
-}
-
-    // == Add Popups ==
-    function showAddClassPopup() {
-        let html = `
-            <form class="popup" id="addClassForm">
-                <label>Class Name</label>
-                <input name="className" maxlength="12" required placeholder="e.g., 9th">
-                <div class="btn-row">
-                    <button type="button" class="cancel-btn">Cancel</button>
-                    <button type="submit">Add</button>
-                </div>
-            </form>`;
-        showPopup(html, 'addClassForm', addClassToDB);
+        if (document.getElementById('closeStudentActionBtn')) {
+            document.getElementById('closeStudentActionBtn').onclick = closePopup;
+        }
     }
 
-    function addClassToDB(e) {
-        e.preventDefault();
-        const name = e.target.className.value.trim();
-        if (!name) return;
-        const order = [
+    function deleteStudentFromDB(classId, sectionId, studentId) {
+        db.collection('years').doc(academicYear)
+            .collection('classes').doc(classId)
+            .collection('sections').doc(sectionId)
+            .collection('students').doc(studentId)
+            .update({ isDeleted: true })
+            .then(() => {
+                closePopup();
+                showStudents(classId, sectionId);
+            })
+            .catch(error => alert("Error soft-deleting student: " + error.message));
+    }
+
+    function restoreStudentInDB(classId, sectionId, studentId) {
+        db.collection('years').doc(academicYear)
+            .collection('classes').doc(classId)
+            .collection('sections').doc(sectionId)
+            .collection('students').doc(studentId)
+            .update({ isDeleted: firebase.firestore.FieldValue.delete() })
+            .then(() => {
+                closePopup();
+                showStudents(classId, sectionId);
+            })
+            .catch(error => alert("Error restoring student: " + error.message));
+    }
+
+    // --- Add/Edit popups (no change) ---
+    function showAddClassPopup() { /* unchanged */ let html = `
+        <form class="popup" id="addClassForm">
+            <label>Class Name</label>
+            <input name="className" maxlength="12" required placeholder="e.g., 9th">
+            <div class="btn-row">
+                <button type="button" class="cancel-btn">Cancel</button>
+                <button type="submit">Add</button>
+            </div>
+        </form>`; showPopup(html, 'addClassForm', addClassToDB);}
+    function addClassToDB(e) {/* unchanged */e.preventDefault();const name = e.target.className.value.trim();if (!name) return;const order = [
             "Nursery", "LKG", "UKG", "1st", "2nd", "3rd", "4th", "5th",
             "6th", "7th", "8th", "9th", "10th"
-        ].indexOf(name);
-        db.collection('years').doc(academicYear).collection('classes').add({ name, order })
-            .then(() => {
-                closePopup();
-                showDashboard();
-            }).catch(error => {
-                console.error("Error adding class:", error);
-                alert("Error adding class: " + error.message);
-            });
-    };
-
-    function showAddSectionPopup(classId, className) {
-        let html = `
-            <form class="popup" id="addSectionForm">
-                <label>Section Name</label>
-                <input name="sectionName" maxlength="6" required placeholder="e.g., A">
-                <div class="btn-row">
-                    <button type="button" class="cancel-btn">Cancel</button>
-                    <button type="submit">Add</button>
-                </div>
-            </form>`;
-        showPopup(html, 'addSectionForm', (e) => addSectionToDB(e, classId, className));
-    }
-
-    function addSectionToDB(e, classId, className) {
-        e.preventDefault();
-        const name = e.target.sectionName.value.trim();
-        if (!name) return;
-        db.collection('years').doc(academicYear).collection('classes').doc(classId)
+        ].indexOf(name);db.collection('years').doc(academicYear).collection('classes').add({ name, order })
+            .then(() => {closePopup();showDashboard();}).catch(error => {alert("Error adding class: " + error.message);});}
+    function showAddSectionPopup(classId, className) {/* unchanged */let html = `
+        <form class="popup" id="addSectionForm">
+            <label>Section Name</label>
+            <input name="sectionName" maxlength="6" required placeholder="e.g., A">
+            <div class="btn-row">
+                <button type="button" class="cancel-btn">Cancel</button>
+                <button type="submit">Add</button>
+            </div>
+        </form>`;showPopup(html, 'addSectionForm', (e) => addSectionToDB(e, classId, className));}
+    function addSectionToDB(e, classId, className) {/* unchanged */e.preventDefault();const name = e.target.sectionName.value.trim();if (!name) return;db.collection('years').doc(academicYear).collection('classes').doc(classId)
             .collection('sections').add({ name })
-            .then(() => {
-                closePopup();
-                showSections(classId, className); // reload sections
-            }).catch(error => {
-                console.error("Error adding section:", error);
-                alert("Error adding section: " + error.message);
-            });
-    };
-
-    function showAddStudentPopup(classId, sectionId, className, sectionName) {
-        let html = `
-            <form class="popup" id="addStudentForm">
-                <label>Student Name</label>
-                <input name="studentName" maxlength="40" required>
-                <label>Father's Name</label>
-                <input name="fatherName" maxlength="40" required>
-                <label>Roll Number</label>
-                <input name="rollNo" type="number" min="1" max="999" required>
-                <div class="btn-row">
-                    <button type="button" class="cancel-btn">Cancel</button>
-                    <button type="submit">Add</button>
-                </div>
-            </form>`;
-        showPopup(html, 'addStudentForm', (e) => addStudentToDB(e, classId, sectionId, className, sectionName));
-    }
-
-    function addStudentToDB(e, classId, sectionId, className, sectionName) {
-        e.preventDefault();
-        const name = e.target.studentName.value.trim();
-        const father = e.target.fatherName.value.trim();
-        const roll = e.target.rollNo.value.trim();
-        if (!name || !father || !roll) return;
-        db.collection('years').doc(academicYear).collection('classes').doc(classId)
+            .then(() => {closePopup();showSections(classId, className);}).catch(error => {alert("Error adding section: " + error.message);});}
+    function showAddStudentPopup(classId, sectionId, className, sectionName) {/* unchanged */let html = `
+        <form class="popup" id="addStudentForm">
+            <label>Student Name</label>
+            <input name="studentName" maxlength="40" required>
+            <label>Father's Name</label>
+            <input name="fatherName" maxlength="40" required>
+            <label>Roll Number</label>
+            <input name="rollNo" type="number" min="1" max="999" required>
+            <div class="btn-row">
+                <button type="button" class="cancel-btn">Cancel</button>
+                <button type="submit">Add</button>
+            </div>
+        </form>`;showPopup(html, 'addStudentForm', (e) => addStudentToDB(e, classId, sectionId, className, sectionName));}
+    function addStudentToDB(e, classId, sectionId, className, sectionName) {/* unchanged */e.preventDefault();const name = e.target.studentName.value.trim();const father = e.target.fatherName.value.trim();const roll = e.target.rollNo.value.trim();if (!name || !father || !roll) return;db.collection('years').doc(academicYear).collection('classes').doc(classId)
             .collection('sections').doc(sectionId).collection('students')
             .add({ name, father, roll: parseInt(roll) })
-            .then(() => {
-                closePopup();
-                showStudents(classId, sectionId, className, sectionName); // reload
-            }).catch(error => {
-                console.error("Error adding student:", error);
-                alert("Error adding student: " + error.message);
-            });
-    };
+            .then(() => {closePopup();showStudents(classId, sectionId, className, sectionName);}).catch(error => {alert("Error adding student: " + error.message);});}
 
-    // == Settings Button Logic ==
+    // == Settings Button Logic == /* unchanged */
     function showSettingsBtn(mode, ...args) {
         if (settingsBtn) {
             settingsBtn.onclick = null;
-            if (settingsBtn._currentClickHandler) {
-                settingsBtn.removeEventListener('click', settingsBtn._currentClickHandler);
-            }
+            if (settingsBtn._currentClickHandler) settingsBtn.removeEventListener('click', settingsBtn._currentClickHandler);
             let handler;
-            if (mode === "main") {
-                handler = showMainSettingsPopup;
-            } else if (mode === "class" || mode === "section") {
-                handler = () => showClassActionsPopup(...args);
-            }
+            if (mode === "main") handler = showMainSettingsPopup;
+            else if (mode === "class" || mode === "section") handler = () => showClassActionsPopup(...args);
             settingsBtn._currentClickHandler = handler;
             settingsBtn.addEventListener('click', handler);
             settingsBtn.style.display = "flex";
-        } else {
-            console.warn("Settings button element not found!");
         }
     }
-
     function showMainSettingsPopup() {
         let html = `
             <div class="popup" id="mainSettingsPopup">
@@ -454,57 +399,24 @@ function deleteStudentFromDB(classId, sectionId, studentId) {
                 </div>
             </div>`;
         showPopup(html);
-
-        if (document.getElementById('addYearBtn')) {
-            document.getElementById('addYearBtn').addEventListener('click', showAddYearPopup);
-        }
-        if (document.getElementById('logoutBtn')) {
-            document.getElementById('logoutBtn').addEventListener('click', logout);
-        }
-        if (document.getElementById('closeSettingsBtn')) {
-            document.getElementById('closeSettingsBtn').addEventListener('click', closePopup);
-        }
+        if (document.getElementById('addYearBtn')) document.getElementById('addYearBtn').addEventListener('click', showAddYearPopup);
+        if (document.getElementById('logoutBtn')) document.getElementById('logoutBtn').addEventListener('click', logout);
+        if (document.getElementById('closeSettingsBtn')) document.getElementById('closeSettingsBtn').addEventListener('click', closePopup);
     }
+    function showAddYearPopup() {let html = `
+        <form class="popup" id="addYearForm">
+            <label>Academic Year</label>
+            <input name="yearName" required placeholder="e.g., 2024-25" maxlength="10">
+            <div class="btn-row">
+                <button type="button" class="cancel-btn">Cancel</button>
+                <button type="submit">Add</button>
+            </div>
+        </form>`;showPopup(html, 'addYearForm', addAcademicYear);}
+    function addAcademicYear(e) {e.preventDefault();const year = e.target.yearName.value.trim();if (!year) return;db.collection('years').doc(year).set({ name: year })
+            .then(() => {closePopup();academicYear = year;localStorage.setItem('sp_selectedYear', year);showDashboard();}).catch(error => {alert("Error adding academic year: " + error.message);});}
+    function logout() {auth.signOut().then(() => {window.location.href = "index.html";}).catch(error => {alert("Error logging out: " + error.message);});}
 
-    function showAddYearPopup() {
-        let html = `
-            <form class="popup" id="addYearForm">
-                <label>Academic Year</label>
-                <input name="yearName" required placeholder="e.g., 2024-25" maxlength="10">
-                <div class="btn-row">
-                    <button type="button" class="cancel-btn">Cancel</button>
-                    <button type="submit">Add</button>
-                </div>
-            </form>`;
-        showPopup(html, 'addYearForm', addAcademicYear);
-    };
-
-    function addAcademicYear(e) {
-        e.preventDefault();
-        const year = e.target.yearName.value.trim();
-        if (!year) return;
-        db.collection('years').doc(year).set({ name: year })
-            .then(() => {
-                closePopup();
-                academicYear = year;
-                localStorage.setItem('sp_selectedYear', year);
-                showDashboard();
-            }).catch(error => {
-                console.error("Error adding academic year:", error);
-                alert("Error adding academic year: " + error.message);
-            });
-    };
-
-    function logout() {
-        auth.signOut().then(() => {
-            window.location.href = "index.html";
-        }).catch(error => {
-            console.error("Error logging out:", error);
-            alert("Error logging out: " + error.message);
-        });
-    };
-
-    // == Class/Section Actions ==
+    // == Class/Section Actions == /* unchanged */
     function showClassActionsPopup(classId, sectionId, className, sectionName) {
         let html = `
             <div class="popup" id="classActionsPopup">
@@ -522,58 +434,30 @@ function deleteStudentFromDB(classId, sectionId, studentId) {
                 </div>
             </div>`;
         showPopup(html);
-
-        if (document.getElementById('examSettingsBtn')) {
-            document.getElementById('examSettingsBtn').addEventListener('click', showExamSettingsPopup);
-        }
-        if (document.getElementById('enterMarksBtn')) {
-            document.getElementById('enterMarksBtn').addEventListener('click', showEnterMarksPopup);
-        }
-        if (document.getElementById('downloadMemosBtn')) {
-            document.getElementById('downloadMemosBtn').addEventListener('click', downloadClassMemos);
-        }
-        if (document.getElementById('downloadHallTicketsBtn')) {
-            document.getElementById('downloadHallTicketsBtn').addEventListener('click', downloadHallTickets);
-        }
-        if (document.getElementById('downloadExcelBtn')) {
-            document.getElementById('downloadExcelBtn').addEventListener('click', downloadClassExcel);
-        }
-        if (document.getElementById('performanceGraphBtn')) {
-            document.getElementById('performanceGraphBtn').addEventListener('click', showPerformanceGraph);
-        }
-        if (document.getElementById('closeClassActionsBtn')) {
-            document.getElementById('closeClassActionsBtn').addEventListener('click', closePopup);
-        }
+        if (document.getElementById('examSettingsBtn')) document.getElementById('examSettingsBtn').addEventListener('click', showExamSettingsPopup);
+        if (document.getElementById('enterMarksBtn')) document.getElementById('enterMarksBtn').addEventListener('click', showEnterMarksPopup);
+        if (document.getElementById('downloadMemosBtn')) document.getElementById('downloadMemosBtn').addEventListener('click', downloadClassMemos);
+        if (document.getElementById('downloadHallTicketsBtn')) document.getElementById('downloadHallTicketsBtn').addEventListener('click', downloadHallTickets);
+        if (document.getElementById('downloadExcelBtn')) document.getElementById('downloadExcelBtn').addEventListener('click', downloadClassExcel);
+        if (document.getElementById('performanceGraphBtn')) document.getElementById('performanceGraphBtn').addEventListener('click', showPerformanceGraph);
+        if (document.getElementById('closeClassActionsBtn')) document.getElementById('closeClassActionsBtn').addEventListener('click', closePopup);
     }
 
-    // ======= ALL FEATURE LOGIC (PLACEHOLDER for now; you must fill with actual logic as per your templates) =======
-    function showExamSettingsPopup() {
-        alert("Exam Settings coming soon!");
-    }
-    function showEnterMarksPopup() {
-        alert("Enter Marks coming soon!");
-    }
-    function downloadClassMemos() {
-        alert("Download Class Marks Memos coming soon! (Will use memo.png)");
-    }
-    function downloadHallTickets() {
-        alert("Download Hall Tickets coming soon! (No PNG background)");
-    }
-    function downloadClassExcel() {
-        alert("Download Class Marks Excel coming soon!");
-    }
-    function showPerformanceGraph() {
-        alert("Performance Graph coming soon!");
-    }
+    // Feature placeholders (unchanged)
+    function showExamSettingsPopup() { alert("Exam Settings coming soon!"); }
+    function showEnterMarksPopup() { alert("Enter Marks coming soon!"); }
+    function downloadClassMemos() { alert("Download Class Marks Memos coming soon! (Will use memo.png)"); }
+    function downloadHallTickets() { alert("Download Hall Tickets coming soon! (No PNG background)"); }
+    function downloadClassExcel() { alert("Download Class Marks Excel coming soon!"); }
+    function showPerformanceGraph() { alert("Performance Graph coming soon!"); }
 
-    // == Popups ==
+    // == Popups (unchanged) ==
     function closePopup() {
         if (popupBg) popupBg.classList.add("hidden");
         if (popupDiv) popupDiv.classList.add("hidden");
         if (popupDiv) popupDiv.innerHTML = '';
         if (popupBg) popupBg.onclick = null;
     }
-
     function showPopup(htmlContent, formId = null, formSubmitHandler = null) {
         if (popupBg) {
             popupBg.innerHTML = "";
@@ -583,20 +467,17 @@ function deleteStudentFromDB(classId, sectionId, studentId) {
             popupDiv.innerHTML = htmlContent;
             popupDiv.classList.remove("hidden");
         }
-
         if (popupBg) {
             popupBg.onclick = function (e) {
                 if (e.target === popupBg) closePopup();
             };
         }
-
         if (formId && formSubmitHandler) {
             const form = document.getElementById(formId);
             if (form) {
                 form.addEventListener('submit', formSubmitHandler);
             }
         }
-
         if (popupDiv) {
             popupDiv.querySelectorAll('.cancel-btn').forEach(button => {
                 button.addEventListener('click', function (e) {
@@ -618,8 +499,6 @@ function deleteStudentFromDB(classId, sectionId, studentId) {
             fab._currentClickHandler = onClickHandler;
             fab.addEventListener('click', onClickHandler);
             fab.style.display = "flex";
-        } else {
-            console.warn("FAB element not found!");
         }
     }
 
@@ -630,24 +509,19 @@ function deleteStudentFromDB(classId, sectionId, studentId) {
         }
     }
 
-    // == History Logic (Mobile Back Button): Only one step back
-    // == History Logic (Mobile Back Button): Only one step back
-let lastViewFn = null;
-function setHistory(fn) {
-    lastViewFn = fn;
-    // Add a new history entry
-    if (window.location.hash !== "#step") {
-        history.pushState({ step: true }, "", "#step");
+    // == History Logic (Mobile Back Button) ==
+    let lastViewFn = null;
+    function setHistory(fn) {
+        lastViewFn = fn;
+        if (window.location.hash !== "#step") {
+            history.pushState({ step: true }, "", "#step");
+        }
     }
-}
-window.onpopstate = function (event) {
-    // Prevent app from closing; call lastViewFn if set
-    if (lastViewFn && event.state && event.state.step) {
-        lastViewFn();
-    } else {
-        // On first load or no state, do nothing or reload main dashboard
-        showDashboard();
-        // Optionally: history.replaceState(null, "", window.location.pathname); // Reset state
-    }
-};
+    window.onpopstate = function (event) {
+        if (lastViewFn && event.state && event.state.step) {
+            lastViewFn();
+        } else {
+            showDashboard();
+        }
+    };
 }
