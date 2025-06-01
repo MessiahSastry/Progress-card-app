@@ -88,13 +88,15 @@ firebase.auth().onAuthStateChanged(function(user) {
     }
   } else {
     // Only initialize dashboard if we are on dashboard page
-    if (window.location.pathname.includes('dashboard.html')) {
-      dashboardAppInit();
-    }
+   if (window.location.pathname.includes('dashboard.html')) {
+  console.log('Calling dashboardAppInit...');
+  dashboardAppInit();
+}
     // Do NOT auto-redirect to dashboard from index.html here (it is handled by the login page logic)
   }
 });
 // ==== DASHBOARD LOGIC STARTS HERE ====
+console.log('dashboardAppInit started');
 function dashboardAppInit() {
   // Global state
   let academicYear = null;
