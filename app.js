@@ -83,25 +83,30 @@ window.forgotPassword = function () {
 };
 
 // ===== Dashboard Auth Check =====
-let dashboardInitialized = false;
+// ===== Dashboard Auth Check =====
+let dashboardInitialized = false; // Keep this
 firebase.auth().onAuthStateChanged(function (user) {
     const path = window.location.pathname;
+    // Check if the current path indicates the login page (index.html or the root path)
     const isIndex = path.endsWith('index.html') || path === '/' || path === '' || path.includes('Progress-card-app');
+    // Check if the current path indicates the dashboard page
     const isDashboard = path.endsWith('dashboard.html');
 
-    // Hide splash screen as soon as auth state is known, regardless of page
+    // **IMPORTANT: Move splash screen hiding here for more robust handling.**
+    // Hide splash screen as soon as auth state is known AND we are sure which page to show.
     const splash = document.getElementById('splash');
-    if (splash) splash.classList.add('hidden');
 
     // On index.html (login page)
     if (isIndex) {
         if (user) {
             // User already logged in, go to dashboard
             if (!window.location.pathname.endsWith('dashboard.html')) {
+                if (splash) splash.classList.add('hidden'); // Hide splash before redirect
                 window.location.replace("dashboard.html");
             }
         } else {
             // User not logged in, show login UI!
+            if (splash) splash.classList.add('hidden'); // Hide splash to show login UI
             showLoginUI();
         }
     }
@@ -110,19 +115,22 @@ firebase.auth().onAuthStateChanged(function (user) {
         if (!user) {
             // Not logged in, go back to login
             if (!window.location.pathname.endsWith('index.html')) {
+                if (splash) splash.classList.add('hidden'); // Hide splash before redirect
                 window.location.replace("index.html");
             }
         } else {
             // User is logged in, initialize dashboard
+            if (splash) splash.classList.add('hidden'); // Hide splash to show dashboard content
             if (!dashboardInitialized) {
                 dashboardInitialized = true;
                 dashboardAppInit();
             }
         }
     }
-    // On any other page: do nothing or handle as needed
+    // On any other page: (e.g., if you had other pages that needed auth)
+    // For now, no specific action, but the splash will eventually hide
+    // as the auth state resolves.
 });
-
 // ==== DASHBOARD LOGIC STARTS HERE ====
 console.log('dashboardAppInit started'); // This log should now consistently appear if you're on dashboard.html and logged in.
 
