@@ -292,12 +292,13 @@ button.fab:before {
 .settings-btn i { pointer-events: none; }
 /* Popups/Modal */
 #popup-bg {
-  #popup-bg {
   position: fixed;
   left: 0; top: 0; right: 0; bottom: 0;
   background: #0007;
   z-index: 2001;
-  /* REMOVE: display: flex; align-items: center; justify-content: center; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 #popup-bg.hidden, #popup.hidden { display: none !important; }
 
