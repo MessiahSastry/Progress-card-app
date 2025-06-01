@@ -1,37 +1,4 @@
 if (typeof firebase === "undefined") alert("Firebase not loaded!");
-window.onload = function () {
-  setTimeout(() => {
-    firebase.auth().onAuthStateChanged(function(user) {
-      var splash = document.getElementById('splash');
-      var loginRoot = document.getElementById('login-root');
-      if (user) {
-        // If already on dashboard.html, do nothing (dashboard will handle UI)
-        if (window.location.pathname.includes('dashboard.html')) return;
-        window.location.replace("dashboard.html");
-      } else {
-        // Show login
-        if (splash) splash.style.display = "none";
-        if (loginRoot) {
-          loginRoot.style.display = "flex";
-          loginRoot.innerHTML = `
-            <div class="login-box">
-              <div class="school-title">St. Patrick’s School</div>
-              <div class="subtitle">IIT & NEET FOUNDATION</div>
-              <input type="email" id="email" placeholder="Email">
-              <input type="password" id="password" placeholder="Password">
-              <div class="forgot-row">
-                <button type="button" onclick="forgotPassword()">Forgot Password?</button>
-              </div>
-              <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
-              <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
-              <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google" style="margin-right:10px;font-size:1.3em;vertical-align:middle;"></i>Sign in with Google</button>
-            </div>
-          `;
-        }
-      }
-    });
-  }, 1200);
-};
 const firebaseConfig = {
   apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
   authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -43,10 +10,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
 // Add this block for persistent login
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
 window.emailSignIn = function () {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
