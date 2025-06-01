@@ -87,12 +87,16 @@ firebase.auth().onAuthStateChanged(function(user) {
     }
   } else {
     if (
-      window.location.pathname.includes('dashboard.html') &&
-      !dashboardInitialized
+      window.location.pathname.includes('index.html') ||
+      window.location.pathname === "/" ||
+      window.location.pathname === ""
     ) {
-      dashboardInitialized = true;
-      console.log('calling dashboardAppInit...');
-      dashboardAppInit();
+      window.location.replace("dashboard.html");
+    } else if (window.location.pathname.includes('dashboard.html')) {
+      if (!dashboardInitialized) {
+        dashboardInitialized = true;
+        dashboardAppInit();
+      }
     }
   }
 });
