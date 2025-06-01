@@ -82,29 +82,31 @@ window.forgotPassword = function () {
 let dashboardInitialized = false;
 firebase.auth().onAuthStateChanged(function(user) {
   // Fix for GitHub Pages subpaths:
-  const path = window.location.pathname;
-  const isIndex = path.endsWith('index.html') || path.endsWith('/') || path === '' || path.endsWith('Progress-card-app');
-  const isDashboard = path.endsWith('dashboard.html');
+const path = window.location.pathname;
+console.log("Current path:", path); // Add this line to debug the current path
 
-  if (!user) {
-    // If not logged in and on dashboard, go to login
-    if (isDashboard) {
-      window.location.replace("index.html");
-    }
-    // If on login page, do nothing (show login)
-  } else {
-    // If logged in and on login, go to dashboard
-    if (isIndex) {
-      window.location.replace("dashboard.html");
-    }
-    // If logged in and already on dashboard, just init dashboard ONCE
-    else if (isDashboard) {
-      if (!dashboardInitialized) {
-        dashboardInitialized = true;
-        dashboardAppInit();
-      }
-    }
+// Updated checks with includes() instead of endsWith()
+const isIndex = path.includes('index.html') || path === '/' || path === '' || path.includes('Progress-card-app');
+const isDashboard = path.includes('dashboard.html');
+
+if (!user) {
+  if (isDashboard) {
+    window.location.replace("index.html");
   }
+} else {
+  if (isIndex) {
+    window.location.replace("dashboard.html");
+  } else if (isDashboard) {
+    if (!dashboardInitialized) {
+      dashboardInitialized = true;
+      dashboardAppInit();
+    }
+  } else {
+    // Fallback: redirect to dashboard to avoid loop
+    console.log('Fallback: Redirecting to dashboard');
+    window.location.replace("dashboard.html");
+  }
+}
 });
  // Do NOT auto-redirect to dashboard from index.html here (it is handled by the login page logic)
 // ==== DASHBOARD LOGIC STARTS HERE ====
