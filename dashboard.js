@@ -516,11 +516,23 @@ function dashboardAppInit() {
     }
 
     // == History Logic (Mobile Back Button): Only one step back
-    let lastViewFn = null;
-    function setHistory(fn) {
-        lastViewFn = fn;
+    // == History Logic (Mobile Back Button): Only one step back
+let lastViewFn = null;
+function setHistory(fn) {
+    lastViewFn = fn;
+    // Add a new history entry
+    if (window.location.hash !== "#step") {
+        history.pushState({ step: true }, "", "#step");
     }
-    window.onpopstate = function () {
-        if (lastViewFn) lastViewFn();
-    };
+}
+window.onpopstate = function (event) {
+    // Prevent app from closing; call lastViewFn if set
+    if (lastViewFn && event.state && event.state.step) {
+        lastViewFn();
+    } else {
+        // On first load or no state, do nothing or reload main dashboard
+        showDashboard();
+        // Optionally: history.replaceState(null, "", window.location.pathname); // Reset state
+    }
+};
 }
