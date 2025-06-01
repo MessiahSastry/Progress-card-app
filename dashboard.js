@@ -166,14 +166,36 @@ function dashboardAppInit() {
         }
 
         document.querySelectorAll('.section-chip').forEach(chip => {
-            chip.addEventListener('click', function () {
-                const classId = this.dataset.classId;
-                const sectionId = this.dataset.sectionId;
-                const className = this.dataset.className;
-                const sectionName = this.dataset.sectionName;
-                showStudents(classId, sectionId, className, sectionName);
-            });
-        });
+    // Normal click
+    chip.addEventListener('click', function () {
+        const classId = this.dataset.classId;
+        const sectionId = this.dataset.sectionId;
+        const className = this.dataset.className;
+        const sectionName = this.dataset.sectionName;
+        showStudents(classId, sectionId, className, sectionName);
+    });
+    // Long press for actions
+    let pressTimer = null;
+    chip.addEventListener('mousedown', startPress);
+    chip.addEventListener('touchstart', startPress);
+    chip.addEventListener('mouseup', clearPress);
+    chip.addEventListener('mouseleave', clearPress);
+    chip.addEventListener('touchend', clearPress);
+
+    function startPress(e) {
+        pressTimer = setTimeout(() => {
+            showSectionActionPopup(
+                chip.dataset.classId,
+                chip.dataset.sectionId,
+                chip.dataset.className,
+                chip.dataset.sectionName
+            );
+        }, 700); // 700ms long press
+    }
+    function clearPress(e) {
+        clearTimeout(pressTimer);
+    }
+});
 
         showFAB("Add Section", () => showAddSectionPopup(classId, className));
         if (settingsBtn) {
