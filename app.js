@@ -83,31 +83,36 @@ window.forgotPassword = function () {
 // ===== Dashboard Auth Check =====
 let dashboardInitialized = false;
 firebase.auth().onAuthStateChanged(function(user) {
-  // Fix for GitHub Pages subpaths:
-const path = window.location.pathname;
-console.log("Current path:", path); // Add this line to debug the current path
-// Updated checks with includes() instead of endsWith()
-const isIndex = path.includes('index.html') || path === '/' || path === '' || path.includes('Progress-card-app');
-const isDashboard = path.includes('dashboard.html');
+  const path = window.location.pathname;
+  const isIndex = path.endsWith('index.html') || path === '/' || path === '' || path.includes('Progress-card-app');
+  const isDashboard = path.endsWith('dashboard.html');
 
-if (!user) {
-  if (isDashboard) {
-    window.location.replace("index.html");
-  }
-} else {
+  // On index.html (login page)
   if (isIndex) {
-    window.location.replace("dashboard.html");
-  } else if (isDashboard) {
-    if (!dashboardInitialized) {
-      dashboardInitialized = true;
-      dashboardAppInit();
+    if (user) {
+      // User already logged in, go to dashboard
+      if (!window.location.pathname.endsWith('dashboard.html')) {
+        window.location.replace("dashboard.html");
+      }
     }
-  } else {
-    // Fallback: redirect to dashboard to avoid loop
-    console.log('Fallback: Redirecting to dashboard');
-    window.location.replace("dashboard.html");
+    // else, stay on login page
   }
-}
+  // On dashboard.html (main app)
+  else if (isDashboard) {
+    if (!user) {
+      // Not logged in, go back to login
+      if (!window.location.pathname.endsWith('index.html')) {
+        window.location.replace("index.html");
+      }
+    } else {
+      // User is logged in, initialize dashboard
+      if (!dashboardInitialized) {
+        dashboardInitialized = true;
+        dashboardAppInit();
+      }
+    }
+  }
+  // On any other page: do nothing or handle as needed
 });
  // Do NOT auto-redirect to dashboard from index.html here (it is handled by the login page logic)
 // ==== DASHBOARD LOGIC STARTS HERE ====
