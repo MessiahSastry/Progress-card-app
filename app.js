@@ -1,26 +1,33 @@
-// ==== LOGIN PAGE LOGIC: DO NOT CHANGE (as per your code) ====
 window.onload = function () {
   setTimeout(() => {
-    var splash = document.getElementById('splash');
-    if (splash) splash.style.display = "none";
-    var loginRoot = document.getElementById('login-root');
-    if (loginRoot) {
-      loginRoot.style.display = "flex";
-      loginRoot.innerHTML = `
-        <div class="login-box">
-          <div class="school-title">St. Patrick’s School</div>
-          <div class="subtitle">IIT & NEET FOUNDATION</div>
-          <input type="email" id="email" placeholder="Email">
-          <input type="password" id="password" placeholder="Password">
-          <div class="forgot-row">
-            <button type="button" onclick="forgotPassword()">Forgot Password?</button>
+    // Auth check FIRST: If already logged in, go to dashboard directly
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        window.location.replace("dashboard.html");
+        return;
+      }
+      // Otherwise show login
+      var splash = document.getElementById('splash');
+      if (splash) splash.style.display = "none";
+      var loginRoot = document.getElementById('login-root');
+      if (loginRoot) {
+        loginRoot.style.display = "flex";
+        loginRoot.innerHTML = `
+          <div class="login-box">
+            <div class="school-title">St. Patrick’s School</div>
+            <div class="subtitle">IIT & NEET FOUNDATION</div>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <div class="forgot-row">
+              <button type="button" onclick="forgotPassword()">Forgot Password?</button>
+            </div>
+            <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
+            <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
+            <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google" style="margin-right:10px;font-size:1.3em;vertical-align:middle;"></i>Sign in with Google</button>
           </div>
-          <button class="btn-email" onclick="emailSignIn()">Sign in with Email</button>
-          <button class="btn-register" onclick="emailRegister()">Register (New User)</button>
-        <button class="btn-google" onclick="googleSignIn()"><i class="fab fa-google" style="margin-right:10px;font-size:1.3em;vertical-align:middle;"></i>Sign in with Google</button>
-        </div>
-      `;
-    }
+        `;
+      }
+    });
   }, 1200);
 };
 const firebaseConfig = {
