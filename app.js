@@ -83,8 +83,8 @@ let dashboardInitialized = false;
 firebase.auth().onAuthStateChanged(function(user) {
   // Fix for GitHub Pages subpaths:
 const path = window.location.pathname;
+const path = window.location.pathname;
 console.log("Current path:", path); // Add this line to debug the current path
-
 // Updated checks with includes() instead of endsWith()
 const isIndex = path.includes('index.html') || path === '/' || path === '' || path.includes('Progress-card-app');
 const isDashboard = path.includes('dashboard.html');
