@@ -310,7 +310,7 @@ html, body {
   padding: 30px 22px 22px 22px;
   max-width: 380px;
   width: 92vw;
-  /* margin: 0 auto;  -- Removed as flexbox handles centering */
+  margin: auto; /* <--- CHANGE THIS FROM `0 auto` to `auto` */
   /* REMOVED: position: relative;  -- This was causing the issue */
   z-index: 2010;
   display: flex;
@@ -318,7 +318,6 @@ html, body {
   gap: 18px;
   align-items: stretch;
   justify-content: center;
-
   /* ADDED FOR BETTER VERTICAL CENTERING AND SCROLLING */
   max-height: 90vh; /* Limit height to 90% of viewport height */
   overflow-y: auto; /* Add scrollbar if content exceeds max-height */
