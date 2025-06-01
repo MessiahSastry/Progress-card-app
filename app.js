@@ -110,18 +110,19 @@ function dashboardAppInit() {
     }, 1000);
   }
   // == Academic Years ==
-  function loadAcademicYears() {
-    db.collection('years').orderBy('name', 'desc').get().then(snap => {
-      yearsList = [];
-      snap.forEach(doc => yearsList.push(doc.id));
-      if (yearsList.length > 0) {
-        academicYear = localStorage.getItem('sp_selectedYear') || yearsList[0];
-        showDashboard();
-      } else {
-        showAddYearPopup();
-      }
-    });
-  }
+ function loadAcademicYears() {
+  db.collection('years').orderBy('name', 'desc').get().then(snap => {
+    yearsList = [];
+    snap.forEach(doc => yearsList.push(doc.id));
+    console.log("Years loaded from Firestore:", yearsList);  // <-- ADD THIS LINE
+    if (yearsList.length > 0) {
+      academicYear = localStorage.getItem('sp_selectedYear') || yearsList[0];
+      showDashboard();
+    } else {
+      showAddYearPopup();
+    }
+  });
+}
   // == Main Dashboard: Classes ==
   function showDashboard() {
     headerExam.textContent = academicYear || '';
