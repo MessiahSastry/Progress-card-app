@@ -2,7 +2,7 @@
 if (typeof firebase === "undefined") alert("Firebase not loaded!");
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14", // YOUR API KEY
+    apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
     authDomain: "stpatricksprogresscard.firebaseapp.com",
     projectId: "stpatricksprogresscard",
     storageBucket: "stpatricksprogresscard.appspot.com",
@@ -14,7 +14,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Global DOM references relevant ONLY to the dashboard
 const mainArea = document.getElementById("main-area");
 const headerExam = document.getElementById("header-exam");
 const popupBg = document.getElementById("popup-bg");
@@ -23,7 +22,6 @@ const fab = document.getElementById("fab");
 const settingsBtn = document.getElementById("settings-btn");
 const splash = document.getElementById('splash');
 
-// Global state
 let academicYear = null;
 let yearsList = [];
 let classes = [];
@@ -33,7 +31,7 @@ let colorPalette = [
 ];
 let sectionColors = colorPalette;
 let subjectsByExam = {};
-let showDeletedStudents = false; // NEW: State for showing deleted students
+let showDeletedStudents = false;
 
 auth.onAuthStateChanged(function (user) {
     if (splash) splash.classList.add('hidden');
@@ -44,7 +42,6 @@ auth.onAuthStateChanged(function (user) {
     }
 });
 
-// ==== DASHBOARD LOGIC STARTS HERE ====
 function dashboardAppInit() {
     loadAcademicYears();
 
@@ -154,7 +151,6 @@ function dashboardAppInit() {
                 const sectionName = this.dataset.sectionName;
                 showStudents(classId, sectionId, className, sectionName);
             });
-            // Long press
             let pressTimer = null;
             chip.addEventListener('mousedown', startPress);
             chip.addEventListener('touchstart', startPress);
@@ -183,7 +179,6 @@ function dashboardAppInit() {
         setHistory(() => renderSectionList(classId, className, sections));
     }
 
-    // --- NEW: "Show Deleted" Toggle ---
     function showStudents(classId, sectionId, className, sectionName) {
         db.collection('years').doc(academicYear).collection('classes').doc(classId)
             .collection('sections').doc(sectionId).collection('students').orderBy('roll').get()
@@ -196,7 +191,6 @@ function dashboardAppInit() {
             });
     };
 
-    // Replace renderStudentList completely with this updated function!
     function renderStudentList(classId, sectionId, className, sectionName, students, showDeleted = false) {
         let html = `
             <div class="screen-title">${className} – Section ${sectionName}</div>
@@ -208,7 +202,6 @@ function dashboardAppInit() {
             </div>
             <div class="student-list">
         `;
-
         students
             .filter(stu => showDeleted ? (stu.isDeleted === true) : (!stu.isDeleted || stu.isDeleted === false))
             .forEach(stu => {
@@ -223,11 +216,9 @@ function dashboardAppInit() {
                     ${stu.isDeleted ? '<span style="color:#e74c3c;font-size:0.95em;margin-left:7px;">(Deleted)</span>' : ''}
                 </div>`;
             });
-
         html += "</div>";
         if (mainArea) mainArea.innerHTML = html;
 
-        // Toggle handler
         const showDeletedToggle = document.getElementById('showDeletedToggle');
         if (showDeletedToggle) {
             showDeletedToggle.onchange = function () {
@@ -236,7 +227,6 @@ function dashboardAppInit() {
             };
         }
 
-        // Add long press for student actions
         document.querySelectorAll('.student-row').forEach(row => {
             let pressTimer = null;
             row.addEventListener('mousedown', startPress);
@@ -267,7 +257,6 @@ function dashboardAppInit() {
         setHistory(() => renderStudentList(classId, sectionId, className, sectionName, students, showDeletedStudents));
     }
 
-    // Updated student action popup to support restore
     function showStudentActionPopup(classId, sectionId, studentId, studentName, isDeleted) {
         let html = `
           <div class="popup" id="studentActionPopup">
@@ -285,6 +274,28 @@ function dashboardAppInit() {
           </div>
         `;
         showPopup(html);
+
+        if (!isDeleted && document.getElementById('editStudentBtn')) {
+            document.getElementById('editStudentBtn').onclick = function () {
+                db.collection('years').doc(academicYear)
+                  .collection('classes').doc(classId)
+                  .collection('sections').doc(sectionId)
+                  .collection('students').doc(studentId)
+                  .get()
+                  .then(doc => {
+                    if (doc.exists) {
+                      const data = doc.data();
+                      showEditStudentPopup(
+                        classId, sectionId, studentId,
+                        data.name || '', data.father || '', data.roll || '',
+                        () => showStudents(classId, sectionId)
+                      );
+                    } else {
+                      alert("Student not found!");
+                    }
+                  });
+            };
+        }
         if (!isDeleted && document.getElementById('deleteStudentBtn')) {
             document.getElementById('deleteStudentBtn').onclick = function () {
                 if (confirm("Are you sure you want to delete?")) {
@@ -302,6 +313,39 @@ function dashboardAppInit() {
         if (document.getElementById('closeStudentActionBtn')) {
             document.getElementById('closeStudentActionBtn').onclick = closePopup;
         }
+    }
+
+    function showEditStudentPopup(classId, sectionId, studentId, currentName, currentFather, currentRoll, afterEdit) {
+        let html = `
+            <form class="popup" id="editStudentForm">
+                <label>Student Name</label>
+                <input name="studentName" maxlength="40" required value="${currentName}">
+                <label>Father's Name</label>
+                <input name="fatherName" maxlength="40" required value="${currentFather}">
+                <label>Roll Number</label>
+                <input name="rollNo" type="number" min="1" max="999" required value="${currentRoll}">
+                <div class="btn-row">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit">Update</button>
+                </div>
+            </form>
+        `;
+        showPopup(html, 'editStudentForm', function (e) {
+            e.preventDefault();
+            const name = e.target.studentName.value.trim();
+            const father = e.target.fatherName.value.trim();
+            const roll = parseInt(e.target.rollNo.value.trim(), 10);
+            db.collection('years').doc(academicYear)
+                .collection('classes').doc(classId)
+                .collection('sections').doc(sectionId)
+                .collection('students').doc(studentId)
+                .update({ name, father, roll })
+                .then(() => {
+                    closePopup();
+                    if (afterEdit) afterEdit();
+                })
+                .catch(error => alert("Error editing student: " + error.message));
+        });
     }
 
     function deleteStudentFromDB(classId, sectionId, studentId) {
@@ -330,52 +374,92 @@ function dashboardAppInit() {
             .catch(error => alert("Error restoring student: " + error.message));
     }
 
-    // --- Add/Edit popups (no change) ---
-    function showAddClassPopup() { /* unchanged */ let html = `
-        <form class="popup" id="addClassForm">
-            <label>Class Name</label>
-            <input name="className" maxlength="12" required placeholder="e.g., 9th">
-            <div class="btn-row">
-                <button type="button" class="cancel-btn">Cancel</button>
-                <button type="submit">Add</button>
-            </div>
-        </form>`; showPopup(html, 'addClassForm', addClassToDB);}
-    function addClassToDB(e) {/* unchanged */e.preventDefault();const name = e.target.className.value.trim();if (!name) return;const order = [
+    function showAddClassPopup() {
+        let html = `
+            <form class="popup" id="addClassForm">
+                <label>Class Name</label>
+                <input name="className" maxlength="12" required placeholder="e.g., 9th">
+                <div class="btn-row">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit">Add</button>
+                </div>
+            </form>`;
+        showPopup(html, 'addClassForm', addClassToDB);
+    }
+    function addClassToDB(e) {
+        e.preventDefault();
+        const name = e.target.className.value.trim();
+        if (!name) return;
+        const order = [
             "Nursery", "LKG", "UKG", "1st", "2nd", "3rd", "4th", "5th",
             "6th", "7th", "8th", "9th", "10th"
-        ].indexOf(name);db.collection('years').doc(academicYear).collection('classes').add({ name, order })
-            .then(() => {closePopup();showDashboard();}).catch(error => {alert("Error adding class: " + error.message);});}
-    function showAddSectionPopup(classId, className) {/* unchanged */let html = `
-        <form class="popup" id="addSectionForm">
-            <label>Section Name</label>
-            <input name="sectionName" maxlength="6" required placeholder="e.g., A">
-            <div class="btn-row">
-                <button type="button" class="cancel-btn">Cancel</button>
-                <button type="submit">Add</button>
-            </div>
-        </form>`;showPopup(html, 'addSectionForm', (e) => addSectionToDB(e, classId, className));}
-    function addSectionToDB(e, classId, className) {/* unchanged */e.preventDefault();const name = e.target.sectionName.value.trim();if (!name) return;db.collection('years').doc(academicYear).collection('classes').doc(classId)
+        ].indexOf(name);
+        db.collection('years').doc(academicYear).collection('classes').add({ name, order })
+            .then(() => {
+                closePopup();
+                showDashboard();
+            }).catch(error => {
+                alert("Error adding class: " + error.message);
+            });
+    }
+    function showAddSectionPopup(classId, className) {
+        let html = `
+            <form class="popup" id="addSectionForm">
+                <label>Section Name</label>
+                <input name="sectionName" maxlength="6" required placeholder="e.g., A">
+                <div class="btn-row">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit">Add</button>
+                </div>
+            </form>`;
+        showPopup(html, 'addSectionForm', (e) => addSectionToDB(e, classId, className));
+    }
+    function addSectionToDB(e, classId, className) {
+        e.preventDefault();
+        const name = e.target.sectionName.value.trim();
+        if (!name) return;
+        db.collection('years').doc(academicYear).collection('classes').doc(classId)
             .collection('sections').add({ name })
-            .then(() => {closePopup();showSections(classId, className);}).catch(error => {alert("Error adding section: " + error.message);});}
-    function showAddStudentPopup(classId, sectionId, className, sectionName) {/* unchanged */let html = `
-        <form class="popup" id="addStudentForm">
-            <label>Student Name</label>
-            <input name="studentName" maxlength="40" required>
-            <label>Father's Name</label>
-            <input name="fatherName" maxlength="40" required>
-            <label>Roll Number</label>
-            <input name="rollNo" type="number" min="1" max="999" required>
-            <div class="btn-row">
-                <button type="button" class="cancel-btn">Cancel</button>
-                <button type="submit">Add</button>
-            </div>
-        </form>`;showPopup(html, 'addStudentForm', (e) => addStudentToDB(e, classId, sectionId, className, sectionName));}
-    function addStudentToDB(e, classId, sectionId, className, sectionName) {/* unchanged */e.preventDefault();const name = e.target.studentName.value.trim();const father = e.target.fatherName.value.trim();const roll = e.target.rollNo.value.trim();if (!name || !father || !roll) return;db.collection('years').doc(academicYear).collection('classes').doc(classId)
+            .then(() => {
+                closePopup();
+                showSections(classId, className);
+            }).catch(error => {
+                alert("Error adding section: " + error.message);
+            });
+    }
+    function showAddStudentPopup(classId, sectionId, className, sectionName) {
+        let html = `
+            <form class="popup" id="addStudentForm">
+                <label>Student Name</label>
+                <input name="studentName" maxlength="40" required>
+                <label>Father's Name</label>
+                <input name="fatherName" maxlength="40" required>
+                <label>Roll Number</label>
+                <input name="rollNo" type="number" min="1" max="999" required>
+                <div class="btn-row">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit">Add</button>
+                </div>
+            </form>`;
+        showPopup(html, 'addStudentForm', (e) => addStudentToDB(e, classId, sectionId, className, sectionName));
+    }
+    function addStudentToDB(e, classId, sectionId, className, sectionName) {
+        e.preventDefault();
+        const name = e.target.studentName.value.trim();
+        const father = e.target.fatherName.value.trim();
+        const roll = e.target.rollNo.value.trim();
+        if (!name || !father || !roll) return;
+        db.collection('years').doc(academicYear).collection('classes').doc(classId)
             .collection('sections').doc(sectionId).collection('students')
             .add({ name, father, roll: parseInt(roll) })
-            .then(() => {closePopup();showStudents(classId, sectionId, className, sectionName);}).catch(error => {alert("Error adding student: " + error.message);});}
+            .then(() => {
+                closePopup();
+                showStudents(classId, sectionId, className, sectionName);
+            }).catch(error => {
+                alert("Error adding student: " + error.message);
+            });
+    }
 
-    // == Settings Button Logic == /* unchanged */
     function showSettingsBtn(mode, ...args) {
         if (settingsBtn) {
             settingsBtn.onclick = null;
@@ -403,20 +487,40 @@ function dashboardAppInit() {
         if (document.getElementById('logoutBtn')) document.getElementById('logoutBtn').addEventListener('click', logout);
         if (document.getElementById('closeSettingsBtn')) document.getElementById('closeSettingsBtn').addEventListener('click', closePopup);
     }
-    function showAddYearPopup() {let html = `
-        <form class="popup" id="addYearForm">
-            <label>Academic Year</label>
-            <input name="yearName" required placeholder="e.g., 2024-25" maxlength="10">
-            <div class="btn-row">
-                <button type="button" class="cancel-btn">Cancel</button>
-                <button type="submit">Add</button>
-            </div>
-        </form>`;showPopup(html, 'addYearForm', addAcademicYear);}
-    function addAcademicYear(e) {e.preventDefault();const year = e.target.yearName.value.trim();if (!year) return;db.collection('years').doc(year).set({ name: year })
-            .then(() => {closePopup();academicYear = year;localStorage.setItem('sp_selectedYear', year);showDashboard();}).catch(error => {alert("Error adding academic year: " + error.message);});}
-    function logout() {auth.signOut().then(() => {window.location.href = "index.html";}).catch(error => {alert("Error logging out: " + error.message);});}
+    function showAddYearPopup() {
+        let html = `
+            <form class="popup" id="addYearForm">
+                <label>Academic Year</label>
+                <input name="yearName" required placeholder="e.g., 2024-25" maxlength="10">
+                <div class="btn-row">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit">Add</button>
+                </div>
+            </form>`;
+        showPopup(html, 'addYearForm', addAcademicYear);
+    }
+    function addAcademicYear(e) {
+        e.preventDefault();
+        const year = e.target.yearName.value.trim();
+        if (!year) return;
+        db.collection('years').doc(year).set({ name: year })
+            .then(() => {
+                closePopup();
+                academicYear = year;
+                localStorage.setItem('sp_selectedYear', year);
+                showDashboard();
+            }).catch(error => {
+                alert("Error adding academic year: " + error.message);
+            });
+    }
+    function logout() {
+        auth.signOut().then(() => {
+            window.location.href = "index.html";
+        }).catch(error => {
+            alert("Error logging out: " + error.message);
+        });
+    }
 
-    // == Class/Section Actions == /* unchanged */
     function showClassActionsPopup(classId, sectionId, className, sectionName) {
         let html = `
             <div class="popup" id="classActionsPopup">
@@ -443,7 +547,6 @@ function dashboardAppInit() {
         if (document.getElementById('closeClassActionsBtn')) document.getElementById('closeClassActionsBtn').addEventListener('click', closePopup);
     }
 
-    // Feature placeholders (unchanged)
     function showExamSettingsPopup() { alert("Exam Settings coming soon!"); }
     function showEnterMarksPopup() { alert("Enter Marks coming soon!"); }
     function downloadClassMemos() { alert("Download Class Marks Memos coming soon! (Will use memo.png)"); }
@@ -451,7 +554,6 @@ function dashboardAppInit() {
     function downloadClassExcel() { alert("Download Class Marks Excel coming soon!"); }
     function showPerformanceGraph() { alert("Performance Graph coming soon!"); }
 
-    // == Popups (unchanged) ==
     function closePopup() {
         if (popupBg) popupBg.classList.add("hidden");
         if (popupDiv) popupDiv.classList.add("hidden");
@@ -488,7 +590,6 @@ function dashboardAppInit() {
         }
     }
 
-    // == FAB (Floating Action Button) ==
     function showFAB(label, onClickHandler) {
         if (fab) {
             fab.innerHTML = "";
@@ -502,14 +603,12 @@ function dashboardAppInit() {
         }
     }
 
-    // == Heading for Each Screen ==
     function setScreenTitle(title) {
         if (document.querySelector(".screen-title")) {
             document.querySelector(".screen-title").textContent = title;
         }
     }
 
-    // == History Logic (Mobile Back Button) ==
     let lastViewFn = null;
     function setHistory(fn) {
         lastViewFn = fn;
