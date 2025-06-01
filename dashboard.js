@@ -196,7 +196,28 @@ function dashboardAppInit() {
         clearTimeout(pressTimer);
     }
 });
-
+chip.addEventListener('mouseup', function () {
+        clearTimeout(timer);
+    });
+    chip.addEventListener('mouseleave', function () {
+        clearTimeout(timer);
+    });
+    chip.addEventListener('touchstart', function (e) {
+        timer = setTimeout(() => {
+            const classId = this.dataset.classId;
+            const sectionId = this.dataset.sectionId;
+            const className = this.dataset.className;
+            const sectionName = this.dataset.sectionName;
+            showSectionActionPopup(classId, sectionId, className, sectionName);
+        }, 700);
+    });
+    chip.addEventListener('touchend', function () {
+        clearTimeout(timer);
+    });
+    chip.addEventListener('touchcancel', function () {
+        clearTimeout(timer);
+    });
+});
         showFAB("Add Section", () => showAddSectionPopup(classId, className));
         if (settingsBtn) {
             settingsBtn.style.display = "none";
