@@ -97,7 +97,6 @@ firebase.auth().onAuthStateChanged(function(user) {
   }
 });
     // Do NOT auto-redirect to dashboard from index.html here (it is handled by the login page logic)
-});
 // ==== DASHBOARD LOGIC STARTS HERE ====
 console.log('dashboardAppInit started');
 function dashboardAppInit() {
