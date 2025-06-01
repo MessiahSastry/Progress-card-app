@@ -7,7 +7,9 @@ html, body {
   min-width: 100vw;
   overflow-x: hidden;
 }
-.splash {
+
+/* Splash Screen Styles */
+#splash { /* Note: Changed .splash to #splash to match the ID in HTML */
   position: fixed;
   z-index: 9999;
   left: 0; top: 0; right: 0; bottom: 0;
@@ -15,19 +17,37 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #eaf1fa;
-  transition: opacity 0.5s;
+  background: #eaf1fa; /* Light blue background for the splash screen */
+  transition: opacity 0.5s ease-out; /* Smooth fade-out effect */
+  opacity: 1; /* Initially fully visible */
 }
-.splash-title {
-  font-size: 2.1em;
+
+/* Rule to hide the splash screen */
+#splash.hidden {
+  opacity: 0; /* Make it completely transparent */
+  pointer-events: none; /* Prevent it from blocking clicks/interactions when invisible */
+}
+
+/* Styles for elements inside the splash screen (if you have them) */
+.splash-logo {
+  width: 120px; /* Adjust size as needed for your logo.png */
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.splash-title { /* This is now the same as .school-title for consistency */
+  font-size: 2.1em; /* You can adjust this specific to splash if different */
   font-weight: bold;
   margin-bottom: 6px;
   color: #0f3d6b;
 }
-.splash-subtitle {
-  font-size: 1.15em;
+.splash-subtitle { /* This is now the same as .subtitle for consistency */
+  font-size: 1.15em; /* You can adjust this specific to splash if different */
   color: #1467b7;
 }
+
+
+/* General School Title and Subtitle */
 .school-title {
   font-size: 1.6em;
   font-weight: bold;
@@ -43,6 +63,8 @@ html, body {
   font-weight: 500;
   margin-bottom: 0.6em;
 }
+
+/* Login Page Specific Styles */
 #login-root {
   display: flex;
   flex-direction: column;
@@ -88,8 +110,8 @@ html, body {
 }
 .btn-register { background: #1db954; }
 .btn-google {
-  background: #1762a7; 
-  color: #fff; 
+  background: #1762a7;
+  color: #fff;
   border: none;
   margin-bottom: 0;
 }
@@ -206,11 +228,12 @@ html, body {
   background: #eaf1fa;
   box-shadow: 0 4px 16px #0f3d6b22;
 }
-.class-btn:hover, .section-chip:hover {
+/* This rule was redundant, combining with .class-btn:hover was better */
+/* .class-btn:hover, .section-chip:hover {
   transform: translateY(-2px) scale(1.035);
   border-width: 3.2px;
   box-shadow: 0 4px 22px #1467b71a;
-}
+} */
 .student-list {
   flex-direction: column;
   gap: 0px;
