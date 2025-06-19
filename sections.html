@@ -255,14 +255,15 @@
 
     // --- Load sections from Firestore ---
     function loadSections() {
-      db.collectionGroup('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+     db.collectionGroup('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
         if (snap.empty) {
+          window._classDocRef = null;
           renderSectionList([]);
           return;
         }
         // Use the first class doc found
         const classDoc = snap.docs[0];
-        classId = classDoc.id;
+        window._classDocRef = classDoc.ref; // <--- Save ref for add
         classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
           let sections = [];
           secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
@@ -307,7 +308,43 @@
     }
 
     fab.onclick = () => showAddSectionPopup();
-    document.getElementById('settings-btn').onclick = () => alert('Settings (to implement)');
+    document.getElementById('fab').onclick = showAddSectionPopup;
+
+// Add this function anywhere in your <script> (before the FAB line is fine)
+function showAddSectionPopup() {
+  if (!window._classDocRef) {
+    alert("Class not loaded yet. Please wait a second and try again.");
+    return;
+  }
+  const popup = document.createElement('div');
+  popup.innerHTML = `
+    <div style="position:fixed;left:0;top:0;right:0;bottom:0;background:#0007;z-index:9999;display:flex;align-items:center;justify-content:center;" id="addSectionPopupBg">
+      <form style="background:#fff;padding:24px 16px 14px 16px;border-radius:16px;min-width:260px;display:flex;flex-direction:column;gap:14px;" id="addSectionForm">
+        <label style="font-weight:600;color:#0f3d6b;">Section Name</label>
+        <input name="sectionName" maxlength="16" required placeholder="e.g., A">
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px;">
+          <button type="button" style="background:#e0e0e0;color:#444;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;" id="cancelAddSectionBtn">Cancel</button>
+          <button type="submit" style="background:#0f3d6b;color:#fff;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;">Add</button>
+        </div>
+      </form>
+    </div>`;
+  document.body.appendChild(popup);
+
+  document.getElementById('cancelAddSectionBtn').onclick = function() {
+    popup.remove();
+  };
+
+  document.getElementById('addSectionForm').onsubmit = function(e) {
+    e.preventDefault();
+    const name = e.target.sectionName.value.trim();
+    if (!name) return;
+    window._classDocRef.collection('sections').add({ name }).then(() => {
+      popup.remove();
+      loadSections(); // refresh
+    });
+  };
+}
+
   </script>
 </body>
 </html>
