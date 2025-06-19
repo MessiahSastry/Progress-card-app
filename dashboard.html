@@ -170,7 +170,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase config
+    // -- Your original Firebase structure --
     const firebaseConfig = {
       apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
       authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -182,38 +182,46 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // For the demo, set the academicYear (normally this is selected/set in your app)
+    let academicYear = localStorage.getItem('sp_selectedYear') || '2024-25';
+
     const colorPalette = [
       "#e74c3c", "#fdc600", "#27ae60", "#2980b9", "#e67e22",
       "#9b59b6", "#f39c12", "#e84393", "#00b894", "#fdc600"
     ];
     const mainArea = document.getElementById("main-area");
 
+    // Render the class list from Firestore
     function renderClassList() {
-      let html = `<div class="screen-title">Select a Class</div>
-                  <div class="class-list">`;
-      const defaultClasses = [
-        "Nursery", "LKG", "UKG", "1st", "2nd", "3rd", "4th", "5th",
-        "6th", "7th", "8th", "9th", "10th"
-      ];
-      defaultClasses.forEach((name, idx) => {
-        let color = colorPalette[idx % colorPalette.length];
-        html += `<button class="class-btn" style="border-color:${color};color:${color};"
-            data-class-name="${name}">${name}</button>`;
-      });
-      html += "</div>";
-      if (mainArea) mainArea.innerHTML = html;
+      db.collection('years').doc(academicYear).collection('classes').orderBy('order', 'asc').get()
+        .then(snap => {
+          let html = `<div class="screen-title">Select a Class</div>
+                      <div class="class-list">`;
+          if (snap.empty) {
+            html += `<div style="color:#777;padding:22px;">No classes found. Click + to add a class.</div>`;
+          } else {
+            snap.forEach((doc, idx) => {
+              let data = doc.data();
+              let color = colorPalette[idx % colorPalette.length];
+              html += `<button class="class-btn" style="border-color:${color};color:${color};"
+                data-class-id="${doc.id}" data-class-name="${data.name || ''}">${data.name || ''}</button>`;
+            });
+          }
+          html += "</div>";
+          if (mainArea) mainArea.innerHTML = html;
 
-      document.querySelectorAll('.class-btn').forEach(button => {
-        button.addEventListener('click', function () {
-          const className = encodeURIComponent(this.dataset.className);
-          // Redirect to sections.html with class name as parameter
-          window.location.href = `sections.html?className=${className}`;
+          document.querySelectorAll('.class-btn').forEach(button => {
+            button.addEventListener('click', function () {
+              const className = encodeURIComponent(this.dataset.className);
+              // Redirect to sections.html with class name as parameter
+              window.location.href = `sections.html?className=${className}`;
+            });
+          });
         });
-      });
     }
     renderClassList();
 
-    // Popup Logic (from your old code, trimmed for this dashboard)
+    // Popup Logic - EXACT from your old dashboard!
     const popupBg = document.getElementById('popup-bg');
     const popupContent = document.getElementById('popup-content');
 
@@ -228,18 +236,16 @@
       popupBg.onclick = function(e) {
         if (e.target === popupBg) closePopup();
       };
-      // Handle forms if present
       if (formId && formSubmitHandler) {
         const form = document.getElementById(formId);
         if (form) form.addEventListener('submit', formSubmitHandler);
       }
-      // Cancel button(s)
       popupContent.querySelectorAll('.popup-cancel-btn').forEach(btn => {
         btn.onclick = function(e) { e.preventDefault(); closePopup(); };
       });
     }
 
-    // ADD CLASS POPUP (fully working)
+    // Add Class Popup - EXACT logic from your old dashboard!
     function showAddClassPopup() {
       showPopup(`
         <form id="addClassForm">
@@ -253,13 +259,14 @@
         </form>
       `, 'addClassForm', addClassToDB);
     }
-    // -- (Demo: Adds to Firestore 'dashboard-classes' for test only, you can change as needed) --
     function addClassToDB(e) {
       e.preventDefault();
       const name = e.target.className.value.trim();
       if (!name) return;
-      // This is a demo: You can save to any collection you want.
-      db.collection('dashboard-classes').add({ name })
+      // Keep the class order correct
+      const orderArr = ["Nursery", "LKG", "UKG", "1st", "2nd", "3rd", "4th", "5th","6th", "7th", "8th", "9th", "10th"];
+      const order = orderArr.indexOf(name);
+      db.collection('years').doc(academicYear).collection('classes').add({ name, order })
         .then(() => {
           closePopup();
           renderClassList();
@@ -267,7 +274,7 @@
         .catch(error => alert("Error adding class: " + error.message));
     }
 
-    // SETTINGS POPUP (with sample action)
+    // Settings popup - original, with sample settings, you can expand as needed
     function showSettingsPopup() {
       showPopup(`
         <div class="popup-title">Settings</div>
