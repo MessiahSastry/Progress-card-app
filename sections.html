@@ -168,8 +168,8 @@
     <div class="school-title">St. Patrick's School</div>
     <div class="subtitle">IIT & NEET FOUNDATION</div>
   </div>
-  <div id="current-class-title" class="screen-title" style="text-align:center; font-size:1.2em; color:#1762a7; font-weight:bold; margin-bottom:0;"></div>
-  <div class="main-content" id="main-area"></div>
+ <div id="current-class-title" class="screen-title" style="text-align:center; font-size:1.2em; color:#1762a7; font-weight:bold; margin-bottom:0;"></div>
+<div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
   <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
   <div id="popup-bg" class="hidden"></div>
@@ -235,8 +235,7 @@
     // -- Render Section List --
     function renderSectionList(sections) {
       // Always show the class name at the top
-    document.getElementById("current-class-title").textContent = decodeURIComponent(className);
-      let html = `
+          let html = `
         <div class="screen-title">Sections</div>
         <div class="section-list">
       `;
@@ -249,6 +248,7 @@
       }
       html += "</div>";
       mainArea.innerHTML = html;
+      document.getElementById("current-class-title").textContent = decodeURIComponent(className);
       document.querySelectorAll('.section-chip').forEach(chip => {
         chip.addEventListener('click', function () {
           const sectionName = this.dataset.sectionName;
