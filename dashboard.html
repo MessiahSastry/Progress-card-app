@@ -23,6 +23,9 @@
     }
     .fixed-header .school-title { color: #fff; font-size: 1.5em; margin: 0; }
     .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
+    .fixed-header #header-exam {
+      font-size: 1.13em; font-weight: bold; color: #fdc600; margin: 6px 0 0 0;
+    }
     .main-content {
       padding: 18px 10px 80px 10px;
       max-width: 510px;
@@ -85,7 +88,6 @@
     .fab::before { content: "+"; display: block; font-size: 1.1em; font-weight: bold; color: #fff; line-height: 1; text-align: center; }
     .settings-btn { bottom: 86px; }
     .settings-btn i { color: #fff !important; font-size: 0.95em; pointer-events: none; margin: 0; padding: 0; }
-
     /* Popup Styles */
     #popup-bg {
       position: fixed;
@@ -162,7 +164,6 @@
   <div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
   <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
-
   <!-- Popup Modal -->
   <div id="popup-bg">
     <div id="popup-content"></div>
@@ -171,7 +172,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    // -- Your original Firebase structure --
     const firebaseConfig = {
       apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
       authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -183,8 +183,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // For the demo, set the academicYear (normally this is selected/set in your app)
+    // Academic Year logic
     let academicYear = localStorage.getItem('sp_selectedYear') || '2024-25';
+    document.getElementById('header-exam').textContent = academicYear;
 
     const colorPalette = [
       "#e74c3c", "#fdc600", "#27ae60", "#2980b9", "#e67e22",
@@ -192,7 +193,6 @@
     ];
     const mainArea = document.getElementById("main-area");
 
-    // Render the class list from Firestore
     function renderClassList() {
       db.collection('years').doc(academicYear).collection('classes').orderBy('order', 'asc').get()
         .then(snap => {
@@ -214,7 +214,6 @@
           document.querySelectorAll('.class-btn').forEach(button => {
             button.addEventListener('click', function () {
               const className = encodeURIComponent(this.dataset.className);
-              // Redirect to sections.html with class name as parameter
               window.location.href = `sections.html?className=${className}`;
             });
           });
@@ -222,10 +221,9 @@
     }
     renderClassList();
 
-    // Popup Logic - EXACT from your old dashboard!
+    // Popup Logic
     const popupBg = document.getElementById('popup-bg');
     const popupContent = document.getElementById('popup-content');
-
     function closePopup() {
       popupBg.classList.remove('show');
       popupContent.innerHTML = '';
@@ -246,7 +244,7 @@
       });
     }
 
-    // Add Class Popup - EXACT logic from your old dashboard!
+    // Add Class Popup
     function showAddClassPopup() {
       showPopup(`
         <form id="addClassForm">
@@ -275,15 +273,47 @@
         .catch(error => alert("Error adding class: " + error.message));
     }
 
-    // Settings popup - original, with sample settings, you can expand as needed
+    // Settings: Academic year selection/add
     function showSettingsPopup() {
-      showPopup(`
-        <div class="popup-title">Settings</div>
-        <div style="margin-bottom:14px;">Settings will go here.</div>
-        <div class="popup-btn-row">
-          <button type="button" class="popup-cancel-btn">Close</button>
-        </div>
-      `);
+      // Load years for dropdown
+      db.collection('years').orderBy('name','desc').get().then(snap=>{
+        let years = [];
+        snap.forEach(doc=>years.push(doc.id));
+        let html = `
+        <form id="yearForm">
+          <div class="popup-title">Academic Year</div>
+          <label>Select Academic Year</label>
+          <select name="yearSel" required style="padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;margin-bottom:12px;">
+            ${years.map(y=>`<option value="${y}" ${y===academicYear?"selected":""}>${y}</option>`).join('')}
+          </select>
+          <label>Add New Academic Year</label>
+          <input name="yearName" maxlength="10" placeholder="e.g., 2024-25" />
+          <div class="popup-btn-row">
+            <button type="button" class="popup-cancel-btn">Cancel</button>
+            <button type="submit" class="popup-action-btn">Save</button>
+          </div>
+        </form>`;
+        showPopup(html,'yearForm',function(e){
+          e.preventDefault();
+          const sel = e.target.yearSel.value;
+          const newYear = e.target.yearName.value.trim();
+          if(newYear){
+            db.collection('years').doc(newYear).set({name:newYear}).then(()=>{
+              localStorage.setItem('sp_selectedYear', newYear);
+              academicYear = newYear;
+              document.getElementById('header-exam').textContent = academicYear;
+              closePopup();
+              renderClassList();
+            });
+          }else{
+            localStorage.setItem('sp_selectedYear', sel);
+            academicYear = sel;
+            document.getElementById('header-exam').textContent = academicYear;
+            closePopup();
+            renderClassList();
+          }
+        });
+      });
     }
 
     document.getElementById('fab').onclick = showAddClassPopup;
