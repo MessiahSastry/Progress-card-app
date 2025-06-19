@@ -319,12 +319,13 @@
               const logoutBtn = document.getElementById('logout-btn');
               if (logoutBtn) {
                 logoutBtn.onclick = function() {
-                  firebase.auth().signOut().then(() => {
+                  auth.signOut().then(() => {
                     window.location.replace('index.html');
                   });
                 };
               }
             }, 0);
+          });
           }else{
             localStorage.setItem('sp_selectedYear', sel);
             academicYear = sel;
