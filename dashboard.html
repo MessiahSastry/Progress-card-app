@@ -193,11 +193,6 @@
       "1st Class", "2nd Class", "3rd Class", "4th Class", "5th Class",
       "6th Class", "7th Class", "8th Class", "9th Class", "10th Class"
     ];
-    const classShortLabels = [
-      "Nursery", "LKG", "UKG",
-      "1st", "2nd", "3rd", "4th", "5th",
-      "6th", "7th", "8th", "9th", "10th"
-    ];
     const colorPalette = [
       "#e74c3c", "#fdc600", "#27ae60", "#2980b9", "#e67e22",
       "#9b59b6", "#f39c12", "#e84393", "#00b894", "#fdc600"
@@ -205,31 +200,21 @@
     const mainArea = document.getElementById("main-area");
 
     function renderClassList() {
-      // Always show default classes even if Firestore is empty
-      db.collection('years').doc(academicYear).collection('classes').orderBy('order', 'asc').get()
-        .then(snap => {
-          let html = `<div class="screen-title">Select a Class</div>
-                      <div class="class-list">`;
-          let firestoreClasses = [];
-          snap.forEach(doc => {
-            let data = doc.data();
-            firestoreClasses.push(data.name);
-          });
-          classLabels.forEach((label, idx) => {
-            let firestoreIdx = firestoreClasses.findIndex(n => n === classShortLabels[idx] || n === label);
-            let color = colorPalette[idx % colorPalette.length];
-            html += `<button class="class-btn" style="border-color:${color};color:${color};"
-              data-class-id="" data-class-name="${label}">${label}</button>`;
-          });
-          html += "</div>";
-          if (mainArea) mainArea.innerHTML = html;
-          document.querySelectorAll('.class-btn').forEach((button, idx) => {
-            button.addEventListener('click', function () {
-              const className = encodeURIComponent(classLabels[idx]);
-              window.location.href = `sections.html?className=${className}`;
-            });
-          });
+      let html = `<div class="screen-title">Select a Class</div>
+                  <div class="class-list">`;
+      classLabels.forEach((label, idx) => {
+        let color = colorPalette[idx % colorPalette.length];
+        html += `<button class="class-btn" style="border-color:${color};color:${color};"
+          data-class-id="" data-class-name="${label}">${label}</button>`;
+      });
+      html += "</div>";
+      if (mainArea) mainArea.innerHTML = html;
+      document.querySelectorAll('.class-btn').forEach((button, idx) => {
+        button.addEventListener('click', function () {
+          const className = encodeURIComponent(classLabels[idx]);
+          window.location.href = `sections.html?className=${className}`;
         });
+      });
     }
     renderClassList();
 
