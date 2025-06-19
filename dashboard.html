@@ -174,13 +174,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
   <script>
-    // Require login before showing anything
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (!user) {
-        window.location.replace("index.html");
-      }
-    });
-    // Firebase config
+        // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
       authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -192,7 +186,12 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-
+    // Require login before showing anything
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.replace("index.html");
+      }
+    });
     // Academic Year logic
     let academicYear = localStorage.getItem('sp_selectedYear') || '2024-25';
     document.getElementById('header-exam').textContent = academicYear;
