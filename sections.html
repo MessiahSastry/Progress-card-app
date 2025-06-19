@@ -200,6 +200,7 @@
     const popupDiv = document.getElementById('popup');
     const fab = document.getElementById('fab');
     const className = getQueryParam('className');
+    document.getElementById("current-class-title").textContent = className ? decodeURIComponent(className) : "(Class name not set)";
     let classId = null;  // Will be set after fetching
 
     // Show Popup Helper
