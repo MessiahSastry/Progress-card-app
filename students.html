@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sections - St. Patrick's Progress Card App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f8fc;
+      min-height: 100vh; min-width: 100vw;
+      overflow-x: hidden;
+    }
+    .fixed-header {
+      background: #0f3d6b; color: #fff;
+      text-align: center;
+      padding: 18px 0 8px 0;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .fixed-header .school-title { color: #fff; font-size: 1.5em; margin: 0; }
+    .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
+    .main-content {
+      padding: 18px 10px 80px 10px;
+      max-width: 510px;
+      margin: 0 auto;
+      min-height: 60vh;
+    }
+    .screen-title {
+      font-size: 1.4em;
+      font-weight: bold;
+      text-align: left;
+      color: #0f3d6b;
+      margin-bottom: 12px;
+      margin-top: 18px;
+      letter-spacing: 0.5px;
+    }
+    .section-list {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 14px;
+      margin-left: 12px;
+    }
+    .section-chip {
+      width: 96vw;
+      max-width: 400px;
+      min-height: 44px;
+      padding: 13px 20px;
+      margin: 8px 0;
+      border: 2.2px solid #0f3d6b;
+      border-radius: 9px;
+      background: #f7fafd;
+      font-size: 1.13em;
+      font-weight: 600;
+      color: #0f3d6b;
+      cursor: pointer;
+      box-shadow: 0 2px 10px #0f3d6b12;
+      text-align: left;
+      transition: background 0.16s, box-shadow 0.12s;
+      display: flex;
+      align-items: center;
+    }
+    .section-chip:hover {
+      background: #eaf1fa;
+      box-shadow: 0 4px 16px #0f3d6b22;
+    }
+    .fab, .settings-btn {
+      position: fixed;
+      right: 22px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: #0f3d6b;
+      box-shadow: 0 4px 18px #0f3d6b30;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 104; border: none; cursor: pointer;
+      transition: background 0.18s, box-shadow 0.18s;
+      color: #fff;
+      font-size: 1.75em;
+    }
+    .fab { bottom: 30px; }
+    .fab:active, .settings-btn:active { background: #195084; box-shadow: 0 2px 8px #0f3d6b44; }
+    .fab::before { content: "+"; display: block; font-size: 1.1em; font-weight: bold; color: #fff; line-height: 1; text-align: center; }
+    .settings-btn { bottom: 86px; }
+    .settings-btn i { color: #fff !important; font-size: 0.95em; pointer-events: none; margin: 0; padding: 0; }
+  </style>
+</head>
+<body>
+  <div class="fixed-header" id="header">
+    <div class="school-title">St. Patrick's School</div>
+    <div class="subtitle">IIT & NEET FOUNDATION</div>
+  </div>
+  <div class="main-content" id="main-area"></div>
+  <button class="fab" id="fab"></button>
+  <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase config (same as before)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
+      authDomain: "stpatricksprogresscard.firebaseapp.com",
+      projectId: "stpatricksprogresscard",
+      storageBucket: "stpatricksprogresscard.appspot.com",
+      messagingSenderId: "671416933178",
+      appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // --- Utils ---
+    function getQueryParam(key) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(key);
+    }
+
+    const mainArea = document.getElementById("main-area");
+    const className = getQueryParam('className');
+
+    // -- Render Section List --
+    function renderSectionList(sections) {
+      let html = `<div class="screen-title">${decodeURIComponent(className)} - Sections</div>
+                  <div class="section-list">`;
+      if (sections.length === 0) {
+        html += `<div style="color:#888;font-style:italic;">No sections found.</div>`;
+      } else {
+        sections.forEach((sec, idx) => {
+          html += `<div class="section-chip" data-section-name="${encodeURIComponent(sec.name)}">${sec.name}</div>`;
+        });
+      }
+      html += "</div>";
+      mainArea.innerHTML = html;
+      document.querySelectorAll('.section-chip').forEach(chip => {
+        chip.addEventListener('click', function () {
+          const sectionName = this.dataset.sectionName;
+          window.location.href = `students.html?className=${encodeURIComponent(className)}&sectionName=${sectionName}`;
+        });
+      });
+    }
+
+    // --- Load sections from Firestore ---
+    function loadSections() {
+      // You may want to use academicYear for multi-year support
+      // For now, fetch sections from the first class found with this name
+      db.collectionGroup('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+        if (snap.empty) {
+          renderSectionList([]);
+          return;
+        }
+        // Use the first class doc found
+        const classDoc = snap.docs[0];
+        classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
+          let sections = [];
+          secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
+          renderSectionList(sections);
+        });
+      });
+    }
+
+    loadSections();
+
+    // FAB/Settings placeholders
+    document.getElementById('fab').onclick = () => alert('Add Section (to implement)');
+    document.getElementById('settings-btn').onclick = () => alert('Settings (to implement)');
+  </script>
+</body>
+</html>
