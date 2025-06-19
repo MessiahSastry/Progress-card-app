@@ -169,11 +169,11 @@
     <div class="subtitle">IIT & NEET FOUNDATION</div>
   </div>
   <div class="main-content" id="main-area"></div>
+  <div id="current-class-title" class="screen-title" style="text-align:center; font-size:1.2em; color:#1762a7; font-weight:bold; margin-bottom:0;"></div>
   <button class="fab" id="fab"></button>
   <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
   <div id="popup-bg" class="hidden"></div>
   <div id="popup" class="hidden"></div>
-
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
@@ -234,8 +234,15 @@
 
     // -- Render Section List --
     function renderSectionList(sections) {
-      let html = `<div class="screen-title">${decodeURIComponent(className)} - Sections</div>
-                  <div class="section-list">`;
+      // Always show the class name at the top
+    document.getElementById("current-class-title").textContent = decodeURIComponent(className);
+      let html = `
+      <div style="font-size:1.35em;font-weight:700;color:#0f3d6b;text-align:center;margin-bottom:10px;">
+        ${decodeURIComponent(className)}
+      </div>
+      <div class="screen-title">Sections</div>
+      <div class="section-list">
+    `;
       if (sections.length === 0) {
         html += `<div style="color:#888;font-style:italic;">No sections found.</div>`;
       } else {
