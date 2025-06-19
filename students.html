@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Students - St. Patrick's Progress Card App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f8fc;
+      min-height: 100vh; min-width: 100vw;
+      overflow-x: hidden;
+    }
+    .fixed-header {
+      background: #0f3d6b; color: #fff;
+      text-align: center;
+      padding: 18px 0 8px 0;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .fixed-header .school-title { color: #fff; font-size: 1.5em; margin: 0; }
+    .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
+    .main-content {
+      padding: 18px 10px 80px 10px;
+      max-width: 510px;
+      margin: 0 auto;
+      min-height: 60vh;
+    }
+    .screen-title {
+      font-size: 1.4em;
+      font-weight: bold;
+      text-align: left;
+      color: #0f3d6b;
+      margin-bottom: 12px;
+      margin-top: 18px;
+      letter-spacing: 0.5px;
+    }
+    .student-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0px;
+    }
+    .student-row {
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 7px;
+      box-shadow: 0 1px 5px #0f3d6b15;
+      font-size: 1.09em;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .roll-no {
+      display: inline-block;
+      min-width: 30px;
+      font-weight: bold;
+      color: #1467b7;
+    }
+    .fab, .settings-btn {
+      position: fixed;
+      right: 22px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: #0f3d6b;
+      box-shadow: 0 4px 18px #0f3d6b30;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 104; border: none; cursor: pointer;
+      transition: background 0.18s, box-shadow 0.18s;
+      color: #fff;
+      font-size: 1.75em;
+    }
+    .fab { bottom: 30px; }
+    .fab:active, .settings-btn:active { background: #195084; box-shadow: 0 2px 8px #0f3d6b44; }
+    .fab::before { content: "+"; display: block; font-size: 1.1em; font-weight: bold; color: #fff; line-height: 1; text-align: center; }
+    .settings-btn { bottom: 86px; }
+    .settings-btn i { color: #fff !important; font-size: 0.95em; pointer-events: none; margin: 0; padding: 0; }
+  </style>
+</head>
+<body>
+  <div class="fixed-header" id="header">
+    <div class="school-title">St. Patrick's School</div>
+    <div class="subtitle">IIT & NEET FOUNDATION</div>
+  </div>
+  <div class="main-content" id="main-area"></div>
+  <button class="fab" id="fab"></button>
+  <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase config (same as before)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
+      authDomain: "stpatricksprogresscard.firebaseapp.com",
+      projectId: "stpatricksprogresscard",
+      storageBucket: "stpatricksprogresscard.appspot.com",
+      messagingSenderId: "671416933178",
+      appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // --- Utils ---
+    function getQueryParam(key) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(key);
+    }
+    const mainArea = document.getElementById("main-area");
+    const className = getQueryParam('className');
+    const sectionName = getQueryParam('sectionName');
+
+    // --- Render Student List ---
+    function renderStudentList(students) {
+      let html = `<div class="screen-title">${decodeURIComponent(className)} – Section ${decodeURIComponent(sectionName)}</div>
+        <div class="student-list">`;
+      if (students.length === 0) {
+        html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
+      } else {
+        students.forEach(stu => {
+          html += `
+            <div class="student-row">
+              <span class="roll-no">${stu.roll || ''}.</span> ${stu.name}
+            </div>`;
+        });
+      }
+      html += "</div>";
+      mainArea.innerHTML = html;
+    }
+
+    // --- Load students from Firestore ---
+    function loadStudents() {
+      // Find class doc (like sections.html)
+      db.collectionGroup('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+        if (snap.empty) {
+          renderStudentList([]);
+          return;
+        }
+        // Use first class doc found
+        const classDoc = snap.docs[0];
+        classDoc.ref.collection('sections')
+          .where('name', '==', decodeURIComponent(sectionName))
+          .limit(1)
+          .get()
+          .then(secSnap => {
+            if (secSnap.empty) {
+              renderStudentList([]);
+              return;
+            }
+            const sectionDoc = secSnap.docs[0];
+            sectionDoc.ref.collection('students')
+              .orderBy('roll')
+              .get()
+              .then(stuSnap => {
+                let students = [];
+                stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+                renderStudentList(students);
+              });
+          });
+      });
+    }
+
+    loadStudents();
+
+    // FAB/Settings placeholders
+    document.getElementById('fab').onclick = () => alert('Add Student (to implement)');
+    document.getElementById('settings-btn').onclick = () => alert('Settings (to implement)');
+  </script>
+</body>
+</html>
