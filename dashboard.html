@@ -315,17 +315,7 @@
               closePopup();
               renderClassList();
             });
-            setTimeout(() => {
-              const logoutBtn = document.getElementById('logout-btn');
-              if (logoutBtn) {
-                logoutBtn.onclick = function() {
-                  auth.signOut().then(() => {
-                    window.location.replace('index.html');
-                  });
-                };
-              }
-            }, 0);
-          }else{
+           }else{
             localStorage.setItem('sp_selectedYear', sel);
             academicYear = sel;
             document.getElementById('header-exam').textContent = academicYear;
@@ -335,7 +325,16 @@
         });
       });
     }
-
+    setTimeout(() => {
+          const logoutBtn = document.getElementById('logout-btn');
+          if (logoutBtn) {
+            logoutBtn.onclick = function() {
+              auth.signOut().then(() => {
+                window.location.replace('index.html');
+              });
+            };
+          }
+        }, 0);
     document.getElementById('fab').onclick = showAddClassPopup;
     document.getElementById('settings-btn').onclick = showSettingsPopup;
   </script>
