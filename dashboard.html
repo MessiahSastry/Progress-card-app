@@ -143,9 +143,22 @@
     }
     renderClassList();
 
-    // Dummy handlers for floating buttons (add your logic as needed)
-    document.getElementById('fab').onclick = () => alert('Add Class (to implement)');
-    document.getElementById('settings-btn').onclick = () => alert('Settings (to implement)');
+    document.getElementById('fab').onclick = () => showPopup('Add Class popup – (to implement)');
+document.getElementById('settings-btn').onclick = () => showPopup('Settings popup – (to implement)');
+
+function showPopup(msg) {
+  document.getElementById('popup-message').textContent = msg;
+  document.getElementById('popup-bg').style.display = 'flex';
+}
+function closePopup() {
+  document.getElementById('popup-bg').style.display = 'none';
+}
   </script>
+  <div id="popup-bg" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;background:#0007;z-index:999;align-items:center;justify-content:center;">
+  <div id="popup-content" style="background:#fff;padding:22px 18px;border-radius:15px;min-width:240px;box-shadow:0 8px 30px #0f3d6b22;">
+    <div id="popup-message" style="font-size:1.1em;color:#0f3d6b;"></div>
+    <button onclick="closePopup()" style="margin-top:18px;padding:8px 20px;border:none;border-radius:7px;background:#0f3d6b;color:#fff;cursor:pointer;">Close</button>
+  </div>
+</div>
 </body>
 </html>
