@@ -116,7 +116,7 @@
       font-size: 1.13em; color: #0f3d6b; font-weight: 700; margin-bottom: 9px;
     }
     #popup-content label { font-weight: 600; color: #195084; margin-bottom: 4px; }
-    #popup-content input {
+    #popup-content input, #popup-content select {
       padding: 9px 11px;
       font-size: 1.07em;
       border-radius: 7px;
@@ -125,7 +125,7 @@
       margin-bottom: 7px;
       transition: border-color .2s;
     }
-    #popup-content input:focus { outline: none; border-color: #0f3d6b; }
+    #popup-content input:focus, #popup-content select:focus { outline: none; border-color: #0f3d6b; }
     .popup-btn-row {
       display: flex;
       justify-content: flex-end;
@@ -172,6 +172,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
       authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -187,6 +188,16 @@
     let academicYear = localStorage.getItem('sp_selectedYear') || '2024-25';
     document.getElementById('header-exam').textContent = academicYear;
 
+    const classLabels = [
+      "Nursery", "LKG", "UKG",
+      "1st Class", "2nd Class", "3rd Class", "4th Class", "5th Class",
+      "6th Class", "7th Class", "8th Class", "9th Class", "10th Class"
+    ];
+    const classShortLabels = [
+      "Nursery", "LKG", "UKG",
+      "1st", "2nd", "3rd", "4th", "5th",
+      "6th", "7th", "8th", "9th", "10th"
+    ];
     const colorPalette = [
       "#e74c3c", "#fdc600", "#27ae60", "#2980b9", "#e67e22",
       "#9b59b6", "#f39c12", "#e84393", "#00b894", "#fdc600"
@@ -194,26 +205,27 @@
     const mainArea = document.getElementById("main-area");
 
     function renderClassList() {
+      // Always show default classes even if Firestore is empty
       db.collection('years').doc(academicYear).collection('classes').orderBy('order', 'asc').get()
         .then(snap => {
           let html = `<div class="screen-title">Select a Class</div>
                       <div class="class-list">`;
-          if (snap.empty) {
-            html += `<div style="color:#777;padding:22px;">No classes found. Click + to add a class.</div>`;
-          } else {
-            snap.forEach((doc, idx) => {
-              let data = doc.data();
-              let color = colorPalette[idx % colorPalette.length];
-              html += `<button class="class-btn" style="border-color:${color};color:${color};"
-                data-class-id="${doc.id}" data-class-name="${data.name || ''}">${data.name || ''}</button>`;
-            });
-          }
+          let firestoreClasses = [];
+          snap.forEach(doc => {
+            let data = doc.data();
+            firestoreClasses.push(data.name);
+          });
+          classLabels.forEach((label, idx) => {
+            let firestoreIdx = firestoreClasses.findIndex(n => n === classShortLabels[idx] || n === label);
+            let color = colorPalette[idx % colorPalette.length];
+            html += `<button class="class-btn" style="border-color:${color};color:${color};"
+              data-class-id="" data-class-name="${label}">${label}</button>`;
+          });
           html += "</div>";
           if (mainArea) mainArea.innerHTML = html;
-
-          document.querySelectorAll('.class-btn').forEach(button => {
+          document.querySelectorAll('.class-btn').forEach((button, idx) => {
             button.addEventListener('click', function () {
-              const className = encodeURIComponent(this.dataset.className);
+              const className = encodeURIComponent(classLabels[idx]);
               window.location.href = `sections.html?className=${className}`;
             });
           });
@@ -250,7 +262,7 @@
         <form id="addClassForm">
           <div class="popup-title">Add Class</div>
           <label>Class Name</label>
-          <input name="className" maxlength="15" required placeholder="e.g., 9th">
+          <input name="className" maxlength="15" required placeholder="e.g., 9th Class">
           <div class="popup-btn-row">
             <button type="button" class="popup-cancel-btn">Cancel</button>
             <button type="submit" class="popup-action-btn">Add</button>
@@ -263,7 +275,10 @@
       const name = e.target.className.value.trim();
       if (!name) return;
       // Keep the class order correct
-      const orderArr = ["Nursery", "LKG", "UKG", "1st", "2nd", "3rd", "4th", "5th","6th", "7th", "8th", "9th", "10th"];
+      const orderArr = [
+        "Nursery", "LKG", "UKG", "1st Class", "2nd Class", "3rd Class", "4th Class", "5th Class",
+        "6th Class", "7th Class", "8th Class", "9th Class", "10th Class"
+      ];
       const order = orderArr.indexOf(name);
       db.collection('years').doc(academicYear).collection('classes').add({ name, order })
         .then(() => {
