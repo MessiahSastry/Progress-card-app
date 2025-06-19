@@ -325,19 +325,19 @@
         });
       });
     }
-    setTimeout(() => {
+    // Attach logout handler when the button appears
+      const observer = new MutationObserver(() => {
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
           logoutBtn.onclick = function() {
-            console.log('Logout clicked'); // For debug
             auth.signOut().then(() => {
               window.location.replace('index.html');
             });
           };
-        } else {
-          console.log('No logoutBtn found');
+          observer.disconnect(); // Stop watching after found
         }
-      }, 200);
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
     document.getElementById('fab').onclick = showAddClassPopup;
     document.getElementById('settings-btn').onclick = showSettingsPopup;
   </script>
