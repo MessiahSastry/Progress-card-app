@@ -87,6 +87,80 @@
     .fab::before { content: "+"; display: block; font-size: 1.1em; font-weight: bold; color: #fff; line-height: 1; text-align: center; }
     .settings-btn { bottom: 86px; }
     .settings-btn i { color: #fff !important; font-size: 0.95em; pointer-events: none; margin: 0; padding: 0; }
+
+    /* Popup Styles */
+    #popup-bg {
+      position: fixed;
+      left: 0; top: 0; right: 0; bottom: 0;
+      background: #0007;
+      z-index: 2001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #popup-bg.hidden, #popup.hidden { display: none !important; }
+    .popup {
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 10px 36px #0f3d6b22;
+      padding: 30px 22px 22px 22px;
+      max-width: 380px;
+      width: 92vw;
+      z-index: 2010;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: stretch;
+      justify-content: center;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .popup label, .popup-title {
+      font-size: 1.11em;
+      color: #1a3760;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .popup input {
+      padding: 10px 12px;
+      font-size: 1.07em;
+      margin-bottom: 10px;
+      border-radius: 7px;
+      border: 1.3px solid #c7d7ea;
+      background: #f7fafd;
+      transition: border-color .2s;
+    }
+    .popup input:focus { outline: none; border-color: #0f3d6b; }
+    .btn-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .popup .cancel-btn {
+      background: #e0e0e0;
+      color: #444;
+      font-weight: 500;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 20px;
+      cursor: pointer;
+      transition: background .14s;
+    }
+    .popup button:not(.cancel-btn) {
+      background: #0f3d6b;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 20px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background .14s;
+    }
+    .popup button:not(.cancel-btn):hover { background: #195084; }
   </style>
 </head>
 <body>
@@ -97,6 +171,8 @@
   <div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
   <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
+  <div id="popup-bg" class="hidden"></div>
+  <div id="popup" class="hidden"></div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -120,7 +196,41 @@
     }
 
     const mainArea = document.getElementById("main-area");
+    const popupBg = document.getElementById('popup-bg');
+    const popupDiv = document.getElementById('popup');
+    const fab = document.getElementById('fab');
     const className = getQueryParam('className');
+    let classId = null;  // Will be set after fetching
+
+    // Show Popup Helper
+    function showPopup(htmlContent, formId = null, formSubmitHandler = null) {
+      if (popupBg) {
+        popupBg.classList.remove("hidden");
+      }
+      if (popupDiv) {
+        popupDiv.innerHTML = htmlContent;
+        popupDiv.classList.remove("hidden");
+      }
+      popupBg.onclick = function(e) {
+        if (e.target === popupBg) closePopup();
+      };
+      if (formId && formSubmitHandler) {
+        const form = document.getElementById(formId);
+        if (form) {
+          form.addEventListener('submit', formSubmitHandler);
+        }
+      }
+      popupDiv.querySelectorAll('.cancel-btn').forEach(button => {
+        button.addEventListener('click', function (e) {
+          e.preventDefault(); closePopup();
+        });
+      });
+    }
+    function closePopup() {
+      if (popupBg) popupBg.classList.add("hidden");
+      if (popupDiv) { popupDiv.classList.add("hidden"); popupDiv.innerHTML = ""; }
+      popupBg.onclick = null;
+    }
 
     // -- Render Section List --
     function renderSectionList(sections) {
@@ -145,8 +255,6 @@
 
     // --- Load sections from Firestore ---
     function loadSections() {
-      // You may want to use academicYear for multi-year support
-      // For now, fetch sections from the first class found with this name
       db.collectionGroup('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
         if (snap.empty) {
           renderSectionList([]);
@@ -154,6 +262,7 @@
         }
         // Use the first class doc found
         const classDoc = snap.docs[0];
+        classId = classDoc.id;
         classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
           let sections = [];
           secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
@@ -164,8 +273,40 @@
 
     loadSections();
 
-    // FAB/Settings placeholders
-    document.getElementById('fab').onclick = () => alert('Add Section (to implement)');
+    // --- Add Section Popup Logic ---
+    function showAddSectionPopup() {
+      let html = `
+        <form class="popup" id="addSectionForm">
+          <label>Section Name</label>
+          <input name="sectionName" maxlength="16" required placeholder="e.g., A">
+          <div class="btn-row">
+            <button type="button" class="cancel-btn">Cancel</button>
+            <button type="submit">Add</button>
+          </div>
+        </form>`;
+      showPopup(html, 'addSectionForm', addSectionToDB);
+    }
+    function addSectionToDB(e) {
+      e.preventDefault();
+      const name = e.target.sectionName.value.trim();
+      if (!name || !classId) return;
+      db.collectionGroup('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+        if (snap.empty) {
+          alert('Class not found!');
+          closePopup();
+          return;
+        }
+        const classDoc = snap.docs[0];
+        classDoc.ref.collection('sections').add({ name }).then(() => {
+          closePopup();
+          loadSections();
+        }).catch(error => {
+          alert("Error adding section: " + error.message);
+        });
+      });
+    }
+
+    fab.onclick = () => showAddSectionPopup();
     document.getElementById('settings-btn').onclick = () => alert('Settings (to implement)');
   </script>
 </body>
