@@ -326,15 +326,18 @@
       });
     }
     setTimeout(() => {
-          const logoutBtn = document.getElementById('logout-btn');
-          if (logoutBtn) {
-            logoutBtn.onclick = function() {
-              auth.signOut().then(() => {
-                window.location.replace('index.html');
-              });
-            };
-          }
-        }, 0);
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+          logoutBtn.onclick = function() {
+            console.log('Logout clicked'); // For debug
+            auth.signOut().then(() => {
+              window.location.replace('index.html');
+            });
+          };
+        } else {
+          console.log('No logoutBtn found');
+        }
+      }, 200);
     document.getElementById('fab').onclick = showAddClassPopup;
     document.getElementById('settings-btn').onclick = showSettingsPopup;
   </script>
