@@ -6,168 +6,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
-    html, body {
-      margin: 0; padding: 0;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f4f8fc;
-      min-height: 100vh; min-width: 100vw;
-      overflow-x: hidden;
-    }
-    .fixed-header {
-      background: #0f3d6b; color: #fff;
-      text-align: center;
-      padding: 18px 0 8px 0;
-      border-bottom-left-radius: 14px;
-      border-bottom-right-radius: 14px;
-      position: sticky; top: 0; z-index: 10;
-    }
+    html, body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fc; min-height: 100vh; min-width: 100vw; overflow-x: hidden; }
+    .fixed-header { background: #0f3d6b; color: #fff; text-align: center; padding: 18px 0 8px 0; border-bottom-left-radius: 14px; border-bottom-right-radius: 14px; position: sticky; top: 0; z-index: 10; }
     .fixed-header .school-title { color: #fff; font-size: 1.5em; margin: 0; }
     .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
-    .main-content {
-      padding: 18px 10px 80px 10px;
-      max-width: 510px;
-      margin: 0 auto;
-      min-height: 60vh;
-    }
-    .screen-title {
-      font-size: 1.4em;
-      font-weight: bold;
-      text-align: left;
-      color: #0f3d6b;
-      margin-bottom: 12px;
-      margin-top: 18px;
-      letter-spacing: 0.5px;
-    }
-    .student-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0px;
-    }
-    .student-row {
-      background: #fff;
-      border-radius: 12px;
-      padding: 10px 16px;
-      margin-bottom: 7px;
-      box-shadow: 0 1px 5px #0f3d6b15;
-      font-size: 1.09em;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      cursor: pointer;
-      transition: box-shadow .13s;
-    }
-    .student-row:hover {
-      box-shadow: 0 2px 10px #0f3d6b25;
-      background: #f7fafd;
-    }
-    .roll-no {
-      display: inline-block;
-      min-width: 30px;
-      font-weight: bold;
-      color: #1467b7;
-    }
-    .deleted-student {
-      text-decoration: line-through;
-      opacity: 0.5;
-    }
-    .fab, .settings-btn {
-      position: fixed;
-      right: 22px;
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      background: #0f3d6b;
-      box-shadow: 0 4px 18px #0f3d6b30;
-      display: flex; align-items: center; justify-content: center;
-      z-index: 104; border: none; cursor: pointer;
-      transition: background 0.18s, box-shadow 0.18s;
-      color: #fff;
-      font-size: 1.75em;
-    }
+    .fixed-header #header-exam { font-size: 1.13em; font-weight: bold; color: #fdc600; margin: 6px 0 0 0; }
+    .main-content { padding: 18px 10px 80px 10px; max-width: 510px; margin: 0 auto; min-height: 60vh; }
+    .screen-title { font-size: 1.4em; font-weight: bold; text-align: left; color: #0f3d6b; margin-bottom: 12px; margin-top: 18px; letter-spacing: 0.5px; }
+    .student-list { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+    .student-row { background: #fff; border-radius: 12px; padding: 10px 16px; margin-bottom: 0px; box-shadow: 0 1px 5px #0f3d6b15; font-size: 1.09em; font-weight: 500; display: flex; align-items: center; justify-content: flex-start; cursor: pointer; transition: box-shadow .13s; }
+    .student-row:hover { box-shadow: 0 2px 10px #0f3d6b25; background: #f7fafd; }
+    .roll-no { display: inline-block; min-width: 30px; font-weight: bold; color: #1467b7; }
+    .student-faded { color: #999; font-size: 0.96em; margin-left: 10px; }
+    .deleted-student { text-decoration: line-through; opacity: 0.5; }
+    .fab, .settings-btn { position: fixed; right: 22px; width: 44px; height: 44px; border-radius: 50%; background: #0f3d6b; box-shadow: 0 4px 18px #0f3d6b30; display: flex; align-items: center; justify-content: center; z-index: 104; border: none; cursor: pointer; transition: background 0.18s, box-shadow 0.18s; color: #fff; font-size: 1.75em; }
     .fab { bottom: 30px; }
     .fab:active, .settings-btn:active { background: #195084; box-shadow: 0 2px 8px #0f3d6b44; }
     .fab::before { content: "+"; display: block; font-size: 1.1em; font-weight: bold; color: #fff; line-height: 1; text-align: center; }
     .settings-btn { bottom: 86px; }
     .settings-btn i { color: #fff !important; font-size: 0.95em; pointer-events: none; margin: 0; padding: 0; }
-    /* Popup Styles */
-    #popup-bg {
-      position: fixed;
-      left: 0; top: 0; right: 0; bottom: 0;
-      background: #0007;
-      z-index: 2001;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
+    #popup-bg { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: #0007; z-index: 2001; display: none; align-items: center; justify-content: center; }
     #popup-bg.show { display: flex !important; }
-    #popup-content {
-      background: #fff;
-      border-radius: 15px;
-      box-shadow: 0 8px 30px #0f3d6b22;
-      padding: 22px 18px 18px 18px;
-      min-width: 270px;
-      max-width: 90vw;
-      width: 340px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      align-items: stretch;
-    }
-    .popup-title {
-      font-size: 1.13em; color: #0f3d6b; font-weight: 700; margin-bottom: 9px;
-    }
+    #popup-content { background: #fff; border-radius: 15px; box-shadow: 0 8px 30px #0f3d6b22; padding: 22px 18px 18px 18px; min-width: 270px; max-width: 94vw; width: 350px; display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
+    .popup-title { font-size: 1.13em; color: #0f3d6b; font-weight: 700; margin-bottom: 9px; }
     #popup-content label { font-weight: 600; color: #195084; margin-bottom: 4px; }
-    #popup-content input {
-      padding: 9px 11px;
-      font-size: 1.07em;
-      border-radius: 7px;
-      border: 1.3px solid #c7d7ea;
-      background: #f7fafd;
-      margin-bottom: 7px;
-      transition: border-color .2s;
-    }
-    #popup-content input:focus { outline: none; border-color: #0f3d6b; }
-    .popup-btn-row {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .popup-cancel-btn {
-      background: #e0e0e0;
-      color: #444;
-      font-weight: 500;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 18px;
-      cursor: pointer;
-      transition: background .14s;
-    }
-    .popup-action-btn {
-      background: #0f3d6b;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 18px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background .14s;
-    }
+    #popup-content input, #popup-content select { padding: 9px 11px; font-size: 1.07em; border-radius: 7px; border: 1.3px solid #c7d7ea; background: #f7fafd; margin-bottom: 7px; transition: border-color .2s; }
+    #popup-content input:focus, #popup-content select:focus { outline: none; border-color: #0f3d6b; }
+    .popup-btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+    .popup-cancel-btn { background: #e0e0e0; color: #444; font-weight: 500; border: none; border-radius: 8px; padding: 10px 18px; cursor: pointer; transition: background .14s; }
+    .popup-action-btn { background: #0f3d6b; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-weight: bold; cursor: pointer; transition: background .14s; }
     .popup-action-btn:hover { background: #195084; }
+    .wa-btn { background: #25D366; color: #fff; border: none; border-radius: 6px; font-size: 1em; font-weight: bold; padding: 7px 10px; margin-left: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .wa-btn i { font-size: 1.1em; }
+    .wa-btn:active { background: #189d44; }
   </style>
 </head>
 <body>
   <div class="fixed-header" id="header">
     <div class="school-title">St. Patrick's School</div>
     <div class="subtitle">IIT & NEET FOUNDATION</div>
+    <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
   </div>
   <div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
   <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
   <div id="popup-bg"><div id="popup-content"></div></div>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
+    // ======================= CONFIG ==============================
     const firebaseConfig = {
       apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
       authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -179,124 +67,75 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // --- Utils ---
-    function getQueryParam(key) {
-      const params = new URLSearchParams(window.location.search);
-      return params.get(key);
-    }
+    // ======================= GLOBALS =============================
+    let academicYear = localStorage.getItem('sp_selectedYear') || '';
+    document.getElementById('header-exam').textContent = academicYear;
     const mainArea = document.getElementById("main-area");
     const popupBg = document.getElementById('popup-bg');
     const popupContent = document.getElementById('popup-content');
     const fab = document.getElementById('fab');
-    fab.disabled = true;
-    fab.style.opacity = 0.5;
     const settingsBtn = document.getElementById('settings-btn');
-    const className = getQueryParam('className');
-    const sectionName = getQueryParam('sectionName');
-    let classDocRef = null;
-    let sectionDocRef = null;
-    let showDeletedStudents = false;
+    let currentClassId = localStorage.getItem('sp_selectedClassId') || '';
+    let currentClassName = localStorage.getItem('sp_selectedClassName') || '';
+    let currentSectionId = localStorage.getItem('sp_selectedSectionId') || '';
+    let currentSectionName = localStorage.getItem('sp_selectedSectionName') || '';
 
-    // --- Render Student List ---
-    function renderStudentList(students) {
-      let html = `<div class="screen-title">${decodeURIComponent(className)} – Section ${decodeURIComponent(sectionName)}</div>
-        <div style="margin: 10px 0 16px 0;">
-          <label style="font-size: 0.98em;">
-            <input type="checkbox" id="showDeletedToggle" ${showDeletedStudents ? 'checked' : ''}>
-            Show Deleted Students
-          </label>
-        </div>
-        <div class="student-list">`;
-      if (students.length === 0) {
-        html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
-      } else {
-        students
-          .filter(stu => showDeletedStudents ? (stu.isDeleted === true) : (!stu.isDeleted || stu.isDeleted === false))
-          .forEach(stu => {
-            html += `
-              <div class="student-row ${stu.isDeleted ? 'deleted-student' : ''}" 
-                data-student-id="${stu.id}" data-student-name="${stu.name}" data-is-deleted="${!!stu.isDeleted}">
-                <span class="roll-no">${stu.roll || ''}.</span> ${stu.name}
-                ${stu.isDeleted ? '<span style="color:#e74c3c;font-size:0.95em;margin-left:7px;">(Deleted)</span>' : ''}
-              </div>`;
-        });
+    renderStudentList();
+
+    // ======================= MAIN LIST ===========================
+    function renderStudentList() {
+      if (!currentClassId || !currentSectionId) {
+        mainArea.innerHTML = `<div style="color:#e74c3c; margin-top:40px;">Error: Class or Section not selected.</div>`;
+        fab.style.display = "none";
+        settingsBtn.style.display = "none";
+        return;
       }
-      html += "</div>";
-      mainArea.innerHTML = html;
+      db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+        .collection('sections').doc(currentSectionId)
+        .collection('students').orderBy('roll').get()
+        .then(snap => {
+          let students = [];
+          snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+          let html = `<div class="screen-title">${currentClassName} – Section ${currentSectionName}</div>
+            <div class="student-list">`;
+          if (students.length === 0) html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
+          students.forEach(stu => {
+            html += `<div class="student-row ${stu.isDeleted ? 'deleted-student' : ''}"
+              data-student-id="${stu.id}">
+              <span class="roll-no">${stu.roll || ''}.</span> ${stu.name}
+              <span class="student-faded">${stu.father || ''} ${stu.parentPhone ? '📱' + stu.parentPhone : ''}</span>
+              ${stu.isDeleted ? '<span style="color:#e74c3c;font-size:0.95em;margin-left:7px;">(Deleted)</span>' : ''}
+            </div>`;
+          });
+          html += "</div>";
+          mainArea.innerHTML = html;
 
-      const showDeletedToggle = document.getElementById('showDeletedToggle');
-      if (showDeletedToggle) {
-        showDeletedToggle.onchange = function () {
-          showDeletedStudents = showDeletedToggle.checked;
-          loadStudents();
-        };
-      }
+          document.querySelectorAll('.student-row').forEach(row => {
+            let pressTimer = null;
+            row.addEventListener('mousedown', startPress);
+            row.addEventListener('touchstart', startPress);
+            row.addEventListener('mouseup', clearPress);
+            row.addEventListener('mouseleave', clearPress);
+            row.addEventListener('touchend', clearPress);
 
-      document.querySelectorAll('.student-row').forEach(row => {
-        let pressTimer = null;
-        row.addEventListener('mousedown', startPress);
-        row.addEventListener('touchstart', startPress);
-        row.addEventListener('mouseup', clearPress);
-        row.addEventListener('mouseleave', clearPress);
-        row.addEventListener('touchend', clearPress);
-
-        function startPress(e) {
-          pressTimer = setTimeout(() => {
-            showStudentActionPopup(
-              row.dataset.studentId,
-              row.dataset.studentName,
-              row.dataset.isDeleted === "true"
-            );
-          }, 650);
-        }
-        function clearPress(e) {
-          clearTimeout(pressTimer);
-        }
-      });
-    }
-
-    // --- Load students from Firestore ---
-    function loadStudents() {
-      db.collectionGroup('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
-        if (snap.empty) {
-          renderStudentList([]);
-          classDocRef = null;
-          sectionDocRef = null;
-          return;
-        }
-        const classDoc = snap.docs[0];
-        classDocRef = classDoc.ref;
-        classDoc.ref.collection('sections')
-          .where('name', '==', decodeURIComponent(sectionName))
-          .limit(1)
-          .get()
-          .then(secSnap => {
-            if (secSnap.empty) {
-              renderStudentList([]);
-              sectionDocRef = null;
-              return;
+            function startPress(e) {
+              pressTimer = setTimeout(() => {
+                showStudentActionPopup(row.dataset.studentId);
+              }, 600);
             }
-            const sectionDoc = secSnap.docs[0];
-        sectionDocRef = sectionDoc.ref;
-        
-        // Enable the FAB (+) now that section is loaded
-        fab.disabled = false;
-        fab.style.opacity = 1;
-        
-        sectionDoc.ref.collection('students')
-          .orderBy('roll')
-          .get()
-          .then(stuSnap => {
-            let students = [];
-            stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-            renderStudentList(students);
+            function clearPress(e) {
+              clearTimeout(pressTimer);
+            }
           });
-          });
-      });
-    }
-    loadStudents();
 
-    // ==== POPUP LOGIC ====
+          fab.onclick = showAddStudentPopup;
+          fab.style.display = "flex";
+          settingsBtn.onclick = showSettingsPopup;
+          settingsBtn.style.display = "flex";
+        });
+    }
+
+    // ===================== POPUP BASE ===========================
     function showPopup(htmlContent, formId = null, formSubmitHandler = null) {
       popupContent.innerHTML = htmlContent;
       popupBg.classList.add('show');
@@ -317,100 +156,7 @@
       popupBg.onclick = null;
     }
 
-    // ==== STUDENT POPUPS ====
-    function showStudentActionPopup(studentId, studentName, isDeleted) {
-      let html = `
-        <div class="popup-title">Student Actions (${studentName})</div>
-        <div style="display:flex;flex-direction:column;gap:13px;">
-        ${!isDeleted
-          ? `<button class="popup-action-btn" id="editStudentBtn">Edit Student</button>
-             <button class="popup-action-btn" id="deleteStudentBtn">Delete Student</button>`
-          : `<button class="popup-action-btn" id="restoreStudentBtn">Restore Student</button>`
-        }
-        <button class="popup-cancel-btn">Close</button>
-        </div>
-      `;
-      showPopup(html);
-
-      if (!isDeleted && document.getElementById('editStudentBtn')) {
-        document.getElementById('editStudentBtn').onclick = function () {
-          sectionDocRef.collection('students').doc(studentId)
-            .get()
-            .then(doc => {
-              if (doc.exists) {
-                const data = doc.data();
-                showEditStudentPopup(
-                  studentId,
-                  data.name || '',
-                  data.father || '',
-                  data.roll || ''
-                );
-              } else {
-                alert("Student not found!");
-              }
-            });
-        };
-      }
-      if (!isDeleted && document.getElementById('deleteStudentBtn')) {
-        document.getElementById('deleteStudentBtn').onclick = function () {
-          if (confirm("Are you sure you want to delete?")) {
-            if (confirm("This cannot be undone. Really delete?")) {
-              sectionDocRef.collection('students').doc(studentId)
-                .update({ isDeleted: true })
-                .then(() => {
-                  closePopup();
-                  loadStudents();
-                })
-                .catch(error => alert("Error soft-deleting student: " + error.message));
-            }
-          }
-        };
-      }
-      if (isDeleted && document.getElementById('restoreStudentBtn')) {
-        document.getElementById('restoreStudentBtn').onclick = function () {
-          sectionDocRef.collection('students').doc(studentId)
-            .update({ isDeleted: firebase.firestore.FieldValue.delete() })
-            .then(() => {
-              closePopup();
-              loadStudents();
-            })
-            .catch(error => alert("Error restoring student: " + error.message));
-        }
-      }
-    }
-
-    function showEditStudentPopup(studentId, currentName, currentFather, currentRoll) {
-      let html = `
-        <form id="editStudentForm">
-          <div class="popup-title">Edit Student</div>
-          <label>Student Name</label>
-          <input name="studentName" maxlength="40" required value="${currentName}">
-          <label>Father's Name</label>
-          <input name="fatherName" maxlength="40" required value="${currentFather}">
-          <label>Roll Number</label>
-          <input name="rollNo" type="number" min="1" max="999" required value="${currentRoll}">
-          <div class="popup-btn-row">
-            <button type="button" class="popup-cancel-btn">Cancel</button>
-            <button type="submit" class="popup-action-btn">Update</button>
-          </div>
-        </form>
-      `;
-      showPopup(html, 'editStudentForm', function (e) {
-        e.preventDefault();
-        const name = e.target.studentName.value.trim();
-        const father = e.target.fatherName.value.trim();
-        const roll = parseInt(e.target.rollNo.value.trim(), 10);
-        sectionDocRef.collection('students').doc(studentId)
-          .update({ name, father, roll })
-          .then(() => {
-            closePopup();
-            loadStudents();
-          })
-          .catch(error => alert("Error editing student: " + error.message));
-      });
-    }
-
-    // ==== ADD STUDENT ====
+    // =========== ADD/EDIT STUDENT POPUP =========================
     function showAddStudentPopup() {
       showPopup(`
         <form id="addStudentForm">
@@ -421,6 +167,8 @@
           <input name="fatherName" maxlength="40" required>
           <label>Roll Number</label>
           <input name="rollNo" type="number" min="1" max="999" required>
+          <label>Parent Phone Number</label>
+          <input name="parentPhone" maxlength="12" required placeholder="e.g., 9876543210">
           <div class="popup-btn-row">
             <button type="button" class="popup-cancel-btn">Cancel</button>
             <button type="submit" class="popup-action-btn">Add</button>
@@ -431,59 +179,406 @@
         const name = e.target.studentName.value.trim();
         const father = e.target.fatherName.value.trim();
         const roll = parseInt(e.target.rollNo.value.trim(), 10);
-        if (!name || !father || isNaN(roll)) return;
-        sectionDocRef.collection('students')
-          .add({ name, father, roll })
-          .then(() => {
-            closePopup();
-            loadStudents();
-          })
-          .catch(error => alert("Error adding student: " + error.message));
+        const parentPhone = e.target.parentPhone.value.trim();
+        if (!name || !father || isNaN(roll) || !parentPhone) return;
+        db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+          .collection('sections').doc(currentSectionId)
+          .collection('students')
+          .add({ name, father, roll, parentPhone })
+          .then(() => { closePopup(); renderStudentList(); });
+      });
+    }
+    function showStudentActionPopup(studentId) {
+      db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+        .collection('sections').doc(currentSectionId)
+        .collection('students').doc(studentId)
+        .get().then(doc => {
+          if (!doc.exists) return;
+          const stu = doc.data();
+          showPopup(`
+            <div class="popup-title">Student Actions (${stu.name})</div>
+            <div style="display:flex;flex-direction:column;gap:13px;">
+              <button class="popup-action-btn" id="editStudentBtn">Edit Student</button>
+              ${!stu.isDeleted
+                ? `<button class="popup-action-btn" id="deleteStudentBtn">Delete Student</button>`
+                : `<button class="popup-action-btn" id="restoreStudentBtn">Restore Student</button>`
+              }
+              <button class="popup-cancel-btn">Close</button>
+            </div>
+          `);
+          if (document.getElementById('editStudentBtn')) {
+            document.getElementById('editStudentBtn').onclick = function () {
+              showEditStudentPopup(studentId, stu);
+            }
+          }
+          if (!stu.isDeleted && document.getElementById('deleteStudentBtn')) {
+            document.getElementById('deleteStudentBtn').onclick = function () {
+              db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+                .collection('sections').doc(currentSectionId)
+                .collection('students').doc(studentId)
+                .update({ isDeleted: true }).then(() => {
+                  closePopup();
+                  renderStudentList();
+                });
+            }
+          }
+          if (stu.isDeleted && document.getElementById('restoreStudentBtn')) {
+            document.getElementById('restoreStudentBtn').onclick = function () {
+              db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+                .collection('sections').doc(currentSectionId)
+                .collection('students').doc(studentId)
+                .update({ isDeleted: firebase.firestore.FieldValue.delete() }).then(() => {
+                  closePopup();
+                  renderStudentList();
+                });
+            }
+          }
+        });
+    }
+    function showEditStudentPopup(studentId, stu) {
+      showPopup(`
+        <form id="editStudentForm">
+          <div class="popup-title">Edit Student</div>
+          <label>Student Name</label>
+          <input name="studentName" maxlength="40" required value="${stu.name}">
+          <label>Father's Name</label>
+          <input name="fatherName" maxlength="40" required value="${stu.father}">
+          <label>Roll Number</label>
+          <input name="rollNo" type="number" min="1" max="999" required value="${stu.roll}">
+          <label>Parent Phone Number</label>
+          <input name="parentPhone" maxlength="12" required value="${stu.parentPhone || ''}">
+          <div class="popup-btn-row">
+            <button type="button" class="popup-cancel-btn">Cancel</button>
+            <button type="submit" class="popup-action-btn">Update</button>
+          </div>
+        </form>
+      `, 'editStudentForm', function (e) {
+        e.preventDefault();
+        const name = e.target.studentName.value.trim();
+        const father = e.target.fatherName.value.trim();
+        const roll = parseInt(e.target.rollNo.value.trim(), 10);
+        const parentPhone = e.target.parentPhone.value.trim();
+        db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+          .collection('sections').doc(currentSectionId)
+          .collection('students').doc(studentId)
+          .update({ name, father, roll, parentPhone })
+          .then(() => { closePopup(); renderStudentList(); });
       });
     }
 
-    // ==== SETTINGS BUTTON POPUP ====
-    function showStudentSettingsPopup() {
+    // ======================= SETTINGS POPUP =====================
+    function showSettingsPopup() {
       showPopup(`
-        <div class="popup-title">Section Settings</div>
+        <div class="popup-title">Section Tools</div>
         <div style="display:flex;flex-direction:column;gap:13px;">
-          <button class="popup-action-btn" id="sortByRollBtn">Sort by Roll No.</button>
-          <button class="popup-action-btn" id="sortByNameBtn">Sort by Name</button>
+          <button class="popup-action-btn" id="examSettingsBtn">Exam Settings</button>
+          <button class="popup-action-btn" id="enterMarksBtn">Enter Marks</button>
+          <button class="popup-action-btn" id="attendanceBtn">Take Attendance (WhatsApp)</button>
+          <button class="popup-action-btn" id="downloadMemosBtn">Download Class Marks Memos (PDF)</button>
+          <button class="popup-action-btn" id="downloadHallTicketsBtn">Download Hall Tickets</button>
+          <button class="popup-action-btn" id="downloadExcelBtn">Download Class Marks (Excel)</button>
+          <button class="popup-action-btn" id="performanceGraphBtn">Performance Graph</button>
           <button class="popup-cancel-btn">Close</button>
         </div>
       `);
-      if (document.getElementById('sortByRollBtn')) {
-        document.getElementById('sortByRollBtn').onclick = function () {
-          // Always load by roll, so just refresh
-          loadStudents();
-          closePopup();
-        };
-      }
-      if (document.getElementById('sortByNameBtn')) {
-        document.getElementById('sortByNameBtn').onclick = function () {
-          // By name
-          sectionDocRef.collection('students')
-            .orderBy('name')
-            .get()
-            .then(stuSnap => {
-              let students = [];
-              stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-              renderStudentList(students);
-              closePopup();
-            });
-        };
-      }
+      document.getElementById('examSettingsBtn').onclick = showExamSettingsPopup;
+      document.getElementById('enterMarksBtn').onclick = showEnterMarksPopup;
+      document.getElementById('attendanceBtn').onclick = showAttendancePopup;
+      document.getElementById('downloadMemosBtn').onclick = function() {
+        window.location.href = "memos.html";
+      };
+      document.getElementById('downloadHallTicketsBtn').onclick = function() {
+        window.location.href = "memos.html?tab=halltickets";
+      };
+      document.getElementById('downloadExcelBtn').onclick = function() {
+        window.location.href = "memos.html?tab=excel";
+      };
+      document.getElementById('performanceGraphBtn').onclick = function() {
+        window.location.href = "memos.html?tab=graph";
+      };
     }
 
-    fab.onclick = function () {
-  if (fab.disabled || !sectionDocRef) {
-    alert("Section not loaded yet. Please wait a second and try again.");
-        return;
-      }
-      showAddStudentPopup();
-    };
-    settingsBtn.onclick = showStudentSettingsPopup;
+    // ========== EXAM SETTINGS ===========
+    function showExamSettingsPopup() {
+      db.collection('years').doc(academicYear).collection('exams').orderBy('name').get()
+        .then(snap => {
+          let exams = [];
+          snap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
+          let html = `
+            <div class="popup-title">Exam Settings</div>
+            <div id="examListArea" style="max-height:240px;overflow-y:auto;margin-bottom:12px;">
+              ${exams.length === 0 ? '<div style="color:#888;font-style:italic;">No exams found.</div>' : exams.map((exam, idx) => `
+                <div style="border-bottom:1px solid #f1f1f1;margin-bottom:7px;padding-bottom:7px;">
+                  <strong>${exam.name}</strong>
+                  <button type="button" class="popup-action-btn" data-edit="${exam.id}" style="margin-left:10px;padding:2px 8px;font-size:0.9em;">Edit</button>
+                  <button type="button" class="popup-action-btn" data-del="${exam.id}" style="margin-left:5px;padding:2px 8px;font-size:0.9em;background:#e74c3c;">Delete</button>
+                  <div style="margin-top:6px;margin-left:8px;font-size:0.99em;">
+                    ${Array.isArray(exam.subjects) && exam.subjects.length > 0
+                      ? exam.subjects.map(subj => `${subj.name} <span style="color:#888;">(Max: ${subj.max})</span>`).join(', ')
+                      : '<span style="color:#aaa;">No subjects</span>'
+                    }
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <form id="addExamForm">
+              <label>Exam Name</label>
+              <input name="examName" maxlength="30" required placeholder="e.g., FA1">
+              <label>Add Subjects (comma-separated, e.g. English:100,Math:100)</label>
+              <input name="subjectsRaw" maxlength="100" placeholder="English:100,Math:100,Science:80">
+              <div class="popup-btn-row">
+                <button type="button" class="popup-cancel-btn">Close</button>
+                <button type="submit" class="popup-action-btn">Add Exam</button>
+              </div>
+            </form>
+          `;
+          showPopup(html, 'addExamForm', function (e) {
+            e.preventDefault();
+            const name = e.target.examName.value.trim();
+            const subjectsRaw = e.target.subjectsRaw.value.trim();
+            let subjects = [];
+            if (subjectsRaw) {
+              subjects = subjectsRaw.split(',').map(s => {
+                let [n, m] = s.split(':');
+                return { name: n.trim(), max: parseInt(m) || 100 };
+              }).filter(s => s.name && s.max);
+            }
+            db.collection('years').doc(academicYear).collection('exams').add({ name, subjects })
+              .then(() => { closePopup(); showExamSettingsPopup(); });
+          });
 
+          // Edit & Delete buttons
+          setTimeout(() => {
+            document.querySelectorAll('[data-edit]').forEach(btn => {
+              btn.onclick = () => showEditExamPopup(btn.getAttribute('data-edit'));
+            });
+            document.querySelectorAll('[data-del]').forEach(btn => {
+              btn.onclick = () => {
+                if (confirm('Delete this exam?')) {
+                  db.collection('years').doc(academicYear).collection('exams').doc(btn.getAttribute('data-del')).delete()
+                    .then(() => { showExamSettingsPopup(); });
+                }
+              }
+            });
+          }, 100);
+        });
+    }
+
+    function showEditExamPopup(examId) {
+      db.collection('years').doc(academicYear).collection('exams').doc(examId).get()
+        .then(doc => {
+          if (!doc.exists) return alert("Exam not found!");
+          const exam = doc.data();
+          let subjStr = Array.isArray(exam.subjects) && exam.subjects.length > 0
+            ? exam.subjects.map(s => `${s.name}:${s.max}`).join(',')
+            : '';
+          let html = `
+            <form id="editExamForm">
+              <div class="popup-title">Edit Exam</div>
+              <label>Exam Name</label>
+              <input name="examName" maxlength="30" required value="${exam.name}">
+              <label>Subjects (comma-separated, e.g. English:100,Math:100)</label>
+              <input name="subjectsRaw" maxlength="100" value="${subjStr}">
+              <div class="popup-btn-row">
+                <button type="button" class="popup-cancel-btn">Cancel</button>
+                <button type="submit" class="popup-action-btn">Update</button>
+              </div>
+            </form>
+          `;
+          showPopup(html, 'editExamForm', function (e) {
+            e.preventDefault();
+            const name = e.target.examName.value.trim();
+            const subjectsRaw = e.target.subjectsRaw.value.trim();
+            let subjects = [];
+            if (subjectsRaw) {
+              subjects = subjectsRaw.split(',').map(s => {
+                let [n, m] = s.split(':');
+                return { name: n.trim(), max: parseInt(m) || 100 };
+              }).filter(s => s.name && s.max);
+            }
+            db.collection('years').doc(academicYear).collection('exams').doc(examId)
+              .update({ name, subjects })
+              .then(() => { closePopup(); showExamSettingsPopup(); });
+          });
+        });
+    }
+
+    // ============= ENTER MARKS ===============
+    function showEnterMarksPopup() {
+      db.collection('years').doc(academicYear).collection('exams').orderBy('name').get()
+        .then(examSnap => {
+          let exams = [];
+          examSnap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
+          if (exams.length === 0) {
+            showPopup(`<div class="popup-title">Enter Marks</div>
+              <div style="margin:16px 0;">No exams found! Please add exams first.</div>
+              <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
+            `);
+            return;
+          }
+          let html = `
+            <form id="selectExamForm">
+              <div class="popup-title">Enter Marks</div>
+              <label>Select Exam</label>
+              <select name="examId" required>
+                <option value="">--Select--</option>
+                ${exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}
+              </select>
+              <label>Select Subject</label>
+              <select name="subjectName" required disabled>
+                <option value="">--Select Exam First--</option>
+              </select>
+              <div class="popup-btn-row">
+                <button type="button" class="popup-cancel-btn">Cancel</button>
+                <button type="submit" class="popup-action-btn">Next</button>
+              </div>
+            </form>
+          `;
+          showPopup(html, 'selectExamForm', function(e) {
+            e.preventDefault();
+            const examId = e.target.examId.value;
+            const subjectName = e.target.subjectName.value;
+            if (!examId || !subjectName) return;
+            db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+              .collection('sections').doc(currentSectionId)
+              .collection('students').orderBy('roll').get().then(stuSnap => {
+                let students = [];
+                stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+                const exam = exams.find(ex => ex.id === examId);
+                const subj = (exam && exam.subjects) ? exam.subjects.find(s => s.name === subjectName) : null;
+                const max = subj ? subj.max : 100;
+                let html2 = `
+                  <form id="marksEntryForm" style="max-height:77vh;overflow-y:auto;">
+                    <div class="popup-title">Marks: ${exam.name} – ${subjectName} (Max: ${max})</div>
+                    <div style="display:flex;flex-direction:column;gap:8px;">${
+                      students.length === 0
+                        ? '<div style="color:#888;font-style:italic;">No students found.</div>'
+                        : students.map(stu => `
+                          <div style="display:flex;align-items:center;gap:13px;">
+                            <span style="width:32px;font-weight:600;color:#1762a7;">${stu.roll || ''}</span>
+                            <span style="flex:1 1 0">${stu.name}</span>
+                            <input type="number" name="marks_${stu.id}" min="0" max="${max}" step="0.1"
+                              placeholder="Marks" style="width:75px;border-radius:7px;padding:7px;border:1.1px solid #c7d7ea;" required>
+                          </div>
+                        `).join('')
+                    }</div>
+                    <div class="popup-btn-row" style="margin-top:12px;">
+                      <button type="button" class="popup-cancel-btn">Cancel</button>
+                      <button type="submit" class="popup-action-btn">Save</button>
+                    </div>
+                  </form>
+                `;
+                showPopup(html2, 'marksEntryForm', function(ev) {
+                  ev.preventDefault();
+                  let formData = new FormData(ev.target);
+                  let batch = db.batch();
+                  students.forEach(stu => {
+                    let marksStr = formData.get('marks_' + stu.id);
+                    let marks = (marksStr === "" || marksStr == null) ? null : parseFloat(marksStr);
+                    if (marks != null) {
+                      let markRef = db.collection('years').doc(academicYear)
+                        .collection('classes').doc(currentClassId)
+                        .collection('sections').doc(currentSectionId)
+                        .collection('students').doc(stu.id).collection('marks').doc(examId);
+                      batch.set(markRef, { [subjectName]: marks }, { merge: true });
+                    }
+                  });
+                  batch.commit().then(() => {
+                    alert("Marks saved successfully!");
+                    closePopup();
+                  }).catch(error => alert("Error saving marks: " + error.message));
+                });
+              });
+          });
+
+          // Enable subject selection based on exam
+          setTimeout(() => {
+            const examSel = document.querySelector('select[name="examId"]');
+            const subjSel = document.querySelector('select[name="subjectName"]');
+            if (examSel && subjSel) {
+              examSel.onchange = function() {
+                const ex = exams.find(e => e.id === this.value);
+                if (ex && Array.isArray(ex.subjects) && ex.subjects.length > 0) {
+                  subjSel.innerHTML = ex.subjects.map(s => `<option value="${s.name}">${s.name} (Max: ${s.max})</option>`).join('');
+                  subjSel.disabled = false;
+                } else {
+                  subjSel.innerHTML = '<option value="">No subjects</option>';
+                  subjSel.disabled = true;
+                }
+              };
+            }
+          }, 100);
+        });
+    }
+
+    // ========== ATTENDANCE + WHATSAPP ===========
+    function showAttendancePopup() {
+      db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+        .collection('sections').doc(currentSectionId)
+        .collection('students').orderBy('roll').get()
+        .then(snap => {
+          let students = [];
+          snap.forEach(doc => { if (!doc.data().isDeleted) students.push({ id: doc.id, ...doc.data() }); });
+          let today = new Date().toISOString().slice(0, 10);
+          let html = `
+            <form id="attendanceForm">
+              <div class="popup-title">Take Attendance - ${today}</div>
+              <div style="max-height:270px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;">
+                ${students.map(stu =>
+                  `<label style="display:flex;align-items:center;gap:11px;">
+                    <input type="checkbox" name="absent_${stu.id}"> ${stu.roll}. ${stu.name}
+                    <span style="color:#888;font-size:0.95em;">(${stu.father})</span>
+                    ${stu.parentPhone
+                      ? `<button type="button" class="wa-btn" data-ph="${stu.parentPhone}" data-name="${stu.name}">
+                          <i class="fab fa-whatsapp"></i> WA
+                        </button>` : ''
+                    }
+                  </label>`
+                ).join('')}
+              </div>
+              <div class="popup-btn-row">
+                <button type="button" class="popup-cancel-btn">Cancel</button>
+                <button type="submit" class="popup-action-btn">Save Attendance</button>
+              </div>
+            </form>
+            <div style="font-size:0.92em;color:#387c23;margin-top:8px;">Tick for absentees only. WhatsApp button will open message to parent.</div>
+          `;
+          showPopup(html, 'attendanceForm', function(e){
+            e.preventDefault();
+            let form = e.target;
+            let absentIds = [];
+            students.forEach(stu => {
+              if (form['absent_' + stu.id] && form['absent_' + stu.id].checked) {
+                absentIds.push(stu.id);
+              }
+            });
+            // Save to attendance collection
+            let attObj = {};
+            students.forEach(stu => {
+              attObj[stu.id] = absentIds.includes(stu.id) ? 'absent' : 'present';
+            });
+            let attDoc = db.collection('years').doc(academicYear)
+              .collection('classes').doc(currentClassId)
+              .collection('sections').doc(currentSectionId)
+              .collection('attendance').doc(today);
+            attDoc.set(attObj).then(() => {
+              alert("Attendance saved!");
+              closePopup();
+            });
+          });
+          // WhatsApp button event
+          setTimeout(() => {
+            popupContent.querySelectorAll('.wa-btn').forEach(btn => {
+              btn.onclick = function() {
+                let ph = btn.dataset.ph.replace(/^0+/, '');
+                let name = btn.dataset.name;
+                let msg = encodeURIComponent(`Dear Parent, your child ${name} is absent today at school. Kindly send reason for absence. - St. Patrick's School`);
+                window.open(`https://wa.me/91${ph}?text=${msg}`,'_blank');
+              }
+            });
+          }, 400);
+        });
+    }
   </script>
 </body>
 </html>
