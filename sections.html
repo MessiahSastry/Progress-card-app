@@ -222,6 +222,7 @@
         }
         const classDoc = snap.docs[0];
         classDocRef = classDoc.ref;
+        enableFabWhenClassLoaded();
         classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
           let sections = [];
           secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
@@ -278,8 +279,17 @@
         });
       });
     }
+    // Disable FAB by default
+fab.disabled = true;
+fab.style.opacity = 0.5;
+fab.onclick = null;
 
-    fab.onclick = showAddSectionPopup;
+// Enable FAB only after class is loaded
+function enableFabWhenClassLoaded() {
+  fab.disabled = false;
+  fab.style.opacity = 1;
+  fab.onclick = showAddSectionPopup;
+}
   </script>
 </body>
 </html>
