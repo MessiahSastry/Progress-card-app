@@ -214,22 +214,27 @@
     }
 
     function loadSections() {
-      db.collectionGroup('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
-        if (snap.empty) {
-          classDocRef = null;
-          renderSectionList([]);
-          return;
-        }
-        const classDoc = snap.docs[0];
-        classDocRef = classDoc.ref;
-        enableFabWhenClassLoaded();
-        classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
-          let sections = [];
-          secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
-          renderSectionList(sections);
-        });
-      });
+  db.collectionGroup('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+    if (snap.empty) {
+      classDocRef = null;
+      renderSectionList([]);
+      fab.disabled = true;
+      fab.style.opacity = 0.5;
+      fab.onclick = null;
+      return;
     }
+    const classDoc = snap.docs[0];
+    classDocRef = classDoc.ref;
+    fab.disabled = false;
+    fab.style.opacity = 1;
+    fab.onclick = showAddSectionPopup;
+    classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
+      let sections = [];
+      secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
+      renderSectionList(sections);
+    });
+  });
+}
     loadSections();
 
     function showPopup(htmlContent, formId = null, formSubmitHandler = null) {
@@ -284,12 +289,6 @@ fab.disabled = true;
 fab.style.opacity = 0.5;
 fab.onclick = null;
 
-// Enable FAB only after class is loaded
-function enableFabWhenClassLoaded() {
-  fab.disabled = false;
-  fab.style.opacity = 1;
-  fab.onclick = showAddSectionPopup;
-}
   </script>
 </body>
 </html>
