@@ -187,6 +187,7 @@
     const popupBg = document.getElementById('popup-bg');
     const popupContent = document.getElementById('popup-content');
     const fab = document.getElementById('fab');
+    fab.onclick = showAddSectionPopup;
     const className = getQueryParam('className');
     document.getElementById("current-class-title").textContent = className ? decodeURIComponent(className) : "(Class name not set)";
 
