@@ -237,34 +237,40 @@
     fab.onclick = null;
 
     function loadSections() {
-      if (!year || !className) {
-        mainArea.innerHTML = "<div style='color:red;'>Invalid URL: year or className missing.</div>";
-        fab.disabled = true;
-        fab.style.opacity = 0.5;
-        fab.onclick = null;
-        return;
-      }
-      db.collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
-        if (snap.empty) {
-          classDocRef = null;
-          renderSectionList([]);
-          fab.disabled = true;
-          fab.style.opacity = 0.5;
-          fab.onclick = null;
-          return;
-        }
-        const classDoc = snap.docs[0];
-        classDocRef = classDoc.ref;
-        fab.disabled = false;
-        fab.style.opacity = 1;
-        fab.onclick = showAddSectionPopup;
-        classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
-          let sections = [];
-          secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
-          renderSectionList(sections);
-        });
-      });
+  if (!year || !className) {
+    mainArea.innerHTML = "<div style='color:red;'>Invalid URL: year or className missing.</div>";
+    fab.disabled = true;
+    fab.style.opacity = 0.5;
+    fab.onclick = null;
+    return;
+  }
+  console.log("Trying: years/" + year + "/classes, className=" + decodeURIComponent(className));
+  db.collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+    console.log("Query result size:", snap.size);
+    if (snap.empty) {
+      classDocRef = null;
+      renderSectionList([]);
+      fab.disabled = true;
+      fab.style.opacity = 0.5;
+      fab.onclick = null;
+      console.log("No class found for that year and name!");
+      return;
     }
+    const classDoc = snap.docs[0];
+    classDocRef = classDoc.ref;
+    console.log("Class found! doc.id:", classDoc.id, "data:", classDoc.data());
+    fab.disabled = false;
+    fab.style.opacity = 1;
+    fab.onclick = showAddSectionPopup;
+    classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
+      let sections = [];
+      secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
+      renderSectionList(sections);
+    });
+  }).catch(err => {
+    console.error("Firestore error:", err);
+  });
+}
     loadSections();
 
     function showPopup(htmlContent, formId = null, formSubmitHandler = null) {
