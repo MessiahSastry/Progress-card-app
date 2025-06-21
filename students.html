@@ -188,6 +188,8 @@
     const popupBg = document.getElementById('popup-bg');
     const popupContent = document.getElementById('popup-content');
     const fab = document.getElementById('fab');
+    fab.disabled = true;
+    fab.style.opacity = 0.5;
     const settingsBtn = document.getElementById('settings-btn');
     const className = getQueryParam('className');
     const sectionName = getQueryParam('sectionName');
@@ -275,15 +277,20 @@
               return;
             }
             const sectionDoc = secSnap.docs[0];
-            sectionDocRef = sectionDoc.ref;
-            sectionDoc.ref.collection('students')
-              .orderBy('roll')
-              .get()
-              .then(stuSnap => {
-                let students = [];
-                stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-                renderStudentList(students);
-              });
+        sectionDocRef = sectionDoc.ref;
+        
+        // Enable the FAB (+) now that section is loaded
+        fab.disabled = false;
+        fab.style.opacity = 1;
+        
+        sectionDoc.ref.collection('students')
+          .orderBy('roll')
+          .get()
+          .then(stuSnap => {
+            let students = [];
+            stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+            renderStudentList(students);
+          });
           });
       });
     }
@@ -469,8 +476,8 @@
     }
 
     fab.onclick = function () {
-      if (!sectionDocRef) {
-        alert("Section not loaded yet. Please wait a second and try again.");
+  if (fab.disabled || !sectionDocRef) {
+    alert("Section not loaded yet. Please wait a second and try again.");
         return;
       }
       showAddStudentPopup();
