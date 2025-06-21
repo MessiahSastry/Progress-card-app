@@ -220,7 +220,7 @@
       document.querySelectorAll('.class-btn').forEach((button, idx) => {
         button.addEventListener('click', function () {
           const className = encodeURIComponent(classLabels[idx]);
-          window.location.href = `sections.html?className=${className}`;
+          window.location.href = `sections.html?year=${encodeURIComponent(academicYear)}&className=${encodeURIComponent(className)}`;
         });
       });
     }
