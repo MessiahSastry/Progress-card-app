@@ -23,19 +23,29 @@
     }
     .fixed-header .school-title { color: #fff; font-size: 1.5em; margin: 0; }
     .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
+    .class-title-bar {
+      text-align: center;
+      font-size: 1.23em;
+      color: #1762a7;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      margin: 12px 0 0 0;
+      padding: 6px 0 2px 0;
+      width: 100vw;
+    }
     .main-content {
-      padding: 18px 10px 80px 10px;
+      padding: 12px 10px 80px 10px;
       max-width: 510px;
       margin: 0 auto;
       min-height: 60vh;
     }
     .screen-title {
-      font-size: 1.4em;
+      font-size: 1.18em;
       font-weight: bold;
       text-align: left;
       color: #0f3d6b;
-      margin-bottom: 12px;
-      margin-top: 18px;
+      margin-bottom: 10px;
+      margin-top: 10px;
       letter-spacing: 0.5px;
     }
     .section-list {
@@ -43,7 +53,7 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 8px;
-      margin-top: 14px;
+      margin-top: 8px;
       margin-left: 12px;
     }
     .section-chip {
@@ -156,18 +166,18 @@
     <div class="school-title">St. Patrick's School</div>
     <div class="subtitle">IIT & NEET FOUNDATION</div>
   </div>
-  <div id="current-class-title" class="screen-title" style="text-align:center; font-size:1.2em; color:#1762a7; font-weight:bold; margin-bottom:0;"></div>
+  <div id="current-class-title" class="class-title-bar"></div>
   <div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
-  <!-- No settings button here! -->
-  <!-- Popup Modal -->
   <div id="popup-bg">
     <div id="popup-content"></div>
   </div>
-     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <!-- Firebase core and libraries -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
       authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -185,7 +195,7 @@
       }
     });
 
-    // Get className from query string
+    // Get year and className from query string
     function getQueryParam(key) {
       const params = new URLSearchParams(window.location.search);
       return params.get(key);
@@ -194,8 +204,9 @@
     const popupBg = document.getElementById('popup-bg');
     const popupContent = document.getElementById('popup-content');
     const fab = document.getElementById('fab');
+    const year = getQueryParam('year');
     const className = getQueryParam('className');
-    console.log('className from query:', className);
+    // Show class name below header
     document.getElementById("current-class-title").textContent = className ? decodeURIComponent(className) : "(Class name not set)";
 
     let classDocRef = null;
@@ -212,37 +223,48 @@
       }
       html += "</div>";
       mainArea.innerHTML = html;
-      document.getElementById("current-class-title").textContent = decodeURIComponent(className);
       document.querySelectorAll('.section-chip').forEach(chip => {
         chip.addEventListener('click', function () {
           const sectionName = this.dataset.sectionName;
-          window.location.href = `students.html?className=${encodeURIComponent(className)}&sectionName=${sectionName}`;
+          window.location.href = `students.html?year=${encodeURIComponent(year)}&className=${encodeURIComponent(className)}&sectionName=${sectionName}`;
         });
       });
     }
 
+    // Disable FAB by default
+    fab.disabled = true;
+    fab.style.opacity = 0.5;
+    fab.onclick = null;
+
     function loadSections() {
-  db.collectionGroup('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
-    if (snap.empty) {
-      classDocRef = null;
-      renderSectionList([]);
-      fab.disabled = true;
-      fab.style.opacity = 0.5;
-      fab.onclick = null;
-      return;
+      if (!year || !className) {
+        mainArea.innerHTML = "<div style='color:red;'>Invalid URL: year or className missing.</div>";
+        fab.disabled = true;
+        fab.style.opacity = 0.5;
+        fab.onclick = null;
+        return;
+      }
+      db.collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+        if (snap.empty) {
+          classDocRef = null;
+          renderSectionList([]);
+          fab.disabled = true;
+          fab.style.opacity = 0.5;
+          fab.onclick = null;
+          return;
+        }
+        const classDoc = snap.docs[0];
+        classDocRef = classDoc.ref;
+        fab.disabled = false;
+        fab.style.opacity = 1;
+        fab.onclick = showAddSectionPopup;
+        classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
+          let sections = [];
+          secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
+          renderSectionList(sections);
+        });
+      });
     }
-    const classDoc = snap.docs[0];
-    classDocRef = classDoc.ref;
-    fab.disabled = false;
-    fab.style.opacity = 1;
-    fab.onclick = showAddSectionPopup;
-    classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
-      let sections = [];
-      secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
-      renderSectionList(sections);
-    });
-  });
-}
     loadSections();
 
     function showPopup(htmlContent, formId = null, formSubmitHandler = null) {
@@ -292,11 +314,6 @@
         });
       });
     }
-    // Disable FAB by default
-fab.disabled = true;
-fab.style.opacity = 0.5;
-fab.onclick = null;
-
   </script>
 </body>
 </html>
