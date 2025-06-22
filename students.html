@@ -99,7 +99,7 @@
         .then(snap => {
           let students = [];
           snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-          let html = `<div class="screen-title">${currentClassName} – Section ${currentSectionName}</div>
+          let html = `<div class="screen-title">${currentClassName} – ${currentSectionName}</div>
             <div class="student-list">`;
           if (students.length === 0) html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
           students.forEach(stu => {
