@@ -84,7 +84,7 @@
     settingsBtn.onclick = showSettingsPopup;
     settingsBtn.style.display = "flex";
         renderStudentList();
-
+      }
     // ======================= MAIN LIST ===========================
     function renderStudentList() {
       if (!currentClassId || !currentSectionId) {
@@ -112,7 +112,6 @@
           });
           html += "</div>";
           mainArea.innerHTML = html;
-
           document.querySelectorAll('.student-row').forEach(row => {
             let pressTimer = null;
             row.addEventListener('mousedown', startPress);
