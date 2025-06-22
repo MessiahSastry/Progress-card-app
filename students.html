@@ -79,8 +79,11 @@
     let currentClassName = localStorage.getItem('sp_selectedClassName') || '';
     let currentSectionId = localStorage.getItem('sp_selectedSectionId') || '';
     let currentSectionName = localStorage.getItem('sp_selectedSectionName') || '';
-
-    renderStudentList();
+    fab.onclick = showAddStudentPopup;
+    fab.style.display = "flex";
+    settingsBtn.onclick = showSettingsPopup;
+    settingsBtn.style.display = "flex";
+        renderStudentList();
 
     // ======================= MAIN LIST ===========================
     function renderStudentList() {
@@ -127,13 +130,7 @@
               clearTimeout(pressTimer);
             }
           });
-
-          fab.onclick = showAddStudentPopup;
-          fab.style.display = "flex";
-          settingsBtn.onclick = showSettingsPopup;
-          settingsBtn.style.display = "flex";
-        });
-    }
+          }
 
     // ===================== POPUP BASE ===========================
     function showPopup(htmlContent, formId = null, formSubmitHandler = null) {
