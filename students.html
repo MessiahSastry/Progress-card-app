@@ -327,16 +327,17 @@
                 </div>
               `).join('')}
             </div>
-            <form id="addExamForm">
-              <label>Exam Name</label>
-              <input name="examName" maxlength="30" required placeholder="e.g., FA1">
-              <label>Add Subjects (comma-separated, e.g. English:100,Math:100)</label>
-              <input name="subjectsRaw" maxlength="100" placeholder="English:100,Math:100,Science:80">
-              <div class="popup-btn-row">
-                <button type="button" class="popup-cancel-btn">Close</button>
-                <button type="submit" class="popup-action-btn">Add Exam</button>
-              </div>
-            </form>
+           <form id="addExamForm">
+          <label>Exam Name</label>
+          <input name="examName" maxlength="30" required placeholder="e.g., FA1">
+          <label>Subjects</label>
+          <div id="subjectsContainer"></div>
+          <button type="button" id="addSubjectBtn" style="margin:6px 0 14px 0; background:#1762a7;color:#fff;padding:7px 13px;border:none;border-radius:7px;font-weight:600;">+ Add Subject</button>
+          <div class="popup-btn-row">
+            <button type="button" class="popup-cancel-btn">Close</button>
+            <button type="submit" class="popup-action-btn">Add Exam</button>
+          </div>
+        </form>
           `;
           showPopup(html, 'addExamForm', function (e) {
             e.preventDefault();
@@ -352,6 +353,25 @@
             db.collection('years').doc(academicYear).collection('exams').add({ name, subjects })
               .then(() => { closePopup(); showExamSettingsPopup(); });
           });
+          // --- Subject Fields Logic ---
+              const subjectsContainer = popupContent.querySelector('#subjectsContainer');
+              const addSubjectBtn = popupContent.querySelector('#addSubjectBtn');
+              
+              function addSubjectField(name = '', max = '') {
+                const idx = subjectsContainer.children.length;
+                const div = document.createElement('div');
+                div.style = "display:flex;align-items:center;gap:8px;margin-bottom:7px;";
+                div.innerHTML = `
+                  <input type="text" name="subjectName_${idx}" placeholder="Subject Name" value="${name}" required style="flex:1; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd;" />
+                  <input type="number" name="maxMarks_${idx}" placeholder="Max Marks" min="1" max="200" value="${max}" required style="width:80px; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd;" />
+                  <button type="button" class="option-btn" style="width: 70px; padding: 5px;" onclick="this.parentNode.remove()">Remove</button>
+                `;
+                subjectsContainer.appendChild(div);
+              }
+              addSubjectBtn.onclick = () => addSubjectField();
+              // Add one subject by default
+              addSubjectField();
+
 
           // Edit & Delete buttons
           setTimeout(() => {
@@ -393,17 +413,15 @@
           `;
           showPopup(html, 'editExamForm', function (e) {
             e.preventDefault();
-            const name = e.target.examName.value.trim();
-            const subjectsRaw = e.target.subjectsRaw.value.trim();
+           const name = e.target.examName.value.trim();
             let subjects = [];
-            if (subjectsRaw) {
-              subjects = subjectsRaw.split(',').map(s => {
-                let [n, m] = s.split(':');
-                return { name: n.trim(), max: parseInt(m) || 100 };
-              }).filter(s => s.name && s.max);
-            }
-            db.collection('years').doc(academicYear).collection('exams').doc(examId)
-              .update({ name, subjects })
+            const subDivs = popupContent.querySelectorAll('#subjectsContainer > div');
+            subDivs.forEach((div, idx) => {
+              const subName = div.querySelector(`[name="subjectName_${idx}"]`).value.trim();
+              const max = parseInt(div.querySelector(`[name="maxMarks_${idx}"]`).value, 10);
+              if (subName && max) subjects.push({ name: subName, max });
+            });
+            db.collection('years').doc(academicYear).collection('exams').add({ name, subjects })
               .then(() => { closePopup(); showExamSettingsPopup(); });
           });
         });
