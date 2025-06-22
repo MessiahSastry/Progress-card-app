@@ -227,18 +227,29 @@
       mainArea.innerHTML = html;
       document.querySelectorAll('.section-chip').forEach(chip => {
         chip.addEventListener('click', function () {
-        const sectionName = this.dataset.sectionName;
-        // Find section id and name
-        const sectionObj = sections.find(sec => encodeURIComponent(sec.name) === sectionName);
-        // Save in localStorage
-        localStorage.setItem('sp_selectedClassId', classDocRef.id);
-        localStorage.setItem('sp_selectedClassName', decodeURIComponent(className));
-        if (sectionObj && sectionObj.id) {
-          localStorage.setItem('sp_selectedSectionId', sectionObj.id);
-          localStorage.setItem('sp_selectedSectionName', decodeURIComponent(sectionName));
-        }
-        window.location.href = `students.html?year=${encodeURIComponent(year)}&className=${encodeURIComponent(className)}&sectionName=${sectionName}`;
-      });
+          const sectionName = this.dataset.sectionName;
+          // Query Firestore for class and section IDs
+          db.collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+            if (!snap.empty) {
+              const classDoc = snap.docs[0];
+              classDoc.ref.collection('sections').where('name', '==', decodeURIComponent(sectionName)).get().then(secSnap => {
+                if (!secSnap.empty) {
+                  const sectionDoc = secSnap.docs[0];
+                  // Save IDs and names to localStorage
+                  localStorage.setItem('sp_selectedClassId', classDoc.id);
+                  localStorage.setItem('sp_selectedClassName', decodeURIComponent(className));
+                  localStorage.setItem('sp_selectedSectionId', sectionDoc.id);
+                  localStorage.setItem('sp_selectedSectionName', decodeURIComponent(sectionName));
+                  window.location.href = `students.html?year=${encodeURIComponent(year)}&className=${encodeURIComponent(className)}&sectionName=${sectionName}`;
+                } else {
+                  alert('Section not found!');
+                }
+              });
+            } else {
+              alert('Class not found!');
+            }
+          });
+        });
       });
     }
 
