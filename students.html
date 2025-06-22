@@ -113,12 +113,10 @@
             <div class="student-list">`;
           if (students.length === 0) html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
           students.forEach(stu => {
-            html += `<div class="student-row ${stu.isDeleted ? 'deleted-student' : ''}"
-              data-student-id="${stu.id}">
-              <span class="roll-no">${stu.roll || ''}.</span> ${stu.name}
-              <span class="student-faded">${stu.father || ''} ${stu.parentPhone ? '📱' + stu.parentPhone : ''}</span>
-              ${stu.isDeleted ? '<span style="color:#e74c3c;font-size:0.95em;margin-left:7px;">(Deleted)</span>' : ''}
-            </div>`;
+           html += `<div class="student-row ${stu.isDeleted ? 'deleted-student' : ''}"
+            data-student-id="${stu.id}">
+            ${stu.name}
+          </div>`;
           });
           html += "</div>";
           mainArea.innerHTML = html;
