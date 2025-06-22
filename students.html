@@ -114,9 +114,9 @@
           if (students.length === 0) html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
           students.forEach(stu => {
            html += `<div class="student-row ${stu.isDeleted ? 'deleted-student' : ''}"
-            data-student-id="${stu.id}">
-            ${stu.name}
-          </div>`;
+          data-student-id="${stu.id}">
+          <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span> ${stu.name}
+        </div>`;
           });
           html += "</div>";
           mainArea.innerHTML = html;
