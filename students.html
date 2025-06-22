@@ -83,8 +83,8 @@
     fab.style.display = "flex";
     settingsBtn.onclick = showSettingsPopup;
     settingsBtn.style.display = "flex";
-        renderStudentList();
-      }
+    renderStudentList();
+
     // ======================= MAIN LIST ===========================
     function renderStudentList() {
       if (!currentClassId || !currentSectionId) {
@@ -112,6 +112,7 @@
           });
           html += "</div>";
           mainArea.innerHTML = html;
+
           document.querySelectorAll('.student-row').forEach(row => {
             let pressTimer = null;
             row.addEventListener('mousedown', startPress);
@@ -129,6 +130,9 @@
               clearTimeout(pressTimer);
             }
           });
+        });
+    }
+
     // ===================== POPUP BASE ===========================
     function showPopup(htmlContent, formId = null, formSubmitHandler = null) {
       popupContent.innerHTML = htmlContent;
