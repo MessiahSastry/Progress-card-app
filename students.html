@@ -79,6 +79,7 @@
 
     // ======================= GLOBALS =============================
     let academicYear = localStorage.getItem('sp_selectedYear') || '';
+    console.log('academicYear raw:', academicYear, 'length:', academicYear.length);
     document.getElementById('header-exam').textContent = academicYear;
     const mainArea = document.getElementById("main-area");
     const popupBg = document.getElementById('popup-bg');
