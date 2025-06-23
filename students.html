@@ -616,7 +616,7 @@
                 <span style="font-weight:500; font-size:1.07em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${stu.name}</span>
               </div>
               <div style="display: flex; align-items: center; gap: 7px;">
-                <input type="checkbox" name="absent_${stu.id}" style="width:22px; height:22px; accent-color:#0f3d6b;">
+                <input type="checkbox" name="absent_${stu.id}" style="width:22px; height:22px; accent-color:#0f3d6b;" ${(attData[stu.id]==='absent') ? 'checked' : ''}>
                 ${
                   stu.parentPhone
                     ? `<button type="button" class="wa-btn" data-ph="${stu.parentPhone}" data-name="${stu.name}"
