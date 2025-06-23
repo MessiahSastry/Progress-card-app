@@ -281,6 +281,7 @@
           <button class="popup-action-btn" id="examSettingsBtn">Exam Settings</button>
           <button class="popup-action-btn" id="enterMarksBtn">Enter Marks</button>
           <button class="popup-action-btn" id="attendanceBtn">Take Attendance (WhatsApp)</button>
+          <button class="popup-action-btn" id="viewAttendanceBtn">View Attendance</button>
           <button class="popup-action-btn" id="downloadMemosBtn">Download Class Marks Memos (PDF)</button>
           <button class="popup-action-btn" id="downloadHallTicketsBtn">Download Hall Tickets</button>
           <button class="popup-action-btn" id="downloadExcelBtn">Download Class Marks (Excel)</button>
@@ -291,6 +292,7 @@
       document.getElementById('examSettingsBtn').onclick = showExamSettingsPopup;
       document.getElementById('enterMarksBtn').onclick = showEnterMarksPopup;
       document.getElementById('attendanceBtn').onclick = showAttendancePopup;
+      document.getElementById('viewAttendanceBtn').onclick = showAttendanceHistoryPopup;
       document.getElementById('downloadMemosBtn').onclick = function() {
         window.location.href = "memos.html";
       };
@@ -648,6 +650,75 @@
           }, 400);
         });
     }
+    function showAttendanceHistoryPopup() {
+  // Get attendance docs for this section
+  db.collection('years').doc(academicYear)
+    .collection('classes').doc(currentClassId)
+    .collection('sections').doc(currentSectionId)
+    .collection('attendance').orderBy(firebase.firestore.FieldPath.documentId()).get()
+    .then(snap => {
+      if (snap.empty) {
+        showPopup(`<div class="popup-title">Attendance History</div>
+          <div style="color:#888;">No attendance records found.</div>
+          <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
+        `);
+        return;
+      }
+      // List all dates
+      let dates = [];
+      snap.forEach(doc => dates.push(doc.id));
+      let html = `<div class="popup-title">Attendance Dates</div>
+        <div style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+          ${dates.map(date => `<button class="popup-action-btn" data-date="${date}" style="padding:8px 12px;font-size:1em;">${date}</button>`).join('')}
+        </div>
+        <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
+      `;
+      showPopup(html);
+      // Add event handlers for each date button
+      setTimeout(() => {
+        popupContent.querySelectorAll('button[data-date]').forEach(btn => {
+          btn.onclick = function() {
+            showAttendanceForDate(this.getAttribute('data-date'));
+          }
+        });
+      }, 100);
+    });
+}
+
+// View attendance for one date
+function showAttendanceForDate(date) {
+  // Load student list
+  db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+    .collection('sections').doc(currentSectionId).collection('students').orderBy('roll').get()
+    .then(stuSnap => {
+      let students = [];
+      stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+      // Load attendance
+      db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+        .collection('sections').doc(currentSectionId).collection('attendance').doc(date).get()
+        .then(attSnap => {
+          let att = attSnap.data() || {};
+          let html = `<div class="popup-title">Attendance: ${date}</div>
+            <div style="max-height:290px;overflow-y:auto;">
+              <table style="width:100%;border-collapse:collapse;">
+                <tr><th style="text-align:left;">Roll</th><th>Name</th><th>Status</th></tr>
+                ${students.map(stu => `
+                  <tr>
+                    <td style="padding:3px 7px;">${stu.roll}</td>
+                    <td style="padding:3px 7px;">${stu.name}</td>
+                    <td style="padding:3px 7px;">
+                      ${(att[stu.id] || 'present').toUpperCase()}
+                    </td>
+                  </tr>
+                `).join('')}
+              </table>
+            </div>
+            <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
+          `;
+          showPopup(html);
+        });
+    });
+}
   </script>
 </body>
 </html>
