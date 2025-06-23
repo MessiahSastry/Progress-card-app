@@ -596,7 +596,13 @@
       let students = [];
       snap.forEach(doc => { if (!doc.data().isDeleted) students.push({ id: doc.id, ...doc.data() }); });
       let today = new Date().toISOString().slice(0, 10);
-      let html = `
+      db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+      .collection('sections').doc(currentSectionId)
+      .collection('attendance').doc(today)
+      .get()
+      .then(attSnap => {
+        let attData = attSnap.exists ? attSnap.data() : {};
+          let html = `
         <form id="attendanceForm">
           <div class="popup-title">Take Attendance - ${today}</div>
           <div style="max-height:270px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
