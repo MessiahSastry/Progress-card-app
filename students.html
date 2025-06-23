@@ -487,50 +487,69 @@
                 const exam = exams.find(ex => ex.id === examId);
                 const subj = (exam && exam.subjects) ? exam.subjects.find(s => s.name === subjectName) : null;
                 const max = subj ? subj.max : 100;
-                let html2 = `
-                  <form id="marksEntryForm" style="max-height:77vh;overflow-y:auto;">
-                    <div class="popup-title">Marks: ${exam.name} – ${subjectName} (Max: ${max})</div>
-                    <div style="display:flex;flex-direction:column;gap:8px;">${
-                      students.length === 0
-                        ? '<div style="color:#888;font-style:italic;">No students found.</div>'
-                        : students.map(stu => `
-                          <div style="display:flex;align-items:center;gap:13px;">
-                            <span style="width:32px;font-weight:600;color:#1762a7;">${stu.roll || ''}</span>
-                            <span style="flex:1 1 0">${stu.name}</span>
-                            <input type="number" name="marks_${stu.id}" min="0" max="${max}" step="0.1"
-                            placeholder="Marks" style="width:55px;min-width:0;max-width:65px;flex:none;border-radius:7px;padding:7px;border:1.1px solid #c7d7ea;" required>
-                          </div>
-                        `).join('')
-                    }</div>
-                    <div class="popup-btn-row" style="margin-top:12px;">
-                      <button type="button" class="popup-cancel-btn">Cancel</button>
-                      <button type="submit" class="popup-action-btn">Save</button>
-                    </div>
-                  </form>
-                `;
-                showPopup(html2, 'marksEntryForm', function(ev) {
-                  ev.preventDefault();
-                  let formData = new FormData(ev.target);
-                  let batch = db.batch();
-                  students.forEach(stu => {
-                    let marksStr = formData.get('marks_' + stu.id);
-                    let marks = (marksStr === "" || marksStr == null) ? null : parseFloat(marksStr);
-                    if (marks != null) {
-                      let markRef = db.collection('years').doc(academicYear)
-                        .collection('classes').doc(currentClassId)
-                        .collection('sections').doc(currentSectionId)
-                        .collection('students').doc(stu.id).collection('marks').doc(examId);
-                      batch.set(markRef, { [subjectName]: marks }, { merge: true });
-                    }
-                  });
-                  batch.commit().then(() => {
-                    alert("Marks saved successfully!");
-                    closePopup();
-                  }).catch(error => alert("Error saving marks: " + error.message));
-                });
-              });
+               // --- Begin: Marks Entry Popup Block ---
+        let marksData = {};
+        let marksPromises = students.map(stu =>
+          db.collection('years').doc(academicYear)
+            .collection('classes').doc(currentClassId)
+            .collection('sections').doc(currentSectionId)
+            .collection('students').doc(stu.id)
+            .collection('marks').doc(examId)
+            .get().then(doc => {
+              if (doc.exists && doc.data()[subjectName] !== undefined) {
+                marksData[stu.id] = doc.data()[subjectName];
+              }
+            })
+        );
+          Promise.all(marksPromises).then(() => {
+          let html2 = `
+            <form id="marksEntryForm" style="max-height:77vh;overflow-y:auto;">
+              <div class="popup-title">Marks: ${exam.name} – ${subjectName} (Max: ${max})</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                ${
+                  students.length === 0
+                    ? '<div style="color:#888;font-style:italic;">No students found.</div>'
+                    : students.map(stu => `
+                      <div style="display:flex;align-items:center;gap:13px;">
+                        <span style="width:32px;font-weight:600;color:#1762a7;">${stu.roll || ''}</span>
+                        <span style="flex:1 1 0">${stu.name}</span>
+                        <input type="number" name="marks_${stu.id}" min="0" max="${max}" step="0.1"
+                          placeholder="Marks"
+                          style="width:55px;min-width:0;max-width:65px;flex:none;border-radius:7px;padding:7px;border:1.1px solid #c7d7ea;"
+                          value="${marksData[stu.id] !== undefined ? marksData[stu.id] : ''}"
+                          required>
+                      </div>
+                    `).join('')
+                }
+              </div>
+              <div class="popup-btn-row" style="margin-top:12px;">
+                <button type="button" class="popup-cancel-btn">Cancel</button>
+                <button type="submit" class="popup-action-btn">Save</button>
+              </div>
+            </form>
+          `;
+          showPopup(html2, 'marksEntryForm', function(ev) {
+            ev.preventDefault();
+            let formData = new FormData(ev.target);
+            let batch = db.batch();
+            students.forEach(stu => {
+              let marksStr = formData.get('marks_' + stu.id);
+              let marks = (marksStr === "" || marksStr == null) ? null : parseFloat(marksStr);
+              if (marks != null) {
+                let markRef = db.collection('years').doc(academicYear)
+                  .collection('classes').doc(currentClassId)
+                  .collection('sections').doc(currentSectionId)
+                  .collection('students').doc(stu.id).collection('marks').doc(examId);
+                batch.set(markRef, { [subjectName]: marks }, { merge: true });
+              }
+            });
+            batch.commit().then(() => {
+              alert("Marks saved successfully!");
+              closePopup();
+            }).catch(error => alert("Error saving marks: " + error.message));
           });
-
+        });
+// --- End: Marks Entry Popup Block ---
           // Enable subject selection based on exam
           setTimeout(() => {
             const examSel = document.querySelector('select[name="examId"]');
