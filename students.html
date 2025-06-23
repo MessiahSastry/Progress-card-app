@@ -103,7 +103,7 @@
         settingsBtn.style.display = "none";
         return;
       }
-      db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+         db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
         .collection('sections').doc(currentSectionId)
         .collection('students').orderBy('roll').get()
         .then(snap => {
@@ -449,6 +449,7 @@
 
     // ============= ENTER MARKS ===============
     function showEnterMarksPopup() {
+      console.log('showEnterMarksPopup called');
       db.collection('years').doc(academicYear).collection('exams').orderBy('name').get()
         .then(examSnap => {
           let exams = [];
