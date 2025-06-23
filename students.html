@@ -383,18 +383,25 @@
           addSubjectField();
 
           // Edit & Delete buttons
-          setTimeout(() => {
-            document.querySelectorAll('[data-edit]').forEach(btn => {
-              btn.onclick = () => showEditExamPopup(btn.getAttribute('data-edit'));
-            });
-            document.querySelectorAll('[data-del]').forEach(btn => {
-              btn.onclick = () => {
-                if (confirm('Delete this exam?')) {
-                  db.collection('years').doc(academicYear).collection('exams').doc(btn.getAttribute('data-del')).delete()
-                    .then(() => { showExamSettingsPopup(); });
+         setTimeout(() => {
+            const examSel = document.querySelector('select[name="examId"]');
+            const subjSel = document.querySelector('select[name="subjectName"]');
+            if (examSel && subjSel) {
+              // Populate subjects immediately if an exam is already selected (for edit mode)
+              function updateSubjectsDropdown() {
+                const ex = exams.find(e => e.id === examSel.value);
+                if (ex && Array.isArray(ex.subjects) && ex.subjects.length > 0) {
+                  subjSel.innerHTML = ex.subjects.map(s => `<option value="${s.name}">${s.name} (Max: ${s.max})</option>`).join('');
+                  subjSel.disabled = false;
+                } else {
+                  subjSel.innerHTML = '<option value="">No subjects</option>';
+                  subjSel.disabled = true;
                 }
               }
-            });
+              examSel.onchange = updateSubjectsDropdown;
+              // Call once in case already selected (optional)
+              updateSubjectsDropdown();
+            }
           }, 100);
         });
     }
