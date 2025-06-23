@@ -342,17 +342,32 @@
           showPopup(html, 'addExamForm', function (e) {
             e.preventDefault();
             const name = e.target.examName.value.trim();
-            const subjectsRaw = e.target.subjectsRaw.value.trim();
+          
+            // Dynamically collect all subjects:
             let subjects = [];
-            if (subjectsRaw) {
-              subjects = subjectsRaw.split(',').map(s => {
-                let [n, m] = s.split(':');
-                return { name: n.trim(), max: parseInt(m) || 100 };
-              }).filter(s => s.name && s.max);
+            const container = popupContent.querySelector('#subjectsContainer');
+            if (container) {
+              const subjectDivs = container.querySelectorAll('div[data-subject-row]');
+              subjectDivs.forEach(div => {
+                const subjInput = div.querySelector('input[type="text"]');
+                const marksInput = div.querySelector('input[type="number"]');
+                const subjName = subjInput ? subjInput.value.trim() : '';
+                const maxMarks = marksInput ? parseInt(marksInput.value.trim()) : 0;
+                if (subjName && maxMarks) {
+                  subjects.push({ name: subjName, max: maxMarks });
+                }
+              });
             }
+          
+            if (!name || !subjects.length) {
+              alert("Please enter exam name and at least one subject!");
+              return;
+            }
+          
             db.collection('years').doc(academicYear).collection('exams').add({ name, subjects })
               .then(() => { closePopup(); showExamSettingsPopup(); });
           });
+
           // --- Subject Fields Logic ---
               const subjectsContainer = popupContent.querySelector('#subjectsContainer');
               const addSubjectBtn = popupContent.querySelector('#addSubjectBtn');
@@ -360,6 +375,7 @@
               function addSubjectField(name = '', max = '') {
                 const idx = subjectsContainer.children.length;
                 const div = document.createElement('div');
+                div.setAttribute("data-subject-row", "");
                 div.style = "display:flex;align-items:center;gap:8px;margin-bottom:7px;";
                 div.innerHTML = `
                  <input type="text" name="subjectName_${idx}" placeholder="Subject Name" value="${name}" required style="width:80%; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd; margin-right:7px;" />
