@@ -383,7 +383,8 @@
           addSubjectField();
 
           // Edit & Delete buttons
-         setTimeout(() => {
+          console.log('exams:', exams);
+           setTimeout(() => {
             const examSel = document.querySelector('select[name="examId"]');
             const subjSel = document.querySelector('select[name="subjectName"]');
             if (examSel && subjSel) {
