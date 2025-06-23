@@ -450,6 +450,7 @@
     // ============= ENTER MARKS ===============
     function showEnterMarksPopup() {
       console.log('showEnterMarksPopup called');
+      console.log('academicYear:', academicYear);
       db.collection('years').doc(academicYear).collection('exams').orderBy('name').get()
         .then(examSnap => {
           let exams = [];
