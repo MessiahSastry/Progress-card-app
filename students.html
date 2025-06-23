@@ -595,21 +595,31 @@
         <form id="attendanceForm">
           <div class="popup-title">Take Attendance - ${today}</div>
           <div style="max-height:270px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
-            ${students.map(stu =>
-              `<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-                <span style="width:35px;font-weight:600;color:#1762a7;">${stu.roll ? stu.roll + '.' : ''}</span>
-                <span style="flex:1 1 0;font-weight:500;font-size:1.13em;">${stu.name}</span>
-                <input type="checkbox" name="absent_${stu.id}" style="width:20px;height:20px;accent-color:#0f3d6b;">
+           ${students.map(stu =>
+            `<div style="
+                display: flex; align-items: center; 
+                justify-content: space-between; 
+                gap: 12px; padding: 8px 0; border-bottom: 1px solid #f3f3f3;">
+              <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+                <span style="width:32px; font-weight:600; color:#1762a7; text-align:right;">${stu.roll ? stu.roll + '.' : ''}</span>
+                <span style="font-weight:500; font-size:1.07em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${stu.name}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 7px;">
+                <input type="checkbox" name="absent_${stu.id}" style="width:22px; height:22px; accent-color:#0f3d6b;">
                 ${
                   stu.parentPhone
                     ? `<button type="button" class="wa-btn" data-ph="${stu.parentPhone}" data-name="${stu.name}"
-                        style="background:#25D366;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:none;margin-left:8px;box-shadow:0 1px 4px #0001;">
-                        <i class="fa fa-whatsapp" style="font-size:1.4em;color:#fff;"></i>
+                        style="background:#25D366; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:none; padding:0;">
+                          <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
+                            <circle cx="16" cy="16" r="16" fill="#25D366"/>
+                            <path fill="#fff" d="M23.1 10.9c-.4-.4-1-.6-1.5-.4l-2.1.8c-.5.2-.8.6-.9 1.1-.1.4 0 .9.3 1.2l.5.5c-.9 1.8-2.6 3.2-4.4 3.4l-.5-.5c-.3-.3-.8-.4-1.2-.3-.5.1-.9.4-1.1.9l-.8 2.1c-.2.5 0 1.1.4 1.5l.5.5c1.2 1.2 3.2 2.2 5.4 2.2s4.2-1 5.4-2.2c1.2-1.2 2.2-3.2 2.2-5.4 0-2.1-1-4.1-2.2-5.3z"/>
+                          </svg>
                       </button>`
                     : ''
                 }
-              </div>`
-            ).join('')}
+              </div>
+            </div>`
+          ).join('')}
           </div>
           <div class="popup-btn-row" style="margin-top:16px;">
             <button type="button" class="popup-cancel-btn">Cancel</button>
