@@ -76,7 +76,12 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-
+    function formatDate(dateStr) {
+        // Converts "YYYY-MM-DD" to "DD-MM-YYYY"
+        if (!dateStr) return '';
+        const [year, month, day] = dateStr.split('-');
+        return `${day}-${month}-${year}`;
+      }
     // ======================= GLOBALS =============================
     let academicYear = localStorage.getItem('sp_selectedYear') || '';
     console.log('academicYear raw:', academicYear, 'length:', academicYear.length);
@@ -695,7 +700,7 @@
       snap.forEach(doc => dates.push(doc.id));
       let html = `<div class="popup-title">Attendance Dates</div>
         <div style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
-          ${dates.map(date => `<button class="popup-action-btn" data-date="${date}" style="padding:8px 12px;font-size:1em;">${date}</button>`).join('')}
+          ${dates.map(date => `<button class="popup-action-btn" data-date="${date}" style="padding:8px 12px;font-size:1em;">${formatDate(date)}</button>`).join('')}
         </div>
         <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
       `;
