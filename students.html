@@ -663,11 +663,12 @@
           btn.onclick = function() {
             let ph = btn.dataset.ph.replace(/^0+/, '');
             let name = btn.dataset.name;
-           let msg = encodeURIComponent(
-              `*Dear Parent,*\n` +
-              `your child *${name}* is absent today at school. Kindly send reason for absence.\n` +
+          let msg = encodeURIComponent(
+              `Dear Parent,\n` +
+              `your child ${name} is absent today at school. Kindly send reason for absence.\n` +
+              `మీ బాబు / మీ పాప ${name} ఈ రోజు స్కూల్‌కు హాజరు కాలేదు. హాజరు కాకపోవడానికి గల కారణం తెలియజేయగలరు.\n\n` +
               `Thank you\n` +
-              `*St. Patrick's School*`
+              `St. Patrick's School`
             );
             window.open(`https://wa.me/91${ph}?text=${msg}`,'_blank');
           }
