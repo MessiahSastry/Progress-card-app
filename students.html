@@ -724,6 +724,7 @@
 }
 
 // View attendance for one date
+// View attendance for one date
 function showAttendanceForDate(date) {
   // Load student list
   db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
@@ -731,31 +732,58 @@ function showAttendanceForDate(date) {
     .then(stuSnap => {
       let students = [];
       stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-      // Load attendance
+      // Load ALL attendance for absent count
       db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
-        .collection('sections').doc(currentSectionId).collection('attendance').doc(date).get()
-        .then(attSnap => {
-          let att = attSnap.data() || {};
-          let html = `<div class="popup-title">Attendance: ${date}</div>
-            <div style="max-height:290px;overflow-y:auto;">
-              <table style="width:100%;border-collapse:collapse;">
-                <tr><th style="text-align:left;">Roll</th><th>Name</th><th>Status</th></tr>
-                ${students.map(stu => `
-                  <tr>
-                    <td style="padding:3px 7px;">${stu.roll}</td>
-                    <td style="padding:3px 7px;">${stu.name}</td>
-                    <td style="padding:3px 7px;">
-                      ${(att[stu.id] || 'present').toUpperCase()}
-                    </td>
-                  </tr>
-                `).join('')}
-              </table>
-            </div>
-            <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
-          `;
-          showPopup(html);
+        .collection('sections').doc(currentSectionId).collection('attendance').get()
+        .then(allAttSnap => {
+          let attDataByDate = {};
+          let totalDays = 0;
+          allAttSnap.forEach(d => {
+            attDataByDate[d.id] = d.data();
+            totalDays++;
+          });
+          // Load attendance for this date
+          db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+            .collection('sections').doc(currentSectionId).collection('attendance').doc(date).get()
+            .then(attSnap => {
+              let att = attSnap.data() || {};
+              let html = `<div class="popup-title">Attendance: ${formatDate(date)}</div>
+                <div style="max-height:290px;overflow-y:auto;">`;
+              students.forEach(stu => {
+                // Count absent days for this student
+                let absentCount = 0;
+                for (let d in attDataByDate) {
+                  if (attDataByDate[d][stu.id] === 'absent') absentCount++;
+                }
+                let status = (att[stu.id] || 'present').toLowerCase();
+                let statusTxt = status === 'absent' ? 'Ab' : 'Pr';
+                let statusColor = status === 'absent' ? '#e74c3c' : '#27ae60';
+                html += `
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;">
+                    <span style="font-weight:600;text-align:left;min-width:120px;">${stu.roll ? stu.roll + '. ' : ''}${stu.name}</span>
+                    <span style="display:flex;align-items:center;gap:8px;">
+                      <span style="color:${statusColor};font-weight:600;">${statusTxt}</span>
+                      <span style="border:1.5px solid #1762a7;border-radius:8px;padding:2px 10px;min-width:48px;text-align:center;background:#f8fcfe;">
+                        ${absentCount}/${totalDays}
+                      </span>
+                    </span>
+                  </div>
+                `;
+              });
+              html += `</div>
+                <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
+              `;
+              showPopup(html);
+            });
         });
     });
+}
+
+// Helper to show date as DD-MM-YYYY
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  return `${d}-${m}-${y}`;
 }
   </script>
 </body>
