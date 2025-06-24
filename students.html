@@ -705,8 +705,10 @@
       // List all dates
       let dates = [];
       snap.forEach(doc => dates.push(doc.id));
+      // Sort dates descending (latest first)
+      dates.sort((a, b) => b.localeCompare(a));
       let html = `<div class="popup-title">Attendance Dates</div>
-        <div style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+        <div style="max-height:269px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
           ${dates.map(date => `<button class="popup-action-btn" data-date="${date}" style="padding:8px 12px;font-size:1em;">${formatDate(date)}</button>`).join('')}
         </div>
         <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
