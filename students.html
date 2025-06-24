@@ -64,6 +64,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     // ======================= CONFIG ==============================
     const firebaseConfig = {
@@ -753,12 +754,56 @@
         let html = `
           <div class="popup-title">Attendance Dates</div>
           ${buildMonthYearDropdown(selectedMonth, selectedYear)}
-          <div id="datesList" style="max-height:269px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
-          <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
+          <button id="downloadExcelBtn" style="margin-bottom:10px;padding:6px 16px;background:#2b8e32;color:#fff;border:none;border-radius:6px;float:right;">Download Excel</button>
+          <div id="datesList" style="clear:both;max-height:269px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+          <div class="popup-btn-row"><button class="popup-cancel-btn">close</button></div>
         `;
-        
-        showPopup(html);
-        
+          showPopup(html);
+          setTimeout(() => {
+            const excelBtn = document.getElementById('downloadExcelBtn');
+            if (!excelBtn) return;
+            excelBtn.onclick = async function () {
+              // Get month & year from selectors
+              const month = popupContent.querySelector('#monthSelect').value;
+              const year = popupContent.querySelector('#yearSelect').value;
+              // Get all students
+              let stuSnap = await db.collection('years').doc(academicYear)
+                .collection('classes').doc(currentClassId)
+                .collection('sections').doc(currentSectionId)
+                .collection('students').orderBy('roll').get();
+              let students = [];
+              stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+              // Get all attendance docs
+              let attSnap = await db.collection('years').doc(academicYear)
+                .collection('classes').doc(currentClassId)
+                .collection('sections').doc(currentSectionId)
+                .collection('attendance').get();
+              // Filter attendance by selected month
+              let days = [];
+              attSnap.forEach(doc => {
+                let d = doc.id; // "YYYY-MM-DD"
+                if (d.startsWith(`${year}-${month}`)) days.push(d);
+              });
+              days.sort();
+              // Prepare Excel data
+              let header = ['Roll', 'Name', ...days];
+              let data = [header];
+              students.forEach(stu => {
+                let row = [stu.roll, stu.name];
+                days.forEach(d => {
+                  let a = attSnap.docs.find(doc => doc.id === d)?.data() || {};
+                  row.push(a[stu.id] ? a[stu.id].toUpperCase() : 'PRESENT');
+                });
+                data.push(row);
+              });
+              // Export to Excel
+              let ws = XLSX.utils.aoa_to_sheet(data);
+              let wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+              XLSX.writeFile(wb, `Attendance_${year}-${month}_${sectionName}.xlsx`);
+            };
+          }, 500);
+                  
         // Initial render
         showFilteredDates(selectedMonth, selectedYear);
         
