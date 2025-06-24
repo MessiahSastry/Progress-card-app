@@ -49,18 +49,35 @@
     #popup-content input {
       margin-bottom: 13px !important;
     }
-    .styled-dropdown {
-  font-size: 1.08em;
+   .custom-dropdown {
   border: 1.4px solid #1467b7;
   border-radius: 7px;
-  padding: 10px 14px;
   background: #f7fafd;
   margin-bottom: 15px;
   width: 100%;
-  transition: border-color .2s;
+  position: relative;
+  font-size: 1.08em;
 }
-.styled-dropdown:focus { border-color: #0f3d6b; outline: none; }
-
+.dropdown-selected {
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.dropdown-list {
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  background: #fff;
+  border: 1.2px solid #1467b7;
+  border-top: none;
+  border-radius: 0 0 7px 7px;
+  box-shadow: 0 8px 24px #1467b720;
+  z-index: 9;
+  max-height: 185px;
+  overflow-y: auto;
+}
+.dropdown-option:hover {
+  background: #e3f2fd;
+}
   </style>
 </head>
 <body>
@@ -488,10 +505,10 @@
         <form id="selectExamForm">
           <div class="popup-title">Enter Marks</div>
           <label for="examDropdown">Select Exam</label>
-          <select name="examId" id="examDropdown" class="styled-dropdown" required>
-            <option value="">--Select--</option>
-            ${exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}
-          </select>
+          <div class="custom-dropdown" id="examDropdown">
+            <div class="dropdown-selected" id="examSelected">--Select--</div>
+            <div class="dropdown-list" id="examList" style="display:none;"></div>
+          </div>
           <label for="subjectDropdown">Select Subject</label>
           <select name="subjectName" id="subjectDropdown" class="styled-dropdown" required disabled>
             <option value="">--Select Exam First--</option>
@@ -577,12 +594,40 @@
                 }).catch(error => alert("Error saving marks: " + error.message));
               });
             });
-            // --- End: Marks Entry Popup Block ---
-          });
-
+            });
       });
-
-      // ---- THIS IS THE FIX -----
+        const examDropdown = document.getElementById('examDropdown');
+        const examSelected = document.getElementById('examSelected');
+        const examList = document.getElementById('examList');
+        
+        // Populate the dropdown list
+        examList.innerHTML = exams.map(e => `
+          <div class="dropdown-option" data-id="${e.id}" style="padding:10px 12px;cursor:pointer;">
+            ${e.name}
+          </div>
+        `).join('');
+        
+        // Show/hide the list
+        examSelected.onclick = function () {
+          examList.style.display = (examList.style.display === 'none' || examList.style.display === '') ? 'block' : 'none';
+        };
+        // Hide the list on outside click
+        document.addEventListener('click', function handler(e) {
+          if (!examDropdown.contains(e.target)) {
+            examList.style.display = 'none';
+            document.removeEventListener('click', handler);
+          }
+        });
+        // Handle selection
+        examList.querySelectorAll('.dropdown-option').forEach(opt => {
+          opt.onclick = function () {
+            examSelected.textContent = this.textContent;
+            examSelected.dataset.value = this.dataset.id;
+            examList.style.display = 'none';
+            // (We will update subject dropdown next step)
+          };
+        });
+              // ---- THIS IS THE FIX -----
       setTimeout(() => {
         const examSel = document.querySelector('select[name="examId"]');
         const subjSel = document.querySelector('select[name="subjectName"]');
