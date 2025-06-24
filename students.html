@@ -598,26 +598,31 @@
       snap.forEach(doc => { if (!doc.data().isDeleted) students.push({ id: doc.id, ...doc.data() }); });
       let today = new Date().toISOString().slice(0, 10);
       db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
-      .collection('sections').doc(currentSectionId)
-      .collection('attendance').doc(today)
-      .get()
-      .then(attSnap => {
-        let attData = attSnap.exists ? attSnap.data() : {};
+        .collection('sections').doc(currentSectionId)
+        .collection('attendance').doc(today)
+        .get()
+        .then(attSnap => {
+          let attData = attSnap.exists ? attSnap.data() : {};
           let html = `
         <form id="attendanceForm">
           <div class="popup-title">Take Attendance - ${today}</div>
           <div style="max-height:270px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
-           ${students.map(stu =>
-            `<div style="
-                display: flex; align-items: center; 
-                justify-content: space-between; 
-                gap: 12px; padding: 8px 0; border-bottom: 1px solid #f3f3f3;">
+           ${students.map(stu => {
+            let mChecked = attData[stu.id]?.M === 'absent' ? 'checked' : '';
+            let aChecked = attData[stu.id]?.A === 'absent' ? 'checked' : '';
+            return `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f3f3f3;">
               <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
                 <span style="width:32px; font-weight:600; color:#1762a7; text-align:right;">${stu.roll ? stu.roll + '.' : ''}</span>
                 <span style="font-weight:500; font-size:1.07em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${stu.name}</span>
               </div>
               <div style="display: flex; align-items: center; gap: 7px;">
-                <input type="checkbox" name="absent_${stu.id}" style="width:22px; height:22px; accent-color:#0f3d6b;" ${(attData[stu.id]==='absent') ? 'checked' : ''}>
+                <label style="font-size:0.95em;">
+                  <input type="checkbox" name="absentM_${stu.id}" style="width:20px; height:20px; accent-color:#0f3d6b;" ${mChecked}> M
+                </label>
+                <label style="font-size:0.95em;">
+                  <input type="checkbox" name="absentA_${stu.id}" style="width:20px; height:20px; accent-color:#0f3d6b;" ${aChecked}> A
+                </label>
                 ${
                   stu.parentPhone
                     ? `<button type="button" class="wa-btn" data-ph="${stu.parentPhone}" data-name="${stu.name}"
@@ -636,58 +641,56 @@
                     : ''
                 }
               </div>
-            </div>`
-          ).join('')}
+            </div>`;
+          }).join('')}
           </div>
           <div class="popup-btn-row" style="margin-top:16px;">
             <button type="button" class="popup-cancel-btn">Cancel</button>
             <button type="submit" class="popup-action-btn">Save Attendance</button>
           </div>
         </form>
-        <div style="font-size:0.95em;color:#387c23;margin-top:8px;">Tick for absentees only. WhatsApp button will open message to parent.</div>
+        <div style="font-size:0.95em;color:#387c23;margin-top:8px;">
+          Tick M for Morning Absentees, A for Afternoon. WhatsApp will message parent.
+        </div>
       `;
-      showPopup(html, 'attendanceForm', function(e){
-        e.preventDefault();
-        let form = e.target;
-        let absentIds = [];
-        students.forEach(stu => {
-          if (form['absent_' + stu.id] && form['absent_' + stu.id].checked) {
-            absentIds.push(stu.id);
-          }
+          showPopup(html, 'attendanceForm', function(e){
+            e.preventDefault();
+            let form = e.target;
+            // Build attendance object per student: { [stu.id]: {M: 'present'|'absent', A: 'present'|'absent'} }
+            let attObj = {};
+            students.forEach(stu => {
+              let m = form[`absentM_${stu.id}`] && form[`absentM_${stu.id}`].checked ? 'absent' : 'present';
+              let a = form[`absentA_${stu.id}`] && form[`absentA_${stu.id}`].checked ? 'absent' : 'present';
+              attObj[stu.id] = { M: m, A: a };
+            });
+            let attDoc = db.collection('years').doc(academicYear)
+              .collection('classes').doc(currentClassId)
+              .collection('sections').doc(currentSectionId)
+              .collection('attendance').doc(today);
+            attDoc.set(attObj).then(() => {
+              alert("Attendance saved!");
+              closePopup();
+            });
+          });
+          // WhatsApp button event (unchanged)
+          setTimeout(() => {
+            popupContent.querySelectorAll('.wa-btn').forEach(btn => {
+              btn.onclick = function() {
+                let ph = btn.dataset.ph.replace(/^0+/, '');
+                let name = btn.dataset.name;
+                let msg = encodeURIComponent(
+                  `*Dear Parent,*\n\n` +
+                  `your child *${name}* is absent today at school. Kindly send reason for absence.\n\n` +
+                  `*${name}* ఈ రోజు స్కూల్‌కు హాజరు కాలేదు. హాజరు కాకపోవడానికి గల కారణం తెలియజేయగలరు.\n\n` +
+                  `Thank you\n` +
+                  `*St. Patrick's School*`
+                );
+                window.open(`https://wa.me/91${ph}?text=${msg}`,'_blank');
+              }
+            });
+          }, 400);
         });
-        // Save to attendance collection
-        let attObj = {};
-        students.forEach(stu => {
-          attObj[stu.id] = absentIds.includes(stu.id) ? 'absent' : 'present';
-        });
-        let attDoc = db.collection('years').doc(academicYear)
-          .collection('classes').doc(currentClassId)
-          .collection('sections').doc(currentSectionId)
-          .collection('attendance').doc(today);
-        attDoc.set(attObj).then(() => {
-          alert("Attendance saved!");
-          closePopup();
-        });
-      });
-      // WhatsApp button event
-      setTimeout(() => {
-        popupContent.querySelectorAll('.wa-btn').forEach(btn => {
-          btn.onclick = function() {
-            let ph = btn.dataset.ph.replace(/^0+/, '');
-            let name = btn.dataset.name;
-          let msg = encodeURIComponent(
-          `*Dear Parent,*\n\n` +
-          `your child *${name}* is absent today at school. Kindly send reason for absence.\n\n` +
-          `*${name}* ఈ రోజు స్కూల్‌కు హాజరు కాలేదు. హాజరు కాకపోవడానికి గల కారణం తెలియజేయగలరు.\n\n` +
-          `Thank you\n` +
-          `*St. Patrick's School*`
-        );
-            window.open(`https://wa.me/91${ph}?text=${msg}`,'_blank');
-          }
-        });
-      }, 400);
     });
-  });
 }
     function showAttendanceHistoryPopup() {
   // Get attendance docs for this section
@@ -785,14 +788,26 @@
                 if (d.startsWith(`${year}-${month}`)) days.push(d);
               });
               days.sort();
-              // Prepare Excel data
-              let header = ['Roll', 'Name', ...days];
+             // Prepare Excel data (with M/A for each date)
+              let header = ['Roll', 'Name'];
+              days.forEach(d => {
+                let dt = formatDate(d); // e.g. "24-06-2025"
+                header.push(dt + ' M');
+                header.push(dt + ' A');
+              });
               let data = [header];
-              students.forEach(stu => {
+                students.forEach(stu => {
                 let row = [stu.roll, stu.name];
                 days.forEach(d => {
+                  // Get attendance doc for this day
                   let a = attSnap.docs.find(doc => doc.id === d)?.data() || {};
-                  row.push(a[stu.id] ? a[stu.id].toUpperCase() : 'PRESENT');
+                  let status = a[stu.id] || {};
+                  // Morning
+                  let stM = (status.M || 'present').toLowerCase();
+                  // Afternoon
+                  let stA = (status.A || 'present').toLowerCase();
+                  row.push(stM === 'absent' ? 'Ab' : 'X');
+                  row.push(stA === 'absent' ? 'Ab' : 'X');
                 });
                 data.push(row);
               });
@@ -841,7 +856,6 @@
 }
 
 // View attendance for one date
-// View attendance for one date
 function showAttendanceForDate(date) {
   // Load student list
   db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
@@ -849,7 +863,8 @@ function showAttendanceForDate(date) {
     .then(stuSnap => {
       let students = [];
       stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-      // Load ALL attendance for absent count
+
+      // Load all attendance docs for absence counts
       db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
         .collection('sections').doc(currentSectionId).collection('attendance').get()
         .then(allAttSnap => {
@@ -859,34 +874,47 @@ function showAttendanceForDate(date) {
             attDataByDate[d.id] = d.data();
             totalDays++;
           });
-          // Load attendance for this date
+
+          // Load this date’s attendance
           db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
             .collection('sections').doc(currentSectionId).collection('attendance').doc(date).get()
             .then(attSnap => {
               let att = attSnap.data() || {};
+
               let html = `<div class="popup-title">Attendance: ${formatDate(date)}</div>
                 <div style="max-height:290px;overflow-y:auto;">`;
+
               students.forEach(stu => {
-                // Count absent days for this student
-                let absentCount = 0;
+                // Count absent days for this student (M/A)
+                let absentM = 0, absentA = 0;
                 for (let d in attDataByDate) {
-                  if (attDataByDate[d][stu.id] === 'absent') absentCount++;
+                  let st = attDataByDate[d][stu.id];
+                  if (st) {
+                    if (st.M === 'absent') absentM++;
+                    if (st.A === 'absent') absentA++;
+                  }
                 }
-                let status = (att[stu.id] || 'present').toLowerCase();
-                let statusTxt = status === 'absent' ? 'Ab' : 'Pr';
-                let statusColor = status === 'absent' ? '#e74c3c' : '#27ae60';
+                let stat = att[stu.id] || {};
+                let statM = (stat.M || 'present').toLowerCase();
+                let statA = (stat.A || 'present').toLowerCase();
+
+                let colorM = statM === 'absent' ? '#e74c3c' : '#27ae60';
+                let colorA = statA === 'absent' ? '#e74c3c' : '#27ae60';
+
                 html += `
                   <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;">
                     <span style="font-weight:600;text-align:left;min-width:120px;">${stu.roll ? stu.roll + '. ' : ''}${stu.name}</span>
                     <span style="display:flex;align-items:center;gap:8px;">
-                      <span style="color:${statusColor};font-weight:600;">${statusTxt}</span>
+                      <span style="color:${colorM};font-weight:600;">M: ${statM === 'absent' ? 'Ab' : 'Pr'}</span>
+                      <span style="color:${colorA};font-weight:600;">A: ${statA === 'absent' ? 'Ab' : 'Pr'}</span>
                       <span style="border:1.5px solid #1762a7;border-radius:8px;padding:2px 10px;min-width:48px;text-align:center;background:#f8fcfe;">
-                        ${absentCount}/${totalDays}
+                        M: ${absentM}/${totalDays} | A: ${absentA}/${totalDays}
                       </span>
                     </span>
                   </div>
                 `;
               });
+
               html += `</div>
                 <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
               `;
@@ -895,7 +923,6 @@ function showAttendanceForDate(date) {
         });
     });
 }
-
 // Helper to show date as DD-MM-YYYY
 function formatDate(dateStr) {
   if (!dateStr) return '';
