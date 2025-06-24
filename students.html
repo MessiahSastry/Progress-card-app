@@ -93,6 +93,58 @@
   background: #f0f0f0 !important;
   pointer-events: none;
 }
+    .att-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid #f2f2f2;
+  padding: 10px 0 4px 0;
+}
+.att-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.att-name {
+  font-weight: 600;
+  color: #222;
+  font-size: 1em;
+  min-width: 110px;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.att-badges {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+.att-badge {
+  padding: 2px 13px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1em;
+  display: inline-block;
+  border: 1.3px solid #e0e0e0;
+}
+.att-m-present, .att-a-present { background: #eaf8ea; color: #208c2c; border: 1px solid #70d085;}
+.att-m-absent,  .att-a-absent  { background: #fae9e9; color: #d43f3a; border: 1px solid #e48a8a;}
+.att-total-box {
+  border: 1.5px solid #1762a7;
+  border-radius: 8px;
+  padding: 5px 18px;
+  min-width: 60px;
+  font-size: 1.09em;
+  background: #f8fcfe;
+  text-align: center;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
   </style>
 </head>
 <body>
@@ -1006,36 +1058,40 @@ function showAttendanceForDate(date) {
                 <div style="max-height:290px;overflow-y:auto;">`;
 
               students.forEach(stu => {
-                // Count absent days for this student (M/A)
-                let absentM = 0, absentA = 0;
-                for (let d in attDataByDate) {
-                  let st = attDataByDate[d][stu.id];
-                  if (st) {
-                    if (st.M === 'absent') absentM++;
-                    if (st.A === 'absent') absentA++;
-                  }
-                }
-                let stat = att[stu.id] || {};
-                let statM = (stat.M || 'present').toLowerCase();
-                let statA = (stat.A || 'present').toLowerCase();
+  let daysAbsent = 0;
+  let totalDays = Object.keys(attDataByDate).length;
+  for (let d in attDataByDate) {
+    let st = attDataByDate[d][stu.id] || {};
+    const absentM = st.M === 'absent';
+    const absentA = st.A === 'absent';
+    if (absentM && absentA) {
+      daysAbsent += 1;           // Full day absent
+    } else if (absentM || absentA) {
+      daysAbsent += 0.5;         // Half day absent
+    }
+  }
+  // Format daysAbsent to show .5 if needed, else as integer
+  let daysAbsentStr = daysAbsent % 1 === 0 ? daysAbsent.toString() : daysAbsent.toFixed(1);
 
-                let colorM = statM === 'absent' ? '#e74c3c' : '#27ae60';
-                let colorA = statA === 'absent' ? '#e74c3c' : '#27ae60';
-
-                html += `
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;">
-                    <span style="font-weight:600;text-align:left;min-width:120px;">${stu.roll ? stu.roll + '. ' : ''}${stu.name}</span>
-                    <span style="display:flex;align-items:center;gap:8px;">
-                      <span style="color:${colorM};font-weight:600;">M: ${statM === 'absent' ? 'Ab' : 'Pr'}</span>
-                      <span style="color:${colorA};font-weight:600;">A: ${statA === 'absent' ? 'Ab' : 'Pr'}</span>
-                      <span style="border:1.5px solid #1762a7;border-radius:8px;padding:2px 10px;min-width:48px;text-align:center;background:#f8fcfe;">
-                        M: ${absentM}/${totalDays} | A: ${absentA}/${totalDays}
-                      </span>
-                    </span>
-                  </div>
-                `;
-              });
-
+  let stat = att[stu.id] || {};
+  let statM = (stat.M || 'present').toLowerCase();
+  let statA = (stat.A || 'present').toLowerCase();
+  let badgeM = `<span class="att-badge att-m-${statM}">M: ${statM === 'absent' ? 'Ab' : 'Pr'}</span>`;
+  let badgeA = `<span class="att-badge att-a-${statA}">A: ${statA === 'absent' ? 'Ab' : 'Pr'}</span>`;
+  let totalBox = `<span class="att-total-box">${daysAbsentStr} / ${totalDays}</span>`;
+  html += `
+    <div class="att-row">
+      <div class="att-main">
+        <span class="att-name">${stu.roll ? stu.roll + '. ' : ''}${stu.name}</span>
+        <div class="att-badges">
+          ${badgeM}
+          ${badgeA}
+        </div>
+      </div>
+      ${totalBox}
+    </div>
+  `;
+});
               html += `</div>
                 <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
               `;
