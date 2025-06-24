@@ -768,23 +768,27 @@
           showPopup(html);
           setTimeout(() => {
             const excelBtn = document.getElementById('downloadExcelBtn');
-            if (!excelBtn) return;
-            excelBtn.onclick = async function () {
-            // 1. Gather data
+          if (!excelBtn) return;
+          excelBtn.onclick = async function () {
+            // Get month & year from selectors
             const month = popupContent.querySelector('#monthSelect').value;
             const year = popupContent.querySelector('#yearSelect').value;
+          
+            // Get all students
             let stuSnap = await db.collection('years').doc(academicYear)
               .collection('classes').doc(currentClassId)
               .collection('sections').doc(currentSectionId)
               .collection('students').orderBy('roll').get();
             let students = [];
             stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+          
+            // Get all attendance docs
             let attSnap = await db.collection('years').doc(academicYear)
               .collection('classes').doc(currentClassId)
               .collection('sections').doc(currentSectionId)
               .collection('attendance').get();
           
-            // 2. Filter and sort days in this month
+            // Filter attendance by selected month, get unique dates sorted
             let days = [];
             attSnap.forEach(doc => {
               let d = doc.id; // "YYYY-MM-DD"
@@ -792,132 +796,42 @@
             });
             days.sort();
           
-            // 3. Setup color palette for each date
-            const dateColors = [
-              '#2471A3', '#17A589', '#B9770E', '#884EA0', '#229954', 
-              '#B03A2E', '#CA6F1E', '#1F618D', '#A93226', '#117A65', 
-              '#626567', '#D35400', '#566573', '#2874A6', '#2E4053'
-            ];
-            const getDateColor = idx => dateColors[idx % dateColors.length];
-          
-            // 4. Excel data as array of arrays
-            let data = [];
-          
-            // 4.1. Heading row
-            let monthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(month)-1];
-            let sectionLabel = `${currentClassName} ${currentSectionName} (${monthName} ${year})`;
-            let headRow = [sectionLabel];
-            let totalCols = 2 + days.length * 2;
-            while (headRow.length < totalCols) headRow.push('');
-            data.push(headRow);
-          
-            // 4.2. Second row: Roll, Name, Date columns (each date merged over 2 cols)
-            let row2 = ['Roll', 'Name'];
+            // Build headers for date/M/A
+            let titleRow = [`${currentClassName} ${currentSectionName} (Jun ${year})`];
+            // Merge this cell across columns in Excel
+            let headerRow = ['Roll', 'Name'];
+            let subHeaderRow = ['', ''];
             days.forEach(d => {
-              let dateNum = d.split('-')[2];
-              row2.push(dateNum, ''); // merge over 2 columns
+              let dayNum = d.split('-')[2];
+              headerRow.push(dayNum, '');
+              subHeaderRow.push('M', 'A');
             });
-            data.push(row2);
           
-            // 4.3. Third row: empty, empty, then M, A under each date
-            let row3 = ['', ''];
-            days.forEach(() => { row3.push('M', 'A'); });
-            data.push(row3);
-          
-            // 4.4. Student rows
+            // Prepare data rows
+            let data = [titleRow, headerRow, subHeaderRow];
             students.forEach(stu => {
               let row = [stu.roll, stu.name];
-              days.forEach((d, i) => {
-                let att = attSnap.docs.find(doc => doc.id === d)?.data()[stu.id];
-                // M
-                let statusM = att && att.M === 'absent' ? 'Ab' : 'X';
-                // A
-                let statusA = att && att.A === 'absent' ? 'Ab' : 'X';
+              days.forEach(d => {
+                // Default to present if attendance not found
+                let attData = attSnap.docs.find(doc => doc.id === d)?.data() || {};
+                let statusM = attData[stu.id]?.M === 'absent' ? 'Ab' : 'X';
+                let statusA = attData[stu.id]?.A === 'absent' ? 'Ab' : 'X';
                 row.push(statusM, statusA);
               });
               data.push(row);
             });
           
-            // 5. Create worksheet and workbook
+            // Export to Excel (SheetJS community)
             let ws = XLSX.utils.aoa_to_sheet(data);
+            // Merge the top row
+            ws['!merges'] = [{s:{r:0,c:0}, e:{r:0,c:headerRow.length-1}}];
+            // Set compact column width
+            ws['!cols'] = [{ wch: 5 }, { wch: 18 }, ...Array(days.length * 2).fill({ wch: 3 })];
           
-            // 6. Styling (requires XLSX >= 0.18.5)
-            // Merge: heading row (A1:... to fit all), each date's columns for dateNum, center
-            ws['!merges'] = [
-              { s: { r:0, c:0 }, e: { r:0, c:totalCols-1 } }, // heading
-            ];
-            days.forEach((d, i) => {
-              ws['!merges'].push({ s: { r:1, c:2+i*2 }, e: { r:1, c:2+i*2+1 } });
-            });
-          
-            // Column widths
-            ws['!cols'] = [{ wch:5 }, { wch:20 }]; // Roll, Name
-            for (let i = 0; i < days.length * 2; i++) ws['!cols'].push({ wch:3 }); // Compact for M/A
-          
-            // Cell styling
-            function setCell(cell, style) { if (ws[cell]) ws[cell].s = style; }
-          
-            // Heading style
-            setCell('A1', {
-              font: { bold:true, color:{rgb:"FFFFFF"}, sz:14 },
-              fill: { fgColor:{rgb:"23406e"} },
-              alignment: { horizontal:"center", vertical:"center" }
-            });
-          
-            // Roll/Name headers
-            setCell('A2', { font: { bold:true }, fill:{ fgColor:{rgb:"FF9800"} }, alignment:{ horizontal:"center" } });
-            setCell('B2', { font: { bold:true }, fill:{ fgColor:{rgb:"FF9800"} }, alignment:{ horizontal:"center" } });
-          
-            // Dates row styling & coloring per date
-            days.forEach((d, i) => {
-              let colIdx = 2 + i*2;
-              let colA = XLSX.utils.encode_cell({ r:1, c:colIdx });
-              setCell(colA, {
-                font: { bold:true, color:{rgb:"FFFFFF"} },
-                fill: { fgColor:{ rgb:getDateColor(i).replace('#','') } },
-                alignment: { horizontal:"center" }
-              });
-              // The "second" column of merged area (empty cell) should match color
-              let colB = XLSX.utils.encode_cell({ r:1, c:colIdx+1 });
-              setCell(colB, {
-                fill: { fgColor:{ rgb:getDateColor(i).replace('#','') } }
-              });
-              // M/A subheader row
-              let mCell = XLSX.utils.encode_cell({ r:2, c:colIdx });
-              let aCell = XLSX.utils.encode_cell({ r:2, c:colIdx+1 });
-              [mCell, aCell].forEach(c => setCell(c, {
-                font: { bold:true, color:{rgb:"FFFFFF"} },
-                fill: { fgColor:{ rgb:getDateColor(i).replace('#','') } },
-                alignment: { horizontal:"center" }
-              }));
-            });
-          
-            // Student row styling
-            for (let s=0; s<students.length; s++) {
-              for (let i=0; i<days.length; i++) {
-                // M cell
-                let mc = XLSX.utils.encode_cell({ r:3+s, c:2+i*2 });
-                // A cell
-                let ac = XLSX.utils.encode_cell({ r:3+s, c:2+i*2+1 });
-                // If Ab, make black background, white bold text
-                if (ws[mc]?.v === 'Ab') setCell(mc, { font:{ bold:true, color:{rgb:"FFFFFF"} }, fill:{ fgColor:{rgb:"000000"} }, alignment:{ horizontal:"center" } });
-                else setCell(mc, { fill:{ fgColor:{rgb:getDateColor(i).replace('#','')} }, alignment:{ horizontal:"center" } });
-                if (ws[ac]?.v === 'Ab') setCell(ac, { font:{ bold:true, color:{rgb:"FFFFFF"} }, fill:{ fgColor:{rgb:"000000"} }, alignment:{ horizontal:"center" } });
-                else setCell(ac, { fill:{ fgColor:{rgb:getDateColor(i).replace('#','')} }, alignment:{ horizontal:"center" } });
-              }
-            }
-            // Roll/Name row color
-            for (let s=0; s<students.length; s++) {
-              setCell(XLSX.utils.encode_cell({r:3+s,c:0}), { fill:{fgColor:{rgb:"FF9800"}}, alignment:{ horizontal:"center" }});
-              setCell(XLSX.utils.encode_cell({r:3+s,c:1}), { fill:{fgColor:{rgb:"FF9800"}}, alignment:{ horizontal:"center" }});
-            }
-          
-            // 7. Save file
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Attendance");
             XLSX.writeFile(wb, `Attendance_${year}-${month}_${currentSectionName}.xlsx`);
           };
-
           }, 500);
                   
         // Initial render
