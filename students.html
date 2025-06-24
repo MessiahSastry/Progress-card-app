@@ -486,8 +486,8 @@
         });
     }
 
-    // ============= ENTER MARKS ===============
-   function showEnterMarksPopup() {
+   // ============= ENTER MARKS ===============
+function showEnterMarksPopup() {
   console.log('showEnterMarksPopup called');
   console.log('academicYear:', academicYear);
   db.collection('years').doc(academicYear).collection('exams').orderBy('name').get()
@@ -504,15 +504,16 @@
       let html = `
         <form id="selectExamForm">
           <div class="popup-title">Enter Marks</div>
-          <label for="examDropdown">Select Exam</label>
-          <div class="custom-dropdown" id="examDropdown">
-            <div class="dropdown-selected" id="examSelected">--Select--</div>
+          <label>Select Exam</label>
+          <div class="custom-dropdown" id="examDropdown" tabindex="0">
+            <div class="dropdown-selected" id="examSelected" data-value="">--Select--</div>
             <div class="dropdown-list" id="examList" style="display:none;"></div>
           </div>
-          <label for="subjectDropdown">Select Subject</label>
-          <select name="subjectName" id="subjectDropdown" class="styled-dropdown" required disabled>
-            <option value="">--Select Exam First--</option>
-          </select>
+          <label>Select Subject</label>
+          <div class="custom-dropdown" id="subjectDropdown" tabindex="0">
+            <div class="dropdown-selected" id="subjectSelected" data-value="">--Select Exam First--</div>
+            <div class="dropdown-list" id="subjectList" style="display:none;"></div>
+          </div>
           <div class="popup-btn-row">
             <button type="button" class="popup-cancel-btn">Cancel</button>
             <button type="submit" class="popup-action-btn">Next</button>
@@ -521,8 +522,9 @@
       `;
       showPopup(html, 'selectExamForm', function(e) {
         e.preventDefault();
-        const examId = e.target.examId.value;
-        const subjectName = e.target.subjectName.value;
+        // Get selected values
+        const examId = document.getElementById('examSelected').dataset.value;
+        const subjectName = document.getElementById('subjectSelected').dataset.value;
         if (!examId || !subjectName) return;
         db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
           .collection('sections').doc(currentSectionId)
@@ -594,57 +596,84 @@
                 }).catch(error => alert("Error saving marks: " + error.message));
               });
             });
-            });
+          });
       });
-        const examDropdown = document.getElementById('examDropdown');
-        const examSelected = document.getElementById('examSelected');
-        const examList = document.getElementById('examList');
-        
-        // Populate the dropdown list
-        examList.innerHTML = exams.map(e => `
-          <div class="dropdown-option" data-id="${e.id}" style="padding:10px 12px;cursor:pointer;">
-            ${e.name}
-          </div>
-        `).join('');
-        
-        // Show/hide the list
-        examSelected.onclick = function () {
-          examList.style.display = (examList.style.display === 'none' || examList.style.display === '') ? 'block' : 'none';
-        };
-        // Hide the list on outside click
-        document.addEventListener('click', function handler(e) {
-          if (!examDropdown.contains(e.target)) {
-            examList.style.display = 'none';
-            document.removeEventListener('click', handler);
-          }
-        });
-        // Handle selection
-        examList.querySelectorAll('.dropdown-option').forEach(opt => {
-          opt.onclick = function () {
-            examSelected.textContent = this.textContent;
-            examSelected.dataset.value = this.dataset.id;
-            examList.style.display = 'none';
-            // (We will update subject dropdown next step)
-          };
-        });
-              // ---- THIS IS THE FIX -----
-      setTimeout(() => {
-        const examSel = document.querySelector('select[name="examId"]');
-        const subjSel = document.querySelector('select[name="subjectName"]');
-        if (examSel && subjSel) {
-          examSel.onchange = function() {
-            const ex = exams.find(e => e.id === this.value);
-            if (ex && Array.isArray(ex.subjects) && ex.subjects.length > 0) {
-              subjSel.innerHTML = ex.subjects.map(s => `<option value="${s.name}">${s.name} (Max: ${s.max})</option>`).join('');
-              subjSel.disabled = false;
-            } else {
-              subjSel.innerHTML = '<option value="">No subjects</option>';
-              subjSel.disabled = true;
-            }
-          };
+
+      // ======= Custom Dropdown Logic for Exam =======
+      const examDropdown = document.getElementById('examDropdown');
+      const examSelected = document.getElementById('examSelected');
+      const examList = document.getElementById('examList');
+      const subjectDropdown = document.getElementById('subjectDropdown');
+      const subjectSelected = document.getElementById('subjectSelected');
+      const subjectList = document.getElementById('subjectList');
+      let selectedExam = null;
+
+      // Populate exam dropdown
+      examList.innerHTML = exams.map(e => `
+        <div class="dropdown-option" data-id="${e.id}" style="padding:10px 12px;cursor:pointer;">
+          ${e.name}
+        </div>
+      `).join('');
+
+      // Exam show/hide
+      examSelected.onclick = function () {
+        examList.style.display = (examList.style.display === 'none' || examList.style.display === '') ? 'block' : 'none';
+      };
+      document.addEventListener('click', function handler(e) {
+        if (!examDropdown.contains(e.target)) {
+          examList.style.display = 'none';
+          document.removeEventListener('click', handler);
         }
-      }, 100);
       });
+
+      // Exam select logic
+      examList.querySelectorAll('.dropdown-option').forEach(opt => {
+        opt.onclick = function () {
+          examSelected.textContent = this.textContent;
+          examSelected.dataset.value = this.dataset.id;
+          examList.style.display = 'none';
+          // Fill subject dropdown
+          const ex = exams.find(e => e.id === this.dataset.id);
+          selectedExam = ex;
+          if (ex && Array.isArray(ex.subjects) && ex.subjects.length > 0) {
+            subjectList.innerHTML = ex.subjects.map(s => `<div class="dropdown-option" data-name="${s.name}">${s.name} (Max: ${s.max})</div>`).join('');
+            subjectSelected.textContent = '--Select--';
+            subjectSelected.dataset.value = '';
+            subjectSelected.classList.remove('disabled');
+            subjectList.style.display = 'none';
+            subjectSelected.style.pointerEvents = '';
+          } else {
+            subjectList.innerHTML = `<div class="dropdown-option" data-name="">No subjects</div>`;
+            subjectSelected.textContent = 'No subjects';
+            subjectSelected.dataset.value = '';
+            subjectSelected.classList.add('disabled');
+            subjectList.style.display = 'none';
+            subjectSelected.style.pointerEvents = 'none';
+          }
+        };
+      });
+
+      // Subject show/hide
+      subjectSelected.onclick = function () {
+        if (!selectedExam || !selectedExam.subjects || !selectedExam.subjects.length) return;
+        subjectList.style.display = (subjectList.style.display === 'none' || subjectList.style.display === '') ? 'block' : 'none';
+      };
+      document.addEventListener('click', function handler(e) {
+        if (!subjectDropdown.contains(e.target)) {
+          subjectList.style.display = 'none';
+          document.removeEventListener('click', handler);
+        }
+      });
+
+      // Subject select logic
+      subjectList.addEventListener('click', function (e) {
+        if (e.target.classList.contains('dropdown-option')) {
+          subjectSelected.textContent = e.target.textContent;
+          subjectSelected.dataset.value = e.target.dataset.name;
+          subjectList.style.display = 'none';
+        }
+      });
+    });
 }
     // ========== ATTENDANCE + WHATSAPP ===========
     function showAttendancePopup() {
