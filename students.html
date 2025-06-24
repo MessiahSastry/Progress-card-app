@@ -122,7 +122,8 @@
           students.forEach(stu => {
             html += `<div class="student-row ${stu.isDeleted ? 'deleted-student' : ''}"
               data-student-id="${stu.id}">
-              <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span> ${stu.name}
+              <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span>
+              <span style="color:#1467b7; font-weight:600;">${stu.name}</span>
             </div>`;
           });
           html += "</div>";
