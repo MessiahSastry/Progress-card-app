@@ -614,8 +614,12 @@
               return `
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f3f3f3;">
                 <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
-                  <span style="width:32px; font-weight:600; color:#1762a7; text-align:right;">${stu.roll ? stu.roll + '.' : ''}</span>
-                  <span style="font-weight:500; font-size:1.07em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${stu.name}</span>
+                  <span style="width:32px; font-weight:600; color:#1762a7; text-align:right;">
+                  ${stu.roll ? stu.roll + '.' : ''}
+                </span>
+                <span style="color:#1762a7; font-weight:600; font-size:1.07em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  ${stu.name}
+                </span>
                 </div>
                 <div style="display:flex;align-items:center;gap:14px;">
                   <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
