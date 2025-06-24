@@ -49,6 +49,18 @@
     #popup-content input {
       margin-bottom: 13px !important;
     }
+    .styled-dropdown {
+  font-size: 1.08em;
+  border: 1.4px solid #1467b7;
+  border-radius: 7px;
+  padding: 10px 14px;
+  background: #f7fafd;
+  margin-bottom: 15px;
+  width: 100%;
+  transition: border-color .2s;
+}
+.styled-dropdown:focus { border-color: #0f3d6b; outline: none; }
+
   </style>
 </head>
 <body>
@@ -475,13 +487,13 @@
       let html = `
         <form id="selectExamForm">
           <div class="popup-title">Enter Marks</div>
-          <label>Select Exam</label>
-          <select name="examId" required>
+          <label for="examDropdown">Select Exam</label>
+          <select name="examId" id="examDropdown" class="styled-dropdown" required>
             <option value="">--Select--</option>
             ${exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}
           </select>
-          <label>Select Subject</label>
-          <select name="subjectName" required disabled>
+          <label for="subjectDropdown">Select Subject</label>
+          <select name="subjectName" id="subjectDropdown" class="styled-dropdown" required disabled>
             <option value="">--Select Exam First--</option>
           </select>
           <div class="popup-btn-row">
