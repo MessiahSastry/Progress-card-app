@@ -770,52 +770,59 @@
             const excelBtn = document.getElementById('downloadExcelBtn');
             if (!excelBtn) return;
             excelBtn.onclick = async function () {
-              // Get month & year from selectors
               const month = popupContent.querySelector('#monthSelect').value;
               const year = popupContent.querySelector('#yearSelect').value;
-              // Get all students
               let stuSnap = await db.collection('years').doc(academicYear)
                 .collection('classes').doc(currentClassId)
                 .collection('sections').doc(currentSectionId)
                 .collection('students').orderBy('roll').get();
               let students = [];
               stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-              // Get all attendance docs
               let attSnap = await db.collection('years').doc(academicYear)
                 .collection('classes').doc(currentClassId)
                 .collection('sections').doc(currentSectionId)
                 .collection('attendance').get();
-              // Filter attendance by selected month
+            
+              // Filter dates in selected month
               let days = [];
               attSnap.forEach(doc => {
                 let d = doc.id; // "YYYY-MM-DD"
                 if (d.startsWith(`${year}-${month}`)) days.push(d);
               });
               days.sort();
-             // Prepare Excel data (with M/A for each date)
-              let header = ['Roll', 'Name'];
+            
+              // --- Build Excel Headers ---
+              let headerRow1 = ['Roll', 'Name'];
+              let headerRow2 = ['', ''];
               days.forEach(d => {
-                let dt = formatDate(d); // e.g. "24-06-2025"
-                header.push(dt + ' M');
-                header.push(dt + ' A');
+                let dd = d.split('-')[2];
+                headerRow1.push(dd, dd);
+                headerRow2.push('M', 'A');
               });
-              let data = [header];
-                students.forEach(stu => {
+            
+              // ---- ADD HEADING ROW ----
+              // E.g., "Nursery  A Section (June 2025)"
+              let monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+              let heading = `${currentClassName}  ${currentSectionName} (${monthNames[parseInt(month,10)-1]} ${year})`;
+              // Merge heading cells by making first cell heading and others empty
+              let headingRow = [heading];
+              while (headingRow.length < headerRow1.length) headingRow.push('');
+            
+              let data = [headingRow, headerRow1, headerRow2];
+            
+              // --- Build Data Rows ---
+              students.forEach(stu => {
                 let row = [stu.roll, stu.name];
                 days.forEach(d => {
-                  // Get attendance doc for this day
-                  let a = attSnap.docs.find(doc => doc.id === d)?.data() || {};
-                  let status = a[stu.id] || {};
-                  // Morning
-                  let stM = (status.M || 'present').toLowerCase();
-                  // Afternoon
-                  let stA = (status.A || 'present').toLowerCase();
-                  row.push(stM === 'absent' ? 'Ab' : 'X');
-                  row.push(stA === 'absent' ? 'Ab' : 'X');
+                  let att = attSnap.docs.find(doc => doc.id === d)?.data() || {};
+                  let M = (att[stu.id]?.M === 'absent') ? 'X' : '';
+                  let A = (att[stu.id]?.A === 'absent') ? 'X' : '';
+                  row.push(M, A);
                 });
                 data.push(row);
               });
-              // Export to Excel
+            
+              // --- Export Excel ---
               let ws = XLSX.utils.aoa_to_sheet(data);
               let wb = XLSX.utils.book_new();
               XLSX.utils.book_append_sheet(wb, ws, "Attendance");
