@@ -209,6 +209,16 @@
     const fab = document.getElementById('fab');
     const year = getQueryParam('year');
     const className = getQueryParam('className');
+    // Set academic year in header
+      const headerExam = document.getElementById('header-exam');
+      if (year) {
+        // Show "2025-26" style
+        headerExam.textContent = year;
+        headerExam.style.color = "#ffd700"; // gold color, like students page
+        headerExam.style.fontWeight = "bold";
+      } else {
+        headerExam.textContent = "";
+      }
     // Show class name below header
     document.getElementById("current-class-title").textContent = className ? decodeURIComponent(className) : "(Class name not set)";
 
