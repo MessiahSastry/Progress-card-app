@@ -62,12 +62,12 @@
     </div>
   </div>
 
-  <!-- Firebase libraries -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+ <!-- Firebase libraries -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-  <script>
+<script>
   // FIREBASE CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
@@ -79,6 +79,28 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+
+  // Auth check and main page init
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (!user) {
+      window.location.replace("index.html"); // Redirect to login if not authenticated
+    } else {
+      initMemosPage(); // Call your main page setup function here!
+    }
+  });
+
+  function initMemosPage() {
+    // ======= ALL YOUR LOGIC GOES INSIDE THIS FUNCTION =======
+    // Example: Load Academic Years
+    const yearSel = document.getElementById('yearDropdown');
+    db.collection('years').orderBy('name', 'desc').get().then(snap => {
+      snap.forEach(doc => {
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = doc.id;
+        yearSel.appendChild(option);
+      });
+    });
 
   // Helper: wait
   const sleep = ms => new Promise(res => setTimeout(res, ms));
