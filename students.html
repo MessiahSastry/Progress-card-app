@@ -636,18 +636,21 @@ function showEnterMarksPopup() {
                       students.length === 0
                         ? '<div style="color:#888;font-style:italic;">No students found.</div>'
                         : students.map(stu => `
-                      <div style="padding: 12px 0; border-bottom: 1px solid #f3f3f3; display:flex; align-items:center; gap:12px;">
-                        <div style="min-width:56px; color:#1762a7; font-weight:600;">
-                          ${stu.roll ? stu.roll + '.' : ''}
-                        </div>
-                        <div style="flex:1 1 0%; color:#1762a7; font-weight:600;">${stu.name}</div>
-                        <input type="number" 
-                          name="marks_${stu.id}" 
-                          value="${marksData[stu.id] !== undefined ? marksData[stu.id] : ''}" 
-                          min="0" max="${max}" 
-                          step="0.1"
-                          style="width:74px; font-size:1.15em; padding:7px; border-radius:7px; border:1px solid #bbb; background:#f7fafd; text-align:right;"/>
-                      </div>
+                      <div style="padding: 12px 0; border-bottom: 1px solid #f3f3f3; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1 1 0%;">
+                      <span style="font-weight: bold; color: #1762a7; min-width: 36px; text-align: left;">
+                        ${stu.roll ? stu.roll + '.' : ''}
+                      </span>
+                      <span style="color: #1762a7; font-weight: 600; font-size: 1em; white-space: pre-line; word-break: break-word;">
+                        ${stu.name}
+                      </span>
+                    </div>
+                    <input type="number"
+                      name="marks_${stu.id}"
+                      value="${marksData[stu.id] !== undefined ? marksData[stu.id] : ''}"
+                      min="0" max="${max}" step="1"
+                      style="width: 54px; font-size: 1.13em; padding: 6px; border-radius: 7px; border: 1px solid #bbb; background: #f7fafd; text-align: right; margin-left: 6px;" />
+                  </div>
                     `).join('')
                     }
                   </div>
