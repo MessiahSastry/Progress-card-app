@@ -90,19 +90,7 @@
   });
 
   function initMemosPage() {
-    // ======= ALL YOUR LOGIC GOES INSIDE THIS FUNCTION =======
-    // Example: Load Academic Years
-      db.collection('years').orderBy('name', 'desc').get().then(snap => {
-      snap.forEach(doc => {
-        const option = document.createElement('option');
-        option.value = doc.id;
-        option.textContent = doc.id;
-        yearSel.appendChild(option);
-      });
-    });
-
-  // Helper: wait
-  const sleep = ms => new Promise(res => setTimeout(res, ms));
+   const sleep = ms => new Promise(res => setTimeout(res, ms));
 
   // MEMO PNG (background)
   let memoImgData = null;
