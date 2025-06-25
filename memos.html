@@ -87,7 +87,7 @@ const PNG_CONFIG = [
   {
     file: "memo-6-7-8-9.png",
     classes: ["6", "7", "8", "9", "6th", "7th", "8th", "9th"],
-    subjRows: [1,10], totalRow: 11 // full as before
+    subjRows: [2,11], totalRow: 12 // full as before
   },
   {
     file: "memo-10.png",
@@ -98,18 +98,19 @@ const PNG_CONFIG = [
 
 // ------ Subject table Y positions for 12 rows (0-indexed: 0-11) ------
 const subjectRowsY = [
-  1359,  // 1st row (not used for most memos)
-  1478,  // 2nd row (not used for most memos)
-  1596,  // 3rd row: use as "row 1" for most
-  1715,  // 4
-  1834,  // 5
-  1953,  // 6
-  2072,  // 7
-  2191,  // 8
-  2310,  // 9
-  2429,  // 10
-  2548,  // 11
-  2667   // 12
+  1359,  // 0
+  1478,  // 1
+  1596,  // 2   <-- Start from here for 6-9th
+  1715,  // 3
+  1834,  // 4
+  1953,  // 5
+  2072,  // 6
+  2191,  // 7
+  2310,  // 8
+  2429,  // 9
+  2548,  // 10
+  2667,  // 11
+  2786   // 12 <-- New: For total row!
 ];
 
 // X coordinates for (max/marks/grade) — same for all
