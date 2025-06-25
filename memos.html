@@ -92,8 +92,7 @@
   function initMemosPage() {
     // ======= ALL YOUR LOGIC GOES INSIDE THIS FUNCTION =======
     // Example: Load Academic Years
-    const yearSel = document.getElementById('yearDropdown');
-    db.collection('years').orderBy('name', 'desc').get().then(snap => {
+      db.collection('years').orderBy('name', 'desc').get().then(snap => {
       snap.forEach(doc => {
         const option = document.createElement('option');
         option.value = doc.id;
