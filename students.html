@@ -1062,9 +1062,9 @@ function showDeletedStudentsPopup() {
             students.length === 0
               ? `<div style="color:#888;text-align:center;">No deleted students.</div>`
               : students.map(stu => `
-                <div style="padding: 14px 0; border-bottom: 1px solid #f3f3f3; text-align:center;">
-                  <div style="font-weight:bold;color:#888; font-size:1.12em; margin-bottom: 6px;">
-                    ${stu.roll ? stu.roll + '. ' : ''}<span style="color:#d43f3a;">${stu.name}</span>
+                <div style="padding: 14px 0; border-bottom: 1px solid #f3f3f3;">
+                  <div style="font-weight:bold; font-size:1.12em; margin-bottom: 6px; text-align:left;">
+                    <span style="color:#d43f3a;">${stu.roll ? stu.roll + '. ' : ''}${stu.name}</span>
                   </div>
                   <div style="display:flex; gap:16px; justify-content:center;">
                     <button class="popup-action-btn" style="background:#26bb5a; min-width:115px;" data-restore="${stu.id}">Restore</button>
