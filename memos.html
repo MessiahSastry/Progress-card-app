@@ -213,6 +213,10 @@ async function loadClasses() {
 }
 async function loadSections() {
   let year = yearSel.value, classId = classSel.value;
+  if (!year || !classId) {
+    sectionSel.innerHTML = '';
+    return;
+  }
   let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').orderBy('name').get();
   sections = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
   sectionSel.innerHTML = sections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
@@ -229,6 +233,11 @@ async function loadExams() {
 }
 async function loadStudents() {
   let year = yearSel.value, classId = classSel.value, sectionId = sectionSel.value;
+  if (!year || !classId || !sectionId) {
+    studentListDiv.innerHTML = '';
+    students = [];
+    return;
+  }
   let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').doc(sectionId).collection('students').orderBy('roll').get();
   students = [];
   snap.forEach(doc => { let d=doc.data(); if (!d.isDeleted) students.push({id: doc.id, ...d}); });
@@ -329,10 +338,13 @@ async function fetchStudentData(stu) {
     if ((subj.max === 50 && m < 20) || (subj.max === 100 && m < 40)) pass = false;
     stuSubjects.push({name: subj.name, max: subj.max, marks: m, grade});
   });
-  let attSnap = await db.collection('years').doc(year)
-    .collection('classes').doc(classId)
-    .collection('sections').doc(sectionId)
-    .collection('attendance').get();
+  let attSnap = { forEach: () => {} }; // default empty
+  if (year && classId && sectionId) {
+    attSnap = await db.collection('years').doc(year)
+      .collection('classes').doc(classId)
+      .collection('sections').doc(sectionId)
+      .collection('attendance').get();
+  }
   let months = ['06','07','08','09','10','11','12','01','02','03'];
   let attArr = months.map(mo => ({work:0, pres:0}));
   attSnap.forEach(doc => {
