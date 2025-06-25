@@ -164,39 +164,49 @@
   <script>
     // ======================= CONFIG ==============================
     const firebaseConfig = {
-      apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
-      authDomain: "stpatricksprogresscard.firebaseapp.com",
-      projectId: "stpatricksprogresscard",
-      storageBucket: "stpatricksprogresscard.appspot.com",
-      messagingSenderId: "671416933178",
-      appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    function formatDate(dateStr) {
+        apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
+        authDomain: "stpatricksprogresscard.firebaseapp.com",
+        projectId: "stpatricksprogresscard",
+        storageBucket: "stpatricksprogresscard.appspot.com",
+        messagingSenderId: "671416933178",
+        appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth();
+      
+      function formatDate(dateStr) {
         // Converts "YYYY-MM-DD" to "DD-MM-YYYY"
         if (!dateStr) return '';
         const [year, month, day] = dateStr.split('-');
         return `${day}-${month}-${year}`;
       }
-    // ======================= GLOBALS =============================
-    let academicYear = localStorage.getItem('sp_selectedYear') || '';
-    console.log('academicYear raw:', academicYear, 'length:', academicYear.length);
-    document.getElementById('header-exam').textContent = academicYear;
-    const mainArea = document.getElementById("main-area");
-    const popupBg = document.getElementById('popup-bg');
-    const popupContent = document.getElementById('popup-content');
-    const fab = document.getElementById('fab');
-    const settingsBtn = document.getElementById('settings-btn');
-    let currentClassId = localStorage.getItem('sp_selectedClassId') || '';
-    let currentClassName = localStorage.getItem('sp_selectedClassName') || '';
-    let currentSectionId = localStorage.getItem('sp_selectedSectionId') || '';
-    let currentSectionName = localStorage.getItem('sp_selectedSectionName') || '';
-    fab.onclick = showAddStudentPopup;
-    fab.style.display = "flex";
-    settingsBtn.onclick = showSettingsPopup;
-    settingsBtn.style.display = "flex";
-    renderStudentList();
+            // ======================= GLOBALS =============================
+      let academicYear = localStorage.getItem('sp_selectedYear') || '';
+      console.log('academicYear raw:', academicYear, 'length:', academicYear.length);
+      document.getElementById('header-exam').textContent = academicYear;
+      const mainArea = document.getElementById("main-area");
+      const popupBg = document.getElementById('popup-bg');
+      const popupContent = document.getElementById('popup-content');
+      const fab = document.getElementById('fab');
+      const settingsBtn = document.getElementById('settings-btn');
+      let currentClassId = localStorage.getItem('sp_selectedClassId') || '';
+      let currentClassName = localStorage.getItem('sp_selectedClassName') || '';
+      let currentSectionId = localStorage.getItem('sp_selectedSectionId') || '';
+      let currentSectionName = localStorage.getItem('sp_selectedSectionName') || '';
+      
+      // --- Only render UI after authentication ---
+      auth.onAuthStateChanged(function(user) {
+        if (user) {
+          fab.onclick = showAddStudentPopup;
+          fab.style.display = "flex";
+          settingsBtn.onclick = showSettingsPopup;
+          settingsBtn.style.display = "flex";
+          renderStudentList();
+        } else {
+          window.location.replace("index.html"); // redirect to login if not authenticated
+        }
+      });
 
     // ======================= MAIN LIST ===========================
     function renderStudentList() {
