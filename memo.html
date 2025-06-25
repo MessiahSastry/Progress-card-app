@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Download Progress Card PDFs - St. Patrick's School</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <style>
+    html, body { background: #f4f8fc; margin:0; padding:0; font-family:'Segoe UI',Arial,sans-serif;}
+    .container { max-width: 580px; margin: 30px auto 20px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 18px #0f3d6b22; padding: 24px 18px 30px 18px;}
+    .school-title { color: #0f3d6b; font-size: 1.48em; font-weight: bold; text-align: center;}
+    .subtitle { color: #1762a7; font-size: 1.02em; font-weight: 500; text-align: center; margin-bottom: 16px;}
+    .section { margin-bottom: 20px; }
+    label { font-weight: 600; color: #195084; display: block; margin-bottom: 6px; }
+    select, button { padding: 11px 10px; border-radius: 8px; border: 1.2px solid #c7d7ea; background: #f7fafd; margin-bottom: 11px; width:100%; font-size: 1.12em; }
+    button { background: #0f3d6b; color: #fff; border:none; font-weight: 600; cursor:pointer; margin-bottom:0; margin-top:5px;}
+    button:hover { background: #1762a7; }
+    .row { display: flex; gap: 11px; }
+    .row select { flex:1; margin-bottom:0;}
+    .actions { display:flex; gap:14px; margin: 15px 0 12px 0;}
+    .pdf-preview { border: 2px solid #d1e5f7; border-radius: 12px; padding: 12px; margin-top: 10px; background: #fafdff;}
+    .pdf-preview canvas { max-width: 100%; margin-bottom: 10px;}
+    .student-list { margin: 10px 0 18px 0; }
+    .student-btn { background: #f7fafd; color: #1762a7; border: 1px solid #c7d7ea; border-radius: 7px; padding: 8px 13px; margin: 0 6px 8px 0; font-size: 1em; font-weight:600; cursor:pointer;}
+    .student-btn:hover { background: #eaf1fa;}
+    @media (max-width: 640px) { .container { max-width: 99vw; padding:9vw 2vw;}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="school-title">St. Patrick's School</div>
+    <div class="subtitle">IIT & NEET FOUNDATION<br>Download Progress Cards (PDF)</div>
+
+    <div class="section">
+      <label for="yearSel">Academic Year</label>
+      <select id="yearSel"></select>
+    </div>
+    <div class="section row">
+      <div style="flex:1">
+        <label for="classSel">Class</label>
+        <select id="classSel"></select>
+      </div>
+      <div style="flex:1">
+        <label for="sectionSel">Section</label>
+        <select id="sectionSel"></select>
+      </div>
+    </div>
+    <div class="section">
+      <label for="examSel">Exam</label>
+      <select id="examSel"></select>
+    </div>
+
+    <div class="actions">
+      <button id="previewBtn">Preview (First 3)</button>
+      <button id="downloadAllBtn">Download All (PDF)</button>
+    </div>
+    <div class="student-list" id="studentList"></div>
+    <div class="pdf-preview" id="pdfPreview"></div>
+    <div style="color:#888;font-size:.98em;margin-top:16px;">
+      <b>Note:</b> Only first 3 student memos are shown as preview for speed. Download PDF for all.
+    </div>
+  </div>
+
+  <!-- Firebase libraries -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+  // FIREBASE CONFIG
+  const firebaseConfig = {
+    apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
+    authDomain: "stpatricksprogresscard.firebaseapp.com",
+    projectId: "stpatricksprogresscard",
+    storageBucket: "stpatricksprogresscard.appspot.com",
+    messagingSenderId: "671416933178",
+    appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Helper: wait
+  const sleep = ms => new Promise(res => setTimeout(res, ms));
+
+  // MEMO PNG (background)
+  let memoImgData = null;
+  function loadMemoImg() {
+    return fetch('memo.png').then(resp => resp.blob()).then(blob => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = ev => { memoImgData = ev.target.result; resolve(); };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    }));
+  }
+
+  // UI ELEMENTS
+  const yearSel = document.getElementById('yearSel');
+  const classSel = document.getElementById('classSel');
+  const sectionSel = document.getElementById('sectionSel');
+  const examSel = document.getElementById('examSel');
+  const previewBtn = document.getElementById('previewBtn');
+  const downloadAllBtn = document.getElementById('downloadAllBtn');
+  const pdfPreview = document.getElementById('pdfPreview');
+  const studentListDiv = document.getElementById('studentList');
+
+  // Main Data
+  let years = [], classes = [], sections = [], exams = [], students = [];
+
+  // ================== UI LOADERS ====================
+  async function loadYears() {
+    let snap = await db.collection('years').orderBy('name', 'desc').get();
+    years = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    yearSel.innerHTML = years.map(y => `<option value="${y.id}">${y.id}</option>`).join('');
+    yearSel.selectedIndex = 0;
+    await loadClasses();
+  }
+  async function loadClasses() {
+    let year = yearSel.value;
+    let snap = await db.collection('years').doc(year).collection('classes').orderBy('name').get();
+    classes = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    classSel.innerHTML = classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    classSel.selectedIndex = 0;
+    await loadSections();
+  }
+  async function loadSections() {
+    let year = yearSel.value, classId = classSel.value;
+    let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').orderBy('name').get();
+    sections = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    sectionSel.innerHTML = sections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    sectionSel.selectedIndex = 0;
+    await loadExams();
+  }
+  async function loadExams() {
+    let year = yearSel.value;
+    let snap = await db.collection('years').doc(year).collection('exams').orderBy('name').get();
+    exams = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    examSel.innerHTML = exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+    examSel.selectedIndex = 0;
+    await loadStudents();
+  }
+  async function loadStudents() {
+    let year = yearSel.value, classId = classSel.value, sectionId = sectionSel.value;
+    let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').doc(sectionId).collection('students').orderBy('roll').get();
+    students = [];
+    snap.forEach(doc => { let d=doc.data(); if (!d.isDeleted) students.push({id: doc.id, ...d}); });
+    showStudentList();
+  }
+
+  function showStudentList() {
+    studentListDiv.innerHTML = students.length ?
+      `<b>Download Individual:</b><br>` +
+      students.map(stu =>
+        `<button class="student-btn" onclick="downloadOne('${stu.id}')">${stu.roll ? stu.roll + '.' : ''} ${stu.name}</button>`
+      ).join('')
+      : `<span style="color:#999;">No students in this section.</span>`;
+  }
+
+  yearSel.onchange = () => loadClasses();
+  classSel.onchange = () => loadSections();
+  sectionSel.onchange = () => loadExams();
+  examSel.onchange = () => loadStudents();
+
+  // Download single student button handler (window for inline handler)
+  window.downloadOne = async function(studentId) {
+    await generatePDF([students.find(s => s.id === studentId)], true);
+  };
+
+  // PREVIEW (first 3 students)
+  previewBtn.onclick = async () => {
+    pdfPreview.innerHTML = `<i>Generating preview...</i>`;
+    await sleep(150);
+    await showPreviewPDF(students.slice(0,3));
+  };
+
+  // DOWNLOAD ALL
+  downloadAllBtn.onclick = async () => {
+    await generatePDF(students, false);
+  };
+
+  // ========== PDF GENERATION LOGIC ===========
+
+  // Helper: center/left text
+  function centerText(pdf, text, x, y, size=12, color=[0,0,0], fontStyle="bold", fontName="helvetica") {
+    pdf.setFont(fontName, fontStyle);
+    pdf.setFontSize(size);
+    pdf.setTextColor(...color);
+    pdf.text(text, x, y, {align: 'center'});
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor(0,0,0);
+  }
+  function leftText(pdf, text, x, y, size=12, color=[0,0,0], fontStyle="bold", fontName="helvetica") {
+    pdf.setFont(fontName, fontStyle);
+    pdf.setFontSize(size);
+    pdf.setTextColor(...color);
+    pdf.text(text, x, y, {align: 'left'});
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor(0,0,0);
+  }
+  function formatClass(val) {
+    if (!val) return '';
+    return val.replace(/^(\d+)(\w+)$/, (m, num, suff) => num.toUpperCase() + suff.toLowerCase());
+  }
+
+  // Get marks/grades/attendance for a student
+  async function fetchStudentData(stu) {
+    let year = yearSel.value, classId = classSel.value, sectionId = sectionSel.value, examId = examSel.value;
+    // MARKS
+    let examObj = exams.find(e => e.id === examId);
+    let marksDoc = await db.collection('years').doc(year)
+      .collection('classes').doc(classId)
+      .collection('sections').doc(sectionId)
+      .collection('students').doc(stu.id)
+      .collection('marks').doc(examId).get();
+    let marks = marksDoc.exists ? marksDoc.data() : {};
+    // Calc subject list
+    let subjects = (examObj && Array.isArray(examObj.subjects)) ? examObj.subjects : [];
+    let stuSubjects = [];
+    let totalMarks = 0, totalMax = 0, pass = true;
+    subjects.forEach((subj, i) => {
+      let m = marks[subj.name] ?? '';
+      let grade = '';
+      if (m !== '') {
+        let percent = (m / subj.max) * 100;
+        grade = m < (subj.max === 50 ? 20 : 40) ? 'F'
+              : percent >= 95 ? 'A+'
+              : percent >= 85 ? 'A'
+              : percent >= 70 ? 'B'
+              : percent >= 50 ? 'C'
+              : percent >= 40 ? 'D'
+              : 'F';
+      }
+      if (m !== '') { totalMarks += +m; totalMax += +subj.max; }
+      if ((subj.max === 50 && m < 20) || (subj.max === 100 && m < 40)) pass = false;
+      stuSubjects.push({name: subj.name, max: subj.max, marks: m, grade});
+    });
+    // Attendance for 10 months (June-March)
+    let attSnap = await db.collection('years').doc(year)
+      .collection('classes').doc(classId)
+      .collection('sections').doc(sectionId)
+      .collection('attendance').get();
+    // Each doc: id = "YYYY-MM-DD"
+    let months = ['06','07','08','09','10','11','12','01','02','03'];
+    let attArr = months.map(mo => ({work:0, pres:0}));
+    attSnap.forEach(doc => {
+      let date = doc.id;
+      let mm = date.split('-')[1];
+      let idx = months.indexOf(mm);
+      if (idx >= 0) {
+        attArr[idx].work += 1;
+        let st = doc.data()[stu.id];
+        if (st && st.M !== 'absent') attArr[idx].pres += 0.5;
+        if (st && st.A !== 'absent') attArr[idx].pres += 0.5;
+      }
+    });
+    // Calc % and grade/rank later
+    return {
+      name: stu.name, father: stu.father, roll: stu.roll,
+      class: classes.find(c=>c.id===classId)?.name || '',
+      percentage: totalMax ? ((totalMarks/totalMax)*100).toFixed(1) : '',
+      rank: '', // Calculated after all students loaded
+      subjects: stuSubjects,
+      totalMarks, totalMax,
+      overallGrade: pass ? (stuSubjects.every(s=>s.grade!=='F') ? 'A+' : 'F') : 'F',
+      attendance: attArr
+    };
+  }
+
+  // Get all students' marks, calculate ranks
+  async function getAllStudentFullData() {
+    // Fetch all, then calculate rank
+    let dataArr = [];
+    for (let stu of students) {
+      let dat = await fetchStudentData(stu);
+      dataArr.push(dat);
+    }
+    // Rank calculation (by totalMarks desc, ties get same rank)
+    dataArr.sort((a,b)=>b.totalMarks-a.totalMarks);
+    let rank = 1, lastMark = null, lastRank = 1;
+    dataArr.forEach((d,i) => {
+      if (d.totalMarks !== lastMark) { rank = i+1; lastMark = d.totalMarks; lastRank = rank; }
+      d.rank = lastRank;
+    });
+    // Restore original student order
+    dataArr.sort((a,b)=> {
+      let aIdx = students.findIndex(s=>s.name===a.name&&s.roll==a.roll);
+      let bIdx = students.findIndex(s=>s.name===b.name&&s.roll==b.roll);
+      return aIdx-bIdx;
+    });
+    return dataArr;
+  }
+
+  // PDF generation (multi or single)
+  async function generatePDF(studentArr, isSingle) {
+    if (!memoImgData) await loadMemoImg();
+    let exam = examSel.options[examSel.selectedIndex].textContent;
+    let pdf = new window.jspdf.jsPDF({
+      orientation: "portrait", unit: "px", format: [2481, 3509]
+    });
+    let fullDataArr = [];
+    if (!isSingle) pdf.deletePage(1); // So we can addPage for first
+    // Get all student data with marks/attendance
+    fullDataArr = await getAllStudentFullData();
+    // If single, filter
+    if (isSingle && studentArr.length === 1)
+      fullDataArr = [fullDataArr.find(d=>d.name===studentArr[0].name && d.roll==studentArr[0].roll)];
+    // For each student, one page
+    for (let idx = 0; idx < fullDataArr.length; idx++) {
+      let student = fullDataArr[idx];
+      if (idx > 0 || !isSingle) pdf.addPage([2481,3509], 'p');
+      pdf.addImage(memoImgData, "PNG", 0, 0, 2481, 3509);
+      // Exam Name (centered)
+      centerText(pdf, exam.toUpperCase(), 1226, 831, 60);
+      // Name, Father, Class, Roll, Percentage
+      leftText(pdf, student.name?.toUpperCase() || '', 973, 992, 60);
+      leftText(pdf, student.father?.toUpperCase() || '', 973, 1107, 60);
+      leftText(pdf, formatClass(student.class), 500, 1216, 48);
+      leftText(pdf, student.roll?.toString() || '', 1300, 1216, 48);
+      leftText(pdf, student.percentage, 1836, 1216, 48);
+      // Rank badge (center, white)
+      centerText(pdf, student.rank.toString(), 2128, 798, 100, [255,255,255], "bold", "helvetica");
+      // Subject marks table
+      const baseY = 1596, rowH = 119;
+      for (let i = 0; i < student.subjects.length; i++) {
+        let subj = student.subjects[i];
+        let sy = baseY + rowH*i;
+        centerText(pdf, String(subj.max), 1236, sy, 48);
+        let isFail = (subj.max === 50 && subj.marks < 20) || (subj.max === 100 && subj.marks < 40);
+        if (isFail) {
+          pdf.setDrawColor(255, 0, 0);
+          pdf.setLineWidth(4);
+          pdf.ellipse(1502, sy-18, 52, 35, 'S');
+          pdf.setTextColor(220,0,0);
+        }
+        centerText(pdf, subj.marks?.toString() || '', 1502, sy, 48, isFail ? [220,0,0] : [0,0,0]);
+        pdf.setTextColor(0,0,0);
+        centerText(pdf, subj.grade?.toUpperCase() || '', 1802, sy, 48);
+      }
+      // TOTAL ROW
+      centerText(pdf, String(student.totalMax), 1236, 2775, 60);
+      centerText(pdf, String(student.totalMarks), 1502, 2775, 60);
+      centerText(pdf, student.overallGrade, 1802, 2775, 60);
+      // Attendance Table (10 months: June-March)
+      const attWorkCoords = [
+        [725, 2956], [867, 2956], [1049, 2956], [1221, 2956], [1356, 2956],
+        [1491, 2956], [1622, 2956], [1758, 2956], [1889, 2956], [2056, 2956]
+      ];
+      const attPresCoords = [
+        [725, 3027], [867, 3027], [1049, 3027], [1221, 3027], [1356, 3027],
+        [1491, 3027], [1622, 3027], [1758, 3027], [1889, 3027], [2056, 3027]
+      ];
+      for (let i = 0; i < 10; i++) {
+        let a = student.attendance[i] || {work:'', pres:''};
+        centerText(pdf, String(a.work||''), attWorkCoords[i][0], attWorkCoords[i][1], 38);
+        centerText(pdf, String(a.pres||''), attPresCoords[i][0], attPresCoords[i][1], 38);
+      }
+    }
+    pdf.save(isSingle ? `progress_card_${fullDataArr[0].roll || 'student'}.pdf`
+                      : `progress_cards_${classSel.options[classSel.selectedIndex].text}_${sectionSel.options[sectionSel.selectedIndex].text}.pdf`);
+  }
+
+  // ========== PREVIEW RENDER ===============
+  async function showPreviewPDF(stuArr) {
+    if (!memoImgData) await loadMemoImg();
+    let pdf = new window.jspdf.jsPDF({
+      orientation: "portrait", unit: "px", format: [2481, 3509]
+    });
+    let exam = examSel.options[examSel.selectedIndex].textContent;
+    let dataArr = await getAllStudentFullData();
+    let prevArr = dataArr.slice(0,3);
+    pdf.deletePage(1);
+    for (let idx = 0; idx < prevArr.length; idx++) {
+      let student = prevArr[idx];
+      if (idx > 0) pdf.addPage([2481,3509], 'p');
+      pdf.addImage(memoImgData, "PNG", 0, 0, 2481, 3509);
+      // Exam Name (centered)
+      centerText(pdf, exam.toUpperCase(), 1226, 831, 60);
+      // Name, Father, Class, Roll, Percentage
+      leftText(pdf, student.name?.toUpperCase() || '', 973, 992, 60);
+      leftText(pdf, student.father?.toUpperCase() || '', 973, 1107, 60);
+      leftText(pdf, formatClass(student.class), 500, 1216, 48);
+      leftText(pdf, student.roll?.toString() || '', 1300, 1216, 48);
+      leftText(pdf, student.percentage, 1836, 1216, 48);
+      // Rank badge (center, white)
+      centerText(pdf, student.rank.toString(), 2128, 798, 100, [255,255,255], "bold", "helvetica");
+      // Subject marks table
+      const baseY = 1596, rowH = 119;
+      for (let i = 0; i < student.subjects.length; i++) {
+        let subj = student.subjects[i];
+        let sy = baseY + rowH*i;
+        centerText(pdf, String(subj.max), 1236, sy, 48);
+        let isFail = (subj.max === 50 && subj.marks < 20) || (subj.max === 100 && subj.marks < 40);
+        if (isFail) {
+          pdf.setDrawColor(255, 0, 0);
+          pdf.setLineWidth(4);
+          pdf.ellipse(1502, sy-18, 52, 35, 'S');
+          pdf.setTextColor(220,0,0);
+        }
+        centerText(pdf, subj.marks?.toString() || '', 1502, sy, 48, isFail ? [220,0,0] : [0,0,0]);
+        pdf.setTextColor(0,0,0);
+        centerText(pdf, subj.grade?.toUpperCase() || '', 1802, sy, 48);
+      }
+      // TOTAL ROW
+      centerText(pdf, String(student.totalMax), 1236, 2775, 60);
+      centerText(pdf, String(student.totalMarks), 1502, 2775, 60);
+      centerText(pdf, student.overallGrade, 1802, 2775, 60);
+      // Attendance Table (10 months: June-March)
+      const attWorkCoords = [
+        [725, 2956], [867, 2956], [1049, 2956], [1221, 2956], [1356, 2956],
+        [1491, 2956], [1622, 2956], [1758, 2956], [1889, 2956], [2056, 2956]
+      ];
+      const attPresCoords = [
+        [725, 3027], [867, 3027], [1049, 3027], [1221, 3027], [1356, 3027],
+        [1491, 3027], [1622, 3027], [1758, 3027], [1889, 3027], [2056, 3027]
+      ];
+      for (let i = 0; i < 10; i++) {
+        let a = student.attendance[i] || {work:'', pres:''};
+        centerText(pdf, String(a.work||''), attWorkCoords[i][0], attWorkCoords[i][1], 38);
+        centerText(pdf, String(a.pres||''), attPresCoords[i][0], attPresCoords[i][1], 38);
+      }
+    }
+    // Render preview using PDF.js (first 3 pages)
+    let data = pdf.output('arraybuffer');
+    let loadingTask = window['pdfjsLib'].getDocument({data});
+    pdfPreview.innerHTML = '';
+    loadingTask.promise.then(function(pdfDoc) {
+      for(let i=1;i<=pdfDoc.numPages;i++) {
+        pdfDoc.getPage(i).then(function(page) {
+          let viewport = page.getViewport({scale: 0.19});
+          let canvas = document.createElement('canvas');
+          let ctx = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          pdfPreview.appendChild(canvas);
+          page.render({canvasContext: ctx, viewport: viewport});
+        });
+      }
+    });
+  }
+
+  // INIT
+  (async function() {
+    if (!memoImgData) await loadMemoImg();
+    await loadYears();
+  })();
+
+  </script>
+</body>
+</html>
