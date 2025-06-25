@@ -154,9 +154,7 @@ const db = firebase.firestore();
 firebase.auth().onAuthStateChanged(function(user) {
   if (!user) {
     window.location.replace("index.html");
-  } else {
-    initMemosPage();
-  }
+  } // No else needed; your page auto-loads anyway
 });
 
 function classMemoFile(className) {
@@ -430,9 +428,9 @@ async function generatePDF(studentArr, isSingle) {
     let [startRow, endRow] = memoMap.subjRows;
     for (let subjIdx = 0; subjIdx < subjs.length && (startRow + subjIdx) <= endRow; subjIdx++) {
       let sy = subjectRowsY[startRow + subjIdx];
-      centerText(pdf, String(subjs[subjIdx].max), X_MAX, sy, 60, COLOR_RED);
-      centerText(pdf, subjs[subjIdx].marks?.toString() || '', X_MARKS, sy, 60, COLOR_GREEN);
-      centerText(pdf, subjs[subjIdx].grade?.toUpperCase() || '', X_GRADE, sy, 60, COLOR_GRADE);
+     centerText(pdf, String(subjs[subjIdx].max ?? ''), X_MAX, sy, 60, COLOR_RED);
+    centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, sy, 60, COLOR_GREEN);
+    centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, sy, 60, COLOR_GRADE);
     }
     // Total row
     let totalY = subjectRowsY[memoMap.totalRow];
@@ -483,9 +481,10 @@ async function showPreviewPDF(stuArr) {
       let [startRow, endRow] = memoMap.subjRows;
       for (let subjIdx = 0; subjIdx < subjs.length && (startRow + subjIdx) <= endRow; subjIdx++) {
         let sy = subjectRowsY[startRow + subjIdx];
-        centerText(pdf, String(subjs[subjIdx].max), X_MAX, sy, 60, COLOR_RED);
-        centerText(pdf, subjs[subjIdx].marks?.toString() || '', X_MARKS, sy, 60, COLOR_GREEN);
-        centerText(pdf, subjs[subjIdx].grade?.toUpperCase() || '', X_GRADE, sy, 60, COLOR_GRADE);
+        centerText(pdf, String(subjs[subjIdx].max ?? ''), X_MAX, sy, 60, COLOR_RED);
+      centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, sy, 60, COLOR_GREEN);
+      centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, sy, 60, COLOR_GRADE);
+
       }
     let totalY = subjectRowsY[memoMap.totalRow];
     centerText(pdf, String(student.totalMax), X_MAX, totalY, 60, COLOR_RED);
