@@ -215,8 +215,8 @@
           let html = `<div class="screen-title">${currentClassName} – ${currentSectionName}</div>
             <div class="student-list">`;
           if (students.length === 0) html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
-          students.forEach(stu => {
-            html += `<div class="student-row ${stu.isDeleted ? 'deleted-student' : ''}"
+          students.filter(stu => !stu.isDeleted).forEach(stu => {
+            html += `<div class="student-row"
               data-student-id="${stu.id}">
               <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span>
               <span style="color:#1467b7; font-weight:600;">${stu.name}</span>
