@@ -272,10 +272,18 @@ downloadAllBtn.onclick = async () => {
 
 // ======= PDF Helpers ========
 function centerText(pdf, text, x, y, size=12, color=[0,0,0], fontStyle="bold", fontName="helvetica") {
+  // Defensive check for invalid values
+  if (
+    (typeof text !== 'string' && typeof text !== 'number') ||
+    typeof x !== 'number' || typeof y !== 'number' || isNaN(x) || isNaN(y)
+  ) {
+    console.error("Invalid arguments for jsPDF.text:", {text, x, y, size, color});
+    return; // Don't throw, just skip drawing
+  }
   pdf.setFont(fontName, fontStyle);
   pdf.setFontSize(size);
   pdf.setTextColor(...color);
-  pdf.text(text, x, y, {align: 'center'});
+  pdf.text(String(text), x, y, {align: 'center'});
   pdf.setFont("helvetica", "normal");
   pdf.setTextColor(0,0,0);
 }
@@ -424,21 +432,25 @@ async function generatePDF(studentArr, isSingle) {
     pdf.text(student.rank.toString(), cx, cy+33, {align:'center'});
     pdf.setLineWidth(1);
     // Subject table
-    let subjs = student.subjects;
-    let [startRow, endRow] = memoMap.subjRows;
-    for (let subjIdx = 0; subjIdx < subjs.length && (startRow + subjIdx) <= endRow; subjIdx++) {
-      let sy = subjectRowsY[startRow + subjIdx];
-      // Shift only for English 2 and below (from 4th subject onwards)
-      let markOffset = (subjIdx >= 3) ? -20 : 0; // try -20 or -25
-      centerText(pdf, String(subjs[subjIdx].max ?? ''), X_MAX, sy + markOffset, 60, COLOR_RED);
-      centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, sy + markOffset, 60, COLOR_GREEN);
-      centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, sy + markOffset, 60, COLOR_GRADE);
-    }
+    let marksY = sy;
+      // For 6th–9th class memo, from Mathematics 1 onwards, move marks/grade up
+      if (memoImgFile === "memo-6-7-8-9.png" && subjIdx >= 4) {
+        marksY = sy - 24; // move up 24 pixels (change to -20/-28 if you want more/less)
+      }
+      centerText(pdf, String(subjs[subjIdx].max ?? ''), X_MAX, marksY, 60, COLOR_RED);
+      centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, marksY, 60, COLOR_GREEN);
+      centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, marksY, 60, COLOR_GRADE);
+
     // Total row
-    let totalY = subjectRowsY[memoMap.totalRow];
+        let totalY = subjectRowsY[memoMap.totalRow];
+    // Move up the TOTAL row for 6th–9th class memo
+    if (memoImgFile === "memo-6-7-8-9.png") {
+      totalY -= 24;
+    }
     centerText(pdf, String(student.totalMax), X_MAX, totalY, 60, COLOR_RED);
     centerText(pdf, String(student.totalMarks), X_MARKS, totalY, 60, COLOR_GREEN);
     centerText(pdf, student.overallGrade, X_GRADE, totalY, 60, COLOR_GRADE);
+
     // Attendance (as before)
     for (let i = 0; i < 10; i++) {
       let a = student.attendance[i] || {work:'', pres:''};
@@ -479,19 +491,28 @@ async function showPreviewPDF(stuArr) {
     pdf.text(student.rank.toString(), cx, cy+33, {align:'center'});
     pdf.setLineWidth(1);
     // Subject table
-      let subjs = student.subjects;
-      let [startRow, endRow] = memoMap.subjRows;
-      for (let subjIdx = 0; subjIdx < subjs.length && (startRow + subjIdx) <= endRow; subjIdx++) {
-        let sy = subjectRowsY[startRow + subjIdx];
-        centerText(pdf, String(subjs[subjIdx].max ?? ''), X_MAX, sy, 60, COLOR_RED);
-      centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, sy, 60, COLOR_GREEN);
-      centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, sy, 60, COLOR_GRADE);
-
+     let subjs = student.subjects;
+    let [startRow, endRow] = memoMap.subjRows;
+    for (let subjIdx = 0; subjIdx < subjs.length && (startRow + subjIdx) <= endRow; subjIdx++) {
+      let sy = subjectRowsY[startRow + subjIdx];
+      let marksY = sy;
+      if (memoImgFile === "memo-6-7-8-9.png" && subjIdx >= 4) {
+        marksY = sy - 24;
       }
+      centerText(pdf, String(subjs[subjIdx].max ?? ''), X_MAX, marksY, 60, COLOR_RED);
+      centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, marksY, 60, COLOR_GREEN);
+      centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, marksY, 60, COLOR_GRADE);
+    }
+
     let totalY = subjectRowsY[memoMap.totalRow];
-    centerText(pdf, String(student.totalMax), X_MAX, totalY, 60, COLOR_RED);
-    centerText(pdf, String(student.totalMarks), X_MARKS, totalY, 60, COLOR_GREEN);
-    centerText(pdf, student.overallGrade, X_GRADE, totalY, 60, COLOR_GRADE);
+      // Move up the TOTAL row for 6th–9th class memo
+      if (memoImgFile === "memo-6-7-8-9.png") {
+        totalY -= 24;
+      }
+      centerText(pdf, String(student.totalMax), X_MAX, totalY, 60, COLOR_RED);
+      centerText(pdf, String(student.totalMarks), X_MARKS, totalY, 60, COLOR_GREEN);
+      centerText(pdf, student.overallGrade, X_GRADE, totalY, 60, COLOR_GRADE);
+
     for (let i = 0; i < 10; i++) {
       let a = student.attendance[i] || {work:'', pres:''};
       centerText(pdf, String(a.work||''), attWorkCoords[i][0], attWorkCoords[i][1], 38);
