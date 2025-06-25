@@ -508,7 +508,27 @@
             db.collection('years').doc(academicYear).collection('exams').add({ name, subjects })
               .then(() => { closePopup(); showExamSettingsPopup(); });
           });
-
+          // === Attach Edit/Delete Handlers for Exam Settings Popup ===
+          setTimeout(() => {
+            // Edit buttons
+            popupContent.querySelectorAll('[data-edit]').forEach(btn => {
+              btn.onclick = function() {
+                const examId = btn.getAttribute('data-edit');
+                showEditExamPopup(examId);
+              };
+            });
+            // Delete buttons
+            popupContent.querySelectorAll('[data-del]').forEach(btn => {
+              btn.onclick = function() {
+                const examId = btn.getAttribute('data-del');
+                if (confirm("Are you sure you want to delete this exam?")) {
+                  db.collection('years').doc(academicYear).collection('exams').doc(examId).delete().then(() => {
+                    showExamSettingsPopup();
+                  });
+                }
+              };
+            });
+          }, 200);
           // --- Subject Fields Logic ---
           const subjectsContainer = popupContent.querySelector('#subjectsContainer');
           const addSubjectBtn = popupContent.querySelector('#addSubjectBtn');
