@@ -427,16 +427,20 @@ async function generatePDF(studentArr, isSingle) {
     pdf.setLineWidth(1);
     // Subject table
     let subjs = student.subjects;
-    let [startRow,endRow]=memoMap.subjRows;
-    for (let i = startRow; i <= endRow && i < subjs.length; i++) {
-      let sy = subjectRowsY[i];
-      // Max marks (red)
-      centerText(pdf, String(subjs[i].max), X_MAX, sy, 60, COLOR_RED);
-      // Marks (green)
-      centerText(pdf, subjs[i].marks?.toString() || '', X_MARKS, sy, 60, COLOR_GREEN);
-      // Grade (brown)
-      centerText(pdf, subjs[i].grade?.toUpperCase() || '', X_GRADE, sy, 60, COLOR_GRADE);
-    }
+    let [startRow, endRow] = memoMap.subjRows;
+      let subjIdx = 0; // This will walk through student's subjects
+      
+      for (let i = startRow; i <= endRow; i++) {
+        if (subjIdx >= subjs.length) break; // Stop if no more subjects for this student
+      
+        let sy = subjectRowsY[i];
+        // Only print student subject data, never a header
+        centerText(pdf, String(subjs[subjIdx].max), X_MAX, sy, 60, COLOR_RED);
+        centerText(pdf, subjs[subjIdx].marks?.toString() || '', X_MARKS, sy, 60, COLOR_GREEN);
+        centerText(pdf, subjs[subjIdx].grade?.toUpperCase() || '', X_GRADE, sy, 60, COLOR_GRADE);
+      
+        subjIdx++;
+      }
     // Total row
     let totalY = subjectRowsY[memoMap.totalRow];
     centerText(pdf, String(student.totalMax), X_MAX, totalY, 60, COLOR_RED);
