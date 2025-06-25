@@ -88,12 +88,9 @@
       initMemosPage(); // Call your main page setup function here!
     }
   });
-
+  let memoImgData = null;
   function initMemosPage() {
    const sleep = ms => new Promise(res => setTimeout(res, ms));
-
-  // MEMO PNG (background)
-  let memoImgData = null;
   function loadMemoImg() {
     return fetch('memo.png').then(resp => resp.blob()).then(blob => new Promise((resolve, reject) => {
       const reader = new FileReader();
