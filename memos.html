@@ -378,7 +378,7 @@ async function generatePDF(studentArr, isSingle) {
   let examId = examSel.value;
   let examObj = exams.find(e => e.id === examId);
   let fullDataArr = [];
-  if (!isSingle) var pdf = new window.jspdf.jsPDF({orientation: "portrait", unit: "px", format: [2481, 3509]});
+  var pdf = new window.jspdf.jsPDF({orientation: "portrait", unit: "px", format: [2481, 3509]});
   fullDataArr = await getAllStudentFullData();
   if (isSingle && studentArr.length === 1)
     fullDataArr = [fullDataArr.find(d=>d.name===studentArr[0].name && d.roll==studentArr[0].roll)];
