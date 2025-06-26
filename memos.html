@@ -525,8 +525,8 @@ async function generatePDF(studentArr, isSingle) {
       let memoYArr = customSubjectRowsY[memoImgFile];
       let marksY = memoYArr && memoYArr[subjIdx] ? memoYArr[subjIdx] : subjectRowsY[startRow + subjIdx];
       // For 6th–9th class memo, from Mathematics 1 onwards, move marks/grade up
-      if (memoImgFile === "memo-6-7-8-9.png" && subjIdx >= 4) {
-        marksY = sy - 24;
+      let memoYArr = customSubjectRowsY[memoImgFile];
+      let marksY = memoYArr && memoYArr[subjIdx] ? memoYArr[subjIdx] : subjectRowsY[startRow + subjIdx];
       }
       centerText(pdf, String(subjs[subjIdx].max ?? ''), X_MAX, marksY, 60, COLOR_RED);
       centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, marksY, 60, COLOR_GREEN);
