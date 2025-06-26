@@ -519,19 +519,16 @@ async function generatePDF(studentArr, isSingle) {
     pdf.text(student.rank.toString(), cx, cy+33, {align:'center'});
     pdf.setLineWidth(1);
     // Subject table
-    let subjs = student.subjects;
+   let subjs = student.subjects;
     let [startRow, endRow] = memoMap.subjRows;
-    for (let subjIdx = 0; subjIdx < subjs.length && (startRow + subjIdx) <= endRow; subjIdx++) {
-      let memoYArr = customSubjectRowsY[memoImgFile];
+    let memoYArr = customSubjectRowsY[memoImgFile];  // <-- Only ONCE, outside the loop
+     for (let subjIdx = 0; subjIdx < subjs.length && (startRow + subjIdx) <= endRow; subjIdx++) {
       let marksY = memoYArr && memoYArr[subjIdx] ? memoYArr[subjIdx] : subjectRowsY[startRow + subjIdx];
-      // For 6th–9th class memo, from Mathematics 1 onwards, move marks/grade up
-      let memoYArr = customSubjectRowsY[memoImgFile];
-      let marksY = memoYArr && memoYArr[subjIdx] ? memoYArr[subjIdx] : subjectRowsY[startRow + subjIdx];
-      }
       centerText(pdf, String(subjs[subjIdx].max ?? ''), X_MAX, marksY, 60, COLOR_RED);
       centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, marksY, 60, COLOR_GREEN);
       centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, marksY, 60, COLOR_GRADE);
     }
+
     // Total row
     let memoYArr = customSubjectRowsY[memoImgFile];
     let totalY = memoYArr && memoYArr[memoYArr.length - 1] ? memoYArr[memoYArr.length - 1] : subjectRowsY[memoMap.totalRow];
