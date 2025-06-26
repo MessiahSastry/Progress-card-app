@@ -231,7 +231,11 @@ sectionSel.onchange = () => loadExams();
 examSel.onchange = () => loadStudents();
 
 window.downloadOne = async function(studentId) {
-  await generatePDF([students.find(s => s.id === studentId)], true);
+  // Re-fetch the student, ensure correct examObj
+  let stu = students.find(s => s.id === studentId);
+  if (!stu) return;
+  // Use the same exam, section, class, etc.
+  await generatePDF([stu], true);
   showToast("Download completed.");
 };
 previewBtn.onclick = async () => {
