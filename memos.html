@@ -525,6 +525,7 @@ async function generatePDF(studentArr, isSingle) {
     let displayRow = 0;
     for (let subjIdx = 0; subjIdx < subjs.length && (startRow + displayRow) <= endRow; subjIdx++) {
       let subj = subjs[subjIdx];
+      console.log(`Drawing subjIdx=${subjIdx}, displayRow=${displayRow}, name='${subj.name}', max=${subj.max}, marks=${subj.marks}, grade=${subj.grade}`);
       if (!subj.name || subj.name.trim() === "") continue; // skip blank subjects
       let marksY = memoYArr && memoYArr[displayRow] ? memoYArr[displayRow] : subjectRowsY[startRow + displayRow];
       centerText(pdf, String(subj.max ?? ''), X_MAX, marksY, 60, COLOR_RED);
@@ -581,6 +582,7 @@ async function showPreviewPDF(stuArr) {
     let displayRow = 0;
     for (let subjIdx = 0; subjIdx < subjs.length && (startRow + displayRow) <= endRow; subjIdx++) {
       let subj = subjs[subjIdx];
+      console.log(`Drawing subjIdx=${subjIdx}, displayRow=${displayRow}, name='${subj.name}', max=${subj.max}, marks=${subj.marks}, grade=${subj.grade}`);
       if (!subj.name || subj.name.trim() === "") continue; // skip blank subjects
       let marksY = memoYArr && memoYArr[displayRow] ? memoYArr[displayRow] : subjectRowsY[startRow + displayRow];
       centerText(pdf, String(subj.max ?? ''), X_MAX, marksY, 60, COLOR_RED);
