@@ -307,7 +307,8 @@ window.downloadOne = async function(studentId) {
 previewBtn.onclick = async () => {
   pdfPreview.innerHTML = `<i>Generating preview...</i>`;
   await sleep(150);
-  await showPreviewPDF(students.slice(0,3));
+  let fullDataArr = await getAllStudentFullData();
+  await showPreviewPDF(fullDataArr.slice(0,3));
 };
 downloadAllBtn.onclick = async () => {
   await generatePDF(students, false);
@@ -493,7 +494,10 @@ async function generatePDF(studentArr, isSingle) {
     pdf.setTextColor(0,0,0);
     pdf.setFontSize(s);
     pdf.setFont('helvetica','bold');
-    pdf.text(student.rank.toString(), cx, cy+33, {align:'center'});
+    pdf.text(
+  (typeof student.rank !== "undefined" && student.rank !== null) ? student.rank.toString() : "", 
+  cx, cy+33, {align:'center'}
+);
     pdf.setLineWidth(1);
 
     // --- Subject rows: Always PNG template order, AB for missing
