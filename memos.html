@@ -528,9 +528,7 @@ async function generatePDF(studentArr, isSingle) {
       centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, marksY, 60, COLOR_GREEN);
       centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, marksY, 60, COLOR_GRADE);
     }
-
     // Total row
-    let memoYArr = customSubjectRowsY[memoImgFile];
     let totalY = memoYArr && memoYArr[memoYArr.length - 1] ? memoYArr[memoYArr.length - 1] : subjectRowsY[memoMap.totalRow];
     centerText(pdf, String(student.totalMax), X_MAX, totalY, 60, COLOR_RED);
     centerText(pdf, String(student.totalMarks), X_MARKS, totalY, 60, COLOR_GREEN);
