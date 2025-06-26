@@ -59,6 +59,9 @@
       }
     }
   </style>
+  <!-- Choices.js for custom dropdown -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -195,6 +198,27 @@ const yearSel = document.getElementById('yearSel');
 const classSel = document.getElementById('classSel');
 const sectionSel = document.getElementById('sectionSel');
 const examSel = document.getElementById('examSel');
+    // Initialize Choices.js for better dropdown UI (Class, Section, Exam)
+const classChoices = new Choices(classSel, {
+  searchEnabled: false,
+  itemSelectText: '',
+  shouldSort: false
+});
+const sectionChoices = new Choices(sectionSel, {
+  searchEnabled: false,
+  itemSelectText: '',
+  shouldSort: false
+});
+const examChoices = new Choices(examSel, {
+  searchEnabled: false,
+  itemSelectText: '',
+  shouldSort: false
+});
+const yearChoices = new Choices(yearSel, {
+  searchEnabled: false,
+  itemSelectText: '',
+  shouldSort: false
+});
 const previewBtn = document.getElementById('previewBtn');
 const downloadAllBtn = document.getElementById('downloadAllBtn');
 const pdfPreview = document.getElementById('pdfPreview');
@@ -207,34 +231,50 @@ let years = [], classes = [], sections = [], exams = [], students = [];
 async function loadYears() {
   let snap = await db.collection('years').orderBy('name', 'desc').get();
   years = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-  yearSel.innerHTML = years.map(y => `<option value="${y.id}">${y.id}</option>`).join('');
-  yearSel.selectedIndex = 0;
-  await loadClasses();
+  yearChoices.clearStore();
+yearChoices.setChoices(
+  years.map(y => ({ value: y.id, label: y.id, selected: false })),
+  'value', 'label', false
+);
+yearChoices.setChoiceByValue(years[0]?.id || '');
+await loadClasses();
 }
 async function loadClasses() {
   let year = yearSel.value;
   let snap = await db.collection('years').doc(year).collection('classes').orderBy('name').get();
   classes = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-  classSel.innerHTML = classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  classSel.selectedIndex = 0;
-  await loadSections();
+  classChoices.clearStore();
+classChoices.setChoices(
+  classes.map(c => ({ value: c.id, label: c.name, selected: false })),
+  'value', 'label', false
+);
+classChoices.setChoiceByValue(classes[0]?.id || '');
+await loadSections();
 }
 async function loadSections() {
   let year = yearSel.value, classId = classSel.value;
   if (!year || !classId) { sectionSel.innerHTML = ''; return; }
   let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').orderBy('name').get();
   sections = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-  sectionSel.innerHTML = sections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-  sectionSel.selectedIndex = 0;
-  await loadExams();
+  sectionChoices.clearStore();
+sectionChoices.setChoices(
+  sections.map(s => ({ value: s.id, label: s.name, selected: false })),
+  'value', 'label', false
+);
+sectionChoices.setChoiceByValue(sections[0]?.id || '');
+await loadExams();
 }
 async function loadExams() {
   let year = yearSel.value;
   let snap = await db.collection('years').doc(year).collection('exams').orderBy('name').get();
   exams = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-  examSel.innerHTML = exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-  examSel.selectedIndex = 0;
-  await loadStudents();
+  examChoices.clearStore();
+examChoices.setChoices(
+  exams.map(e => ({ value: e.id, label: e.name, selected: false })),
+  'value', 'label', false
+);
+examChoices.setChoiceByValue(exams[0]?.id || '');
+await loadStudents();
 }
 async function loadStudents() {
   let year = yearSel.value, classId = classSel.value, sectionId = sectionSel.value;
