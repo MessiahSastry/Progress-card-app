@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Download Progress Card PDFs - St. Patrick's School</title>
+  <title>Download Progress Card PDFs - St. Patrick's School</title>for (let i = 0; i < 10; i++) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -445,10 +445,13 @@ centerText(pdf, (grade+"").toUpperCase(), X_GRADE, memoYArr[i], 60, COLOR_GRADE)
 
     // Attendance numbers font size 60
     for (let i = 0; i < 10; i++) {
-      let a = student.attendance[i] || {work:'', pres:''};
-      centerText(pdf, String(a.work||''), attWorkCoords[i][0], attWorkCoords[i][1], 60);
-      centerText(pdf, String(a.pres||''), attPresCoords[i][0], attPresCoords[i][1], 60);
-    }
+  let a = student.attendance[i] || {work:'', pres:''};
+  // Working days: GREEN
+  centerText(pdf, String(a.work||''), attWorkCoords[i][0], attWorkCoords[i][1], 60, COLOR_GREEN);
+  // Present days: BROWN (border color)
+  centerText(pdf, String(a.pres||''), attPresCoords[i][0], attPresCoords[i][1], 60, COLOR_BROWN);
+}
+
   }
   pdf.save(isSingle ? `progress_card_${fullDataArr[0].roll || 'student'}.pdf`
                     : `progress_cards_${classSel.options[classSel.selectedIndex].text}_${sectionSel.options[sectionSel.selectedIndex].text}.pdf`);
