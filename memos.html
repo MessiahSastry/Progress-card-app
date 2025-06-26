@@ -485,6 +485,8 @@ async function getAllStudentFullData() {
 // PDF generation (multi or single)
 async function generatePDF(studentArr, isSingle) {
   let exam = examSel.options[examSel.selectedIndex].textContent;
+  let examId = examSel.value;
+  let examObj = exams.find(e => e.id === examId);
   let fullDataArr = [];
   if (!isSingle) var pdf = new window.jspdf.jsPDF({orientation: "portrait", unit: "px", format: [2481, 3509]});
   fullDataArr = await getAllStudentFullData();
@@ -566,6 +568,8 @@ async function showPreviewPDF(stuArr) {
     else pdf.addPage([2481,3509], 'p');
     pdf.addImage(memoImgData, "PNG", 0, 0, 2481, 3509);
     let exam = examSel.options[examSel.selectedIndex].textContent;
+    let examId = examSel.value;
+    let examObj = exams.find(e => e.id === examId);
     centerText(pdf, exam.toUpperCase(), HEAD_EXAM[0], HEAD_EXAM[1], HEAD_EXAM[2]);
     leftText(pdf, student.name?.toUpperCase() || '', HEAD_NAME[0], HEAD_NAME[1], HEAD_NAME[2], COLOR_GREEN);
     leftText(pdf, student.father?.toUpperCase() || '', HEAD_FATHER[0], HEAD_FATHER[1], HEAD_FATHER[2], COLOR_RED);
