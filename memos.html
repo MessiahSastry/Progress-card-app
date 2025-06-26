@@ -28,31 +28,34 @@
     .toast { display: none; position: fixed; left: 50%; bottom: 38px; transform: translateX(-50%); background: #1762a7; color: #fff; padding: 13px 34px; border-radius: 9px; font-size: 1.08em; box-shadow: 0 2px 16px #19508488; z-index: 9999; opacity: 0.95; font-weight: 600;}
     @media (max-width: 640px) { .container { max-width: 99vw; padding:6vw 2vw;} .student-btn { font-size: 0.97em; } }
 
-    /* --- Styled Dropdown Always Blue/White --- */
+    /* --- SIMPLE FLAT WHITE DROPDOWN, NO SHADOW, LIKE AI GENERATOR SCREENSHOT --- */
     .custom-select.styled-dropdown, select.styled-dropdown {
-      background: #f6faff;
+      background: #fff;
       border: 1.5px solid #b4c8e9;
-      color: #113b6c;
-      font-size: 1.13em;
-      border-radius: 10px;
-      appearance: none !important;
-      -webkit-appearance: none !important;
-      outline: none !important;
-      box-shadow: 0 2px 7px #e2edfc;
-      background-image: url('data:image/svg+xml;utf8,<svg fill="gray" height="21" viewBox="0 0 24 24" width="21" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      background-size: 24px 24px;
-      padding: 13px 17px;
-      margin-bottom: 12px;
+      color: #14305a;
+      font-size: 1.12em;
+      border-radius: 5px;
+      appearance: none;
+      -webkit-appearance: none;
+      outline: none;
+      box-shadow: none;
+      background-image: none;
+      padding: 14px 16px;
+      margin-bottom: 14px;
       min-width: 0;
+      width: 100%;
+      transition: border 0.15s;
     }
+    .custom-select.styled-dropdown:focus, select.styled-dropdown:focus {
+      border: 1.5px solid #1762a7;
+      outline: none;
+    }
+    /* Remove browser default arrow and use system */
+    select.styled-dropdown::-ms-expand { display: none; }
     @media (max-width: 800px) {
       .custom-select.styled-dropdown, select.styled-dropdown {
-        font-size: 1.12em;
-        padding: 13px 14px;
-        background: #f6faff;
-        color: #113b6c;
+        font-size: 1.08em;
+        padding: 13px 12px;
       }
     }
   </style>
