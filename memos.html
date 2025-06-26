@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Download Progress Card PDFs - St. Patrick's School</title>for (let i = 0; i < 10; i++) {
+  <title>Download Progress Card PDFs - St. Patrick's School</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -14,8 +14,6 @@
     .subtitle { color: #1762a7; font-size: 1.09em; font-weight: 500; text-align: center; margin-bottom: 16px;}
     .section { margin-bottom: 20px; }
     label { font-weight: 600; color: #195084; display: block; margin-bottom: 6px; }
-    .custom-select, select { width: 100%; padding: 13px 17px; border-radius: 10px; border: 1.5px solid #b4c8e9; background: #f6faff; font-size: 1.13em; font-family: 'Segoe UI', Arial, sans-serif; margin-bottom: 12px; appearance: none; -webkit-appearance: none; outline: none; box-shadow: 0 2px 7px #e2edfc; color: #113b6c; position: relative; }
-    .custom-select:focus { border-color: #1762a7; }
     .row { display: flex; gap: 13px; }
     .row > div { flex:1; }
     .actions { display:flex; gap:14px; margin: 15px 0 14px 0;}
@@ -29,7 +27,34 @@
     .pdf-preview canvas { max-width: 100%; margin-bottom: 10px;}
     .toast { display: none; position: fixed; left: 50%; bottom: 38px; transform: translateX(-50%); background: #1762a7; color: #fff; padding: 13px 34px; border-radius: 9px; font-size: 1.08em; box-shadow: 0 2px 16px #19508488; z-index: 9999; opacity: 0.95; font-weight: 600;}
     @media (max-width: 640px) { .container { max-width: 99vw; padding:6vw 2vw;} .student-btn { font-size: 0.97em; } }
-    .custom-select { background-image: url('data:image/svg+xml;utf8,<svg fill="gray" height="21" viewBox="0 0 24 24" width="21" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 12px center; background-size: 24px 24px; }
+
+    /* --- Styled Dropdown Always Blue/White --- */
+    .custom-select.styled-dropdown, select.styled-dropdown {
+      background: #f6faff;
+      border: 1.5px solid #b4c8e9;
+      color: #113b6c;
+      font-size: 1.13em;
+      border-radius: 10px;
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      outline: none !important;
+      box-shadow: 0 2px 7px #e2edfc;
+      background-image: url('data:image/svg+xml;utf8,<svg fill="gray" height="21" viewBox="0 0 24 24" width="21" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 24px 24px;
+      padding: 13px 17px;
+      margin-bottom: 12px;
+      min-width: 0;
+    }
+    @media (max-width: 800px) {
+      .custom-select.styled-dropdown, select.styled-dropdown {
+        font-size: 1.12em;
+        padding: 13px 14px;
+        background: #f6faff;
+        color: #113b6c;
+      }
+    }
   </style>
 </head>
 <body>
@@ -38,21 +63,21 @@
     <div class="subtitle">IIT & NEET FOUNDATION<br>Download Progress Cards (PDF)</div>
     <div class="section">
       <label for="yearSel">Academic Year</label>
-      <select id="yearSel" class="custom-select"></select>
+      <select id="yearSel" class="custom-select styled-dropdown"></select>
     </div>
     <div class="section row">
       <div>
         <label for="classSel">Class</label>
-        <select id="classSel" class="custom-select"></select>
+        <select id="classSel" class="custom-select styled-dropdown"></select>
       </div>
       <div>
         <label for="sectionSel">Section</label>
-        <select id="sectionSel" class="custom-select"></select>
+        <select id="sectionSel" class="custom-select styled-dropdown"></select>
       </div>
     </div>
     <div class="section">
       <label for="examSel">Exam</label>
-      <select id="examSel" class="custom-select"></select>
+      <select id="examSel" class="custom-select styled-dropdown"></select>
     </div>
     <div class="actions">
       <button id="previewBtn" class="custom-btn">Preview (First 3)</button>
@@ -231,10 +256,8 @@ sectionSel.onchange = () => loadExams();
 examSel.onchange = () => loadStudents();
 
 window.downloadOne = async function(studentId) {
-  // Re-fetch the student, ensure correct examObj
   let stu = students.find(s => s.id === studentId);
   if (!stu) return;
-  // Use the same exam, section, class, etc.
   await generatePDF([stu], true);
   showToast("Download completed.");
 };
@@ -301,8 +324,15 @@ async function fetchStudentData(stu) {
   let subjects = (examObj && Array.isArray(examObj.subjects)) ? examObj.subjects : [];
   let stuSubjects = [];
   let totalMarks = 0, totalMax = 0, pass = true;
+  // Normalize function for robust matching
+  function norm(s) { return (s||'').replace(/[\s.]/g,'').toLowerCase(); }
   subjects.forEach((subj, i) => {
-    let m = marks[subj.name] ?? '';
+    let subjObj = null;
+    // Look for a matching key in marks, case/space/dot-insensitive
+    Object.keys(marks).forEach(k => {
+      if(norm(k) === norm(subj.name)) subjObj = marks[k];
+    });
+    let m = marks[subj.name] ?? subjObj ?? '';
     let grade = '';
     if (m !== '' && m !== null && m !== undefined && !isNaN(m)) {
       let percent = (m / subj.max) * 100;
@@ -411,35 +441,34 @@ async function generatePDF(studentArr, isSingle) {
     pdf.text(student.rank.toString(), cx, cy+33, {align:'center'});
     pdf.setLineWidth(1);
 
-    // Subject rows:
+    // --- Subject rows: Always PNG template order, AB for missing
     let memoYArr = customSubjectRowsY[memoImgFile];
     let templateSubjects = examObj.subjects || [];
     let totalMarks = 0, totalMax = 0;
-    for (let i = 0; i < memoYArr.length-1; i++) { // All except last row
+    function norm(s) { return (s||'').replace(/[\s.]/g,'').toLowerCase(); }
+    for (let i = 0; i < memoYArr.length-1; i++) {
       let subjName = templateSubjects[i]?.name ?? "";
       let subjMax = templateSubjects[i]?.max ?? "";
-      // Get student marks for this subject
-      let subjMarkObj = student.subjects.find(s => s.name === subjName);
-      let marks = subjMarkObj ? subjMarkObj.marks : "";
-      let grade = subjMarkObj ? subjMarkObj.grade : "";
-      // Add to total if marks present
+      let subjMarkObj = student.subjects.find(s => norm(s.name) === norm(subjName));
+      let marks = (subjMarkObj && subjMarkObj.marks !== undefined && subjMarkObj.marks !== null && subjMarkObj.marks !== '') 
+        ? subjMarkObj.marks 
+        : "AB";
+      let grade = (subjMarkObj && subjMarkObj.grade) ? subjMarkObj.grade : (marks === "AB" ? "AB" : "");
       if (marks !== '' && marks !== null && marks !== undefined && !isNaN(marks)) {
         totalMarks += +marks;
         totalMax += +subjMax;
       }
-      // Print subject row
       centerText(pdf, subjMax, X_MAX, memoYArr[i], 60, COLOR_RED);
-// --- RED CIRCLE for <40% ---
-if (marks !== "" && subjMax && +subjMax > 0 && (marks/subjMax)*100 < 40) {
-  // Draw a red ellipse around the marks
-  pdf.setDrawColor(...COLOR_RED);
-  pdf.setLineWidth(4);
-  pdf.ellipse(X_MARKS, memoYArr[i]-10, 55, 38, 'D');
-  pdf.setLineWidth(1);
-}
 
-centerText(pdf, marks, X_MARKS, memoYArr[i], 60, COLOR_GREEN);
-centerText(pdf, (grade+"").toUpperCase(), X_GRADE, memoYArr[i], 60, COLOR_GRADE);
+      // --- RED CIRCLE for <40% ---
+      if (marks !== "" && marks !== "AB" && subjMax && +subjMax > 0 && (marks/subjMax)*100 < 40) {
+        pdf.setDrawColor(...COLOR_RED);
+        pdf.setLineWidth(4);
+        pdf.ellipse(X_MARKS, memoYArr[i]-10, 55, 38, 'D');
+        pdf.setLineWidth(1);
+      }
+      centerText(pdf, marks, X_MARKS, memoYArr[i], 60, COLOR_GREEN);
+      centerText(pdf, (grade+"").toUpperCase(), X_GRADE, memoYArr[i], 60, COLOR_GRADE);
     }
     // Draw total row (last Y in array)
     let totalY = memoYArr[memoYArr.length - 1] + 25;
@@ -449,13 +478,10 @@ centerText(pdf, (grade+"").toUpperCase(), X_GRADE, memoYArr[i], 60, COLOR_GRADE)
 
     // Attendance numbers font size 60
     for (let i = 0; i < 10; i++) {
-  let a = student.attendance[i] || {work:'', pres:''};
-  // Working days: GREEN
-  centerText(pdf, String(a.work||''), attWorkCoords[i][0], attWorkCoords[i][1], 60, COLOR_GREEN);
-  // Present days: BROWN (border color)
-  centerText(pdf, String(a.pres||''), attPresCoords[i][0], attPresCoords[i][1], 60, COLOR_BROWN);
-}
-
+      let a = student.attendance[i] || {work:'', pres:''};
+      centerText(pdf, String(a.work||''), attWorkCoords[i][0], attWorkCoords[i][1], 60, COLOR_GREEN);
+      centerText(pdf, String(a.pres||''), attPresCoords[i][0], attPresCoords[i][1], 60, COLOR_BROWN);
+    }
   }
   pdf.save(isSingle ? `progress_card_${fullDataArr[0].roll || 'student'}.pdf`
                     : `progress_cards_${classSel.options[classSel.selectedIndex].text}_${sectionSel.options[sectionSel.selectedIndex].text}.pdf`);
@@ -493,33 +519,34 @@ async function showPreviewPDF(stuArr) {
     pdf.text(student.rank.toString(), cx, cy+33, {align:'center'});
     pdf.setLineWidth(1);
 
+    // --- Subject rows: Always PNG template order, AB for missing
     let memoYArr = customSubjectRowsY[memoImgFile];
     let templateSubjects = examObj.subjects || [];
     let totalMarks = 0, totalMax = 0;
+    function norm(s) { return (s||'').replace(/[\s.]/g,'').toLowerCase(); }
     for (let i = 0; i < memoYArr.length-1; i++) {
       let subjName = templateSubjects[i]?.name ?? "";
       let subjMax = templateSubjects[i]?.max ?? "";
-      let subjMarkObj = student.subjects.find(s => s.name === subjName);
-      let marks = subjMarkObj ? subjMarkObj.marks : "";
-      let grade = subjMarkObj ? subjMarkObj.grade : "";
+      let subjMarkObj = student.subjects.find(s => norm(s.name) === norm(subjName));
+      let marks = (subjMarkObj && subjMarkObj.marks !== undefined && subjMarkObj.marks !== null && subjMarkObj.marks !== '') 
+        ? subjMarkObj.marks 
+        : "AB";
+      let grade = (subjMarkObj && subjMarkObj.grade) ? subjMarkObj.grade : (marks === "AB" ? "AB" : "");
       if (marks !== '' && marks !== null && marks !== undefined && !isNaN(marks)) {
         totalMarks += +marks;
         totalMax += +subjMax;
       }
       centerText(pdf, subjMax, X_MAX, memoYArr[i], 60, COLOR_RED);
 
-// --- RED CIRCLE for <40% ---
-if (marks !== "" && subjMax && +subjMax > 0 && (marks/subjMax)*100 < 40) {
-  // Draw a red ellipse around the marks
-  pdf.setDrawColor(...COLOR_RED);
-  pdf.setLineWidth(4);
-  pdf.ellipse(X_MARKS, memoYArr[i]-10, 55, 38, 'D');
-  pdf.setLineWidth(1);
-}
-
-centerText(pdf, marks, X_MARKS, memoYArr[i], 60, COLOR_GREEN);
-centerText(pdf, (grade+"").toUpperCase(), X_GRADE, memoYArr[i], 60, COLOR_GRADE);
-
+      // --- RED CIRCLE for <40% ---
+      if (marks !== "" && marks !== "AB" && subjMax && +subjMax > 0 && (marks/subjMax)*100 < 40) {
+        pdf.setDrawColor(...COLOR_RED);
+        pdf.setLineWidth(4);
+        pdf.ellipse(X_MARKS, memoYArr[i]-10, 55, 38, 'D');
+        pdf.setLineWidth(1);
+      }
+      centerText(pdf, marks, X_MARKS, memoYArr[i], 60, COLOR_GREEN);
+      centerText(pdf, (grade+"").toUpperCase(), X_GRADE, memoYArr[i], 60, COLOR_GRADE);
     }
     let totalY = memoYArr[memoYArr.length - 1] + 25;
     centerText(pdf, totalMax, X_MAX, totalY, 60, COLOR_RED);
@@ -528,9 +555,7 @@ centerText(pdf, (grade+"").toUpperCase(), X_GRADE, memoYArr[i], 60, COLOR_GRADE)
 
     for (let i = 0; i < 10; i++) {
       let a = student.attendance[i] || {work:'', pres:''};
-      // Working days: GREEN
       centerText(pdf, String(a.work||''), attWorkCoords[i][0], attWorkCoords[i][1], 60, COLOR_GREEN);
-      // Present days: BROWN (border color)
       centerText(pdf, String(a.pres||''), attPresCoords[i][0], attPresCoords[i][1], 60, COLOR_BROWN);
     }
   }
