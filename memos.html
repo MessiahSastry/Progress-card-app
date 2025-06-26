@@ -522,11 +522,15 @@ async function generatePDF(studentArr, isSingle) {
    let subjs = student.subjects;
     let [startRow, endRow] = memoMap.subjRows;
     let memoYArr = customSubjectRowsY[memoImgFile];  // <-- Only ONCE, outside the loop
-     for (let subjIdx = 0; subjIdx < subjs.length && (startRow + subjIdx) <= endRow; subjIdx++) {
-      let marksY = memoYArr && memoYArr[subjIdx] ? memoYArr[subjIdx] : subjectRowsY[startRow + subjIdx];
-      centerText(pdf, String(subjs[subjIdx].max ?? ''), X_MAX, marksY, 60, COLOR_RED);
-      centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, marksY, 60, COLOR_GREEN);
-      centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, marksY, 60, COLOR_GRADE);
+    let displayRow = 0;
+    for (let subjIdx = 0; subjIdx < subjs.length && (startRow + displayRow) <= endRow; subjIdx++) {
+      let subj = subjs[subjIdx];
+      if (!subj.name || subj.name.trim() === "") continue; // skip blank subjects
+      let marksY = memoYArr && memoYArr[displayRow] ? memoYArr[displayRow] : subjectRowsY[startRow + displayRow];
+      centerText(pdf, String(subj.max ?? ''), X_MAX, marksY, 60, COLOR_RED);
+      centerText(pdf, String(subj.marks ?? ''), X_MARKS, marksY, 60, COLOR_GREEN);
+      centerText(pdf, String((subj.grade ?? '')).toUpperCase(), X_GRADE, marksY, 60, COLOR_GRADE);
+      displayRow++;
     }
     // Total row
     let totalY = memoYArr && memoYArr[memoYArr.length - 1] ? memoYArr[memoYArr.length - 1] : subjectRowsY[memoMap.totalRow];
@@ -573,13 +577,16 @@ async function showPreviewPDF(stuArr) {
     pdf.setLineWidth(1);
     let subjs = student.subjects;
     let [startRow, endRow] = memoMap.subjRows;
-    for (let subjIdx = 0; subjIdx < subjs.length && (startRow + subjIdx) <= endRow; subjIdx++) {
-      let sy = subjectRowsY[startRow + subjIdx];
-      let marksY = sy;
-      if (memoImgFile === "memo-6-7-8-9.png" && subjIdx >= 4) marksY = sy - 24;
-      centerText(pdf, String(subjs[subjIdx].max ?? ''), X_MAX, marksY, 60, COLOR_RED);
-      centerText(pdf, String(subjs[subjIdx].marks ?? ''), X_MARKS, marksY, 60, COLOR_GREEN);
-      centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, marksY, 60, COLOR_GRADE);
+    let memoYArr = customSubjectRowsY[memoImgFile];  // <-- Only ONCE, outside the loop
+    let displayRow = 0;
+    for (let subjIdx = 0; subjIdx < subjs.length && (startRow + displayRow) <= endRow; subjIdx++) {
+      let subj = subjs[subjIdx];
+      if (!subj.name || subj.name.trim() === "") continue; // skip blank subjects
+      let marksY = memoYArr && memoYArr[displayRow] ? memoYArr[displayRow] : subjectRowsY[startRow + displayRow];
+      centerText(pdf, String(subj.max ?? ''), X_MAX, marksY, 60, COLOR_RED);
+      centerText(pdf, String(subj.marks ?? ''), X_MARKS, marksY, 60, COLOR_GREEN);
+      centerText(pdf, String((subj.grade ?? '')).toUpperCase(), X_GRADE, marksY, 60, COLOR_GRADE);
+      displayRow++;
     }
     let totalY = subjectRowsY[memoMap.totalRow];
     if (memoImgFile === "memo-6-7-8-9.png") totalY -= 24;
