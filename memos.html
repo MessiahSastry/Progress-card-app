@@ -184,6 +184,24 @@ const subjectRowsY = [
   2523,  // 10
   2642   // 11
 ];
+// ---- Custom Y coordinates for each memo, as provided ----
+const customSubjectRowsY = {
+  "memo-6-7-8-9.png": [
+    1595, 1712, 1814, 1923, 2013, 2130, 2232, 2338, 2443, 2547, 2650, 2760
+  ],
+  "memo-10.png": [
+    null, null, 1814, 1923, 2013, 2130, 2232, 2338, 2443, 2547, 2650
+  ],
+  "memo-3-4-5.png": [
+    null, null, 1814, 1923, 2013, 2130, 2232, 2338, 2443, 2547
+  ],
+  "memo-1-2.png": [
+    null, null, 1814, 1923, 2013, 2130, 2232, 2338, 2443
+  ],
+  "memo-nursery.png": [
+    null, null, 1814, 1923, 2013, 2130, 2232, 2338, 2443, 2547
+  ]
+};
 
 // X coordinates for (max/marks/grade)
 const X_MAX   = 1236;
@@ -197,7 +215,7 @@ const HEAD_FATHER   = [973, 1107, 60]; // left, size 60, red
 const HEAD_CLASS    = [500, 1216, 60]; // left, size 60, green
 const HEAD_ROLL     = [1300, 1216, 60]; // left, size 60, green
 const HEAD_PERCENT  = [1836, 1216, 60]; // left, size 60, green
-const HEAD_RANK     = [2128, 798, 100]; // center, size 100, white with brown border
+const HEAD_RANK     = [2137, 755, 100]; // center, size 100, white with brown border
 
 // Attendance 10 months, work & pres (same as before)
 const attWorkCoords = [[725, 2956],[867, 2956],[1049, 2956],[1221, 2956],[1356, 2956],[1491, 2956],[1622, 2956],[1758, 2956],[1889, 2956],[2056, 2956]];
@@ -504,8 +522,8 @@ async function generatePDF(studentArr, isSingle) {
     let subjs = student.subjects;
     let [startRow, endRow] = memoMap.subjRows;
     for (let subjIdx = 0; subjIdx < subjs.length && (startRow + subjIdx) <= endRow; subjIdx++) {
-      let sy = subjectRowsY[startRow + subjIdx];
-      let marksY = sy;
+      let memoYArr = customSubjectRowsY[memoImgFile];
+      let marksY = memoYArr && memoYArr[subjIdx] ? memoYArr[subjIdx] : subjectRowsY[startRow + subjIdx];
       // For 6th–9th class memo, from Mathematics 1 onwards, move marks/grade up
       if (memoImgFile === "memo-6-7-8-9.png" && subjIdx >= 4) {
         marksY = sy - 24;
@@ -515,8 +533,8 @@ async function generatePDF(studentArr, isSingle) {
       centerText(pdf, String((subjs[subjIdx].grade ?? '')).toUpperCase(), X_GRADE, marksY, 60, COLOR_GRADE);
     }
     // Total row
-    let totalY = subjectRowsY[memoMap.totalRow];
-    if (memoImgFile === "memo-6-7-8-9.png") totalY -= 24;
+    let memoYArr = customSubjectRowsY[memoImgFile];
+    let totalY = memoYArr && memoYArr[memoYArr.length - 1] ? memoYArr[memoYArr.length - 1] : subjectRowsY[memoMap.totalRow];
     centerText(pdf, String(student.totalMax), X_MAX, totalY, 60, COLOR_RED);
     centerText(pdf, String(student.totalMarks), X_MARKS, totalY, 60, COLOR_GREEN);
     centerText(pdf, student.overallGrade, X_GRADE, totalY, 60, COLOR_GRADE);
