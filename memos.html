@@ -374,16 +374,28 @@ async function fetchStudentData(stu) {
       if (st && st.A !== 'absent') attArr[idx].pres += 0.5;
     }
   });
-  return {
-    name: stu.name, father: stu.father, roll: stu.roll,
-    class: classes.find(c=>c.id===classId)?.name || '',
-    percentage: totalMax ? ((totalMarks/totalMax)*100).toFixed(1) : '',
-    rank: '', // Will fill later
-    subjects: stuSubjects,
-    totalMarks, totalMax,
-    overallGrade: pass ? (stuSubjects.every(s=>s.grade!=='F') ? 'A+' : 'F') : 'F',
-    attendance: attArr
-  };
+ return {
+  name: stu.name,
+  father: stu.father,
+  roll: stu.roll,
+  class: classes.find(c=>c.id===classId)?.name || '',
+  percentage: totalMax ? Math.round((totalMarks/totalMax)*100) : '',
+  rank: '', // Will fill later
+  subjects: stuSubjects,
+  totalMarks, totalMax,
+  overallGrade: totalMax
+    ? ((totalMarks/totalMax)*100 >= 95 ? 'A+'
+      : (totalMarks/totalMax)*100 >= 90 ? 'A'
+      : (totalMarks/totalMax)*100 >= 85 ? 'B+'
+      : (totalMarks/totalMax)*100 >= 80 ? 'B'
+      : (totalMarks/totalMax)*100 >= 70 ? 'C+'
+      : (totalMarks/totalMax)*100 >= 60 ? 'C'
+      : (totalMarks/totalMax)*100 >= 50 ? 'D'
+      : (totalMarks/totalMax)*100 >= 40 ? 'E'
+      : 'F')
+    : '',
+  attendance: attArr
+};
 }
 async function getAllStudentFullData() {
   let dataArr = [];
