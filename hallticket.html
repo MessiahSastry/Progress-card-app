@@ -405,64 +405,50 @@ function getClassGroupName(className) {
     };
 
     // PDF creation
-   const PAGE_WIDTH = 1480;  // approx A5 width in px at your scale
-const PAGE_HEIGHT = 990;  // approx A5 height in px at your scale
-
-const IMG_WIDTH = 2000;
-const IMG_HEIGHT = 1410;
-
-// Calculate scale to fit image inside A5 page size (width or height)
-const scale = Math.min(PAGE_WIDTH / IMG_WIDTH, PAGE_HEIGHT / IMG_HEIGHT);
-const drawWidth = IMG_WIDTH * scale;
-const drawHeight = IMG_HEIGHT * scale;
+   const PAGE_WIDTH = 2000;
+const PAGE_HEIGHT = 1410;
 
 let pdf = new window.jspdf.jsPDF({ orientation: "portrait", unit: "px", format: [PAGE_WIDTH, PAGE_HEIGHT] });
 
 for (let idx = 0; idx < students.length; idx++) {
-  if (idx > 0) pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT], "p");
+  if (idx > 0) pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT], "portrait");
 
-  // Center the image on the page
-  let x = (PAGE_WIDTH - drawWidth) / 2;
-  let y = (PAGE_HEIGHT - drawHeight) / 2;
-  pdf.addImage(hallticketImgData, "PNG", x, y, drawWidth, drawHeight);
+  // Add image at (0,0) with full width and height of the page
+  pdf.addImage(hallticketImgData, "PNG", 0, 0, PAGE_WIDTH, PAGE_HEIGHT);
 
   let stu = students[idx];
   let hallNo = genHallTicketNum(cls, exam, year, stu.roll);
 
-  // Adjust your COORDS here proportionally to fit A5 page size, e.g. multiply by scale or adjust manually
-  const COORDS_A5 = {
-    name: [789 * scale + x, 556 * scale + y],
-    father: [789 * scale + x, 624 * scale + y],
-    class: [414 * scale + x, 692 * scale + y],
-    hall: [1325 * scale + x, 699 * scale + y],
-    exam: [992 * scale + x, 428 * scale + y],
-    subjStart: [432 * scale + x, 990 * scale + y],
-    subjGapY: 74 * scale
+  // Use original coordinates as image and page size match exactly
+  const COORDS = {
+    name: [789, 556],
+    father: [789, 624],
+    class: [414, 692],
+    hall: [1325, 699],
+    exam: [992, 428],
+    subjStart: [432, 990],
+    subjGapY: 74
   };
 
-  // Draw exam name (centered)
   pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(55 * scale);
+  pdf.setFontSize(55);
   pdf.setTextColor(30, 45, 170);
-  pdf.text(exam, COORDS_A5.exam[0], COORDS_A5.exam[1], { align: "center" });
+  pdf.text(exam, COORDS.exam[0], COORDS.exam[1], { align: "center" });
 
-  // Draw fields
-  pdf.setFontSize(38 * scale);
+  pdf.setFontSize(38);
   pdf.setTextColor(30, 70, 70);
-  pdf.text(stu.name, COORDS_A5.name[0], COORDS_A5.name[1]);
-  pdf.text(stu.father, COORDS_A5.father[0], COORDS_A5.father[1]);
-  pdf.text(cls, COORDS_A5.class[0], COORDS_A5.class[1]);
-  pdf.text(hallNo, COORDS_A5.hall[0], COORDS_A5.hall[1]);
+  pdf.text(stu.name, COORDS.name[0], COORDS.name[1]);
+  pdf.text(stu.father, COORDS.father[0], COORDS.father[1]);
+  pdf.text(cls, COORDS.class[0], COORDS.class[1]);
+  pdf.text(hallNo, COORDS.hall[0], COORDS.hall[1]);
 
-  // Draw subjects & dates
-  pdf.setFontSize(34 * scale);
+  pdf.setFontSize(34);
   pdf.setTextColor(34, 34, 34);
-  let xStart = COORDS_A5.subjStart[0];
-  let yStart = COORDS_A5.subjStart[1];
+  let x = COORDS.subjStart[0], y = COORDS.subjStart[1];
   for (let i = 0; i < subjectsForHallTicket.length; i++) {
     let s = subjectsForHallTicket[i];
-    pdf.text(s.subject, xStart, yStart + i * COORDS_A5.subjGapY);
-    pdf.text(formatDate(s.date), xStart + 520 * scale, yStart + i * COORDS_A5.subjGapY);
+    pdf.text(s.subject, x, y + i * COORDS.subjGapY);
+    pdf.text(formatDate(s.date), x + 520, y + i * COORDS.subjGapY);
   }
 }
 
