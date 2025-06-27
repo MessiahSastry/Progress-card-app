@@ -82,13 +82,28 @@
     .popup-save-btn { background: #09386c; color: #fff; font-weight:600; border-radius:9px;}
     .add-btn { background:#1dbb46; color:#fff; margin-bottom:7px; font-size:1em; border-radius:9px; }
     .remove-btn { background:#e44; color:#fff; min-width:80px; border-radius:10px; padding: 12px 0; font-size:1.08em; margin: 10px 0;}
-    .subject-row { display: flex; gap: 7px; margin-bottom: 8px; align-items:center;}
-    .subject-row input[type="text"], .subject-row input[type="date"] {
-      flex: 1 1 0; font-size: 1.09em;
-      padding: 13px 8px; border-radius: 7px; border:1.3px solid #aaa;
-      background: #f8fcff; margin-bottom: 0;
-    }
-    .subject-row .remove-btn { flex:0 0 auto; margin-left:7px; }
+    .subject-row {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 8px;
+  align-items: center;
+  flex-wrap: wrap;           /* Add this line */
+}
+
+.subject-row input[type="text"],
+.subject-row input[type="date"] {
+  flex: 1 1 0;
+  min-width: 0;             /* Add this line for better resizing */
+}
+
+.subject-row .remove-btn {
+  flex: 0 0 auto;
+  margin-left: 7px;
+  align-self: stretch;       /* Add this line (optional: makes button same height as inputs) */
+  /* Optional: force button to stay inside row on small screens */
+  max-width: 90px;
+  white-space: nowrap;
+}
     @media (max-width: 500px) {
       #popup-content { width:99vw; max-width:99vw; }
       .subject-row { flex-direction: column; gap: 6px; margin-bottom: 8px;}
