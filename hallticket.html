@@ -284,19 +284,30 @@
     await loadExams();
   }
   async function loadExams() {
-    let year = yearSel.value;
-    let classId = classSel.value;
-    // You may want to adjust this logic for your exam fetching, similar to memo.html
-    let snap = await db.collection('years').doc(year).collection('exams').get();
-    exams = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+  let year = yearSel.value;
+  let classId = classSel.value;
+  let classObj = classes.find(c => c.id === classId);
+  let className = classObj ? classObj.name : '';
+  let classGroup = getClassGroupName ? getClassGroupName(className) : '';
+  if (!classGroup) {
     examChoices.clearStore();
-    if (exams.length === 0) {
-      examChoices.setChoices([{ value: '', label: 'No choices to choose from', selected: true }], 'value', 'label', false);
-    } else {
-      examChoices.setChoices(exams.map(e => ({ value: e.id, label: e.name, selected: false })), 'value', 'label', false);
-      examChoices.setChoiceByValue(exams[0]?.id || '');
-    }
+    examChoices.setChoices([{ value: '', label: 'No choices to choose from', selected: true }], 'value', 'label', false);
+    return;
   }
+  let snap = await db.collection('years').doc(year)
+    .collection('exams').doc('classGroups')
+    .collection(classGroup).get();
+  exams = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+  examChoices.clearStore();
+  if (exams.length === 0) {
+    examChoices.setChoices([{ value: '', label: 'No choices to choose from', selected: true }], 'value', 'label', false);
+  } else {
+    examChoices.setChoices(
+      exams.map(e => ({ value: e.id, label: e.name, selected: false })), 'value', 'label', false
+    );
+    examChoices.setChoiceByValue(exams[0]?.id || '');
+  }
+}
   yearSel.onchange = () => loadClasses();
   classSel.onchange = () => loadSections();
   sectionSel.onchange = () => loadExams();
