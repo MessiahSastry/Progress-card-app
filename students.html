@@ -264,9 +264,10 @@ function getClassGroupName(className) {
         const classGroup = getClassGroupName(currentClassName);
         db.collection('years').doc(academicYear)
           .collection('exams').doc('classGroups')
-          .collection(classGroup).orderBy('name').get()
-        .collection('sections').doc(currentSectionId)
-        .collection('students').orderBy('roll').get()
+          .collection(classGroup)
+          .collection('sections').doc(currentSectionId)
+          .collection('students').orderBy('roll')
+          .get()
         .then(snap => {
           let students = [];
           snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
