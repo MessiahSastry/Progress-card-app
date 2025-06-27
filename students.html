@@ -472,13 +472,15 @@
                 </div>
               `).join('')}
             </div>
-           <form id="addExamForm">
-          <label>Exam Name</label>
-          <input name="examName" maxlength="30" required placeholder="e.g., FA1">
-          <label>Subjects</label>
-          <div id="subjectsContainer"></div>
-          <button type="button" id="addSubjectBtn" style="margin:6px 0 14px 0; background:#1762a7;color:#fff;padding:7px 13px;border:none;border-radius:7px;font-weight:600;">+ Add Subject</button>
-          <div class="popup-btn-row">
+                   <form id="addExamForm" style="display:flex; flex-direction:column; max-height:70vh;">
+          <div style="flex:1; overflow-y:auto; padding-right:4px;" class="popup-scroll-area">
+            <label>Exam Name</label>
+            <input name="examName" maxlength="30" required placeholder="e.g., FA1">
+            <label>Subjects</label>
+            <div id="subjectsContainer"></div>
+            <button type="button" id="addSubjectBtn" style="margin:6px 0 14px 0; background:#1762a7;color:#fff;padding:7px 13px;border:none;border-radius:7px;font-weight:600;">+ Add Subject</button>
+          </div>
+          <div class="popup-btn-row" style="margin-top:10px;">
             <button type="button" class="popup-cancel-btn">Close</button>
             <button type="submit" class="popup-action-btn">Add Exam</button>
           </div>
