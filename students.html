@@ -844,18 +844,42 @@ db.collection('years').doc(academicYear)
 }
     // ========== ATTENDANCE + WHATSAPP ===========
     function showAttendancePopup() {
-  db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
-    .collection('sections').doc(currentSectionId)
-    .collection('students').orderBy('roll').get()
-    .then(snap => {
-      let students = [];
-      snap.forEach(doc => { if (!doc.data().isDeleted) students.push({ id: doc.id, ...doc.data() }); });
-      let today = new Date().toISOString().slice(0, 10);
-      db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
-        .collection('sections').doc(currentSectionId)
-        .collection('attendance').doc(today)
-        .get()
-        .then(attSnap => {
+        db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+          .collection('sections').doc(currentSectionId)
+          .collection('students').orderBy('roll').get()
+          .then(snap => {
+            let students = [];
+            snap.forEach(doc => { if (!doc.data().isDeleted) students.push({ id: doc.id, ...doc.data() }); });
+            // Add: Date selection field, default today
+            let today = new Date().toISOString().slice(0, 10);
+            let html = `
+              <form id="attendanceDateForm">
+                <div class="popup-title">Select Date for Attendance</div>
+                <label for="attendanceDate">Attendance Date</label>
+                <input type="date" id="attendanceDate" name="attendanceDate" value="${today}" max="${today}" required style="font-size:1.13em;margin-bottom:10px;">
+                <div class="popup-btn-row" style="margin-top:6px;">
+                  <button type="button" class="popup-cancel-btn">Cancel</button>
+                  <button type="submit" class="popup-action-btn">Next</button>
+                </div>
+              </form>
+            `;
+            showPopup(html, 'attendanceDateForm', function(e){
+              e.preventDefault();
+              let date = e.target.attendanceDate.value;
+              if (!date) return;
+              // Now show actual attendance form for that date
+              showAttendanceEntryForDate(date, students);
+            });
+          });
+      }
+      
+      // Helper: actual attendance entry UI for a given date
+      function showAttendanceEntryForDate(date, students) {
+        db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+          .collection('sections').doc(currentSectionId)
+          .collection('attendance').doc(date)
+          .get()
+          .then(attSnap => {
           let attData = attSnap.exists ? attSnap.data() : {};
           let html = `
           <form id="attendanceForm">
