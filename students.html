@@ -475,7 +475,7 @@ function getClassGroupName(className) {
   const classGroup = getClassGroupName(currentClassName);
   db.collection('years').doc(academicYear)
   .collection('exams').doc('classGroups')
-  .collection(classGroup).doc(examId).set({ name, subjects })
+  .collection(classGroup).add({ name, subjects })
   .then(() => {
     // After adding, fetch the full list of exams again:
     return db.collection('years').doc(academicYear)
