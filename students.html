@@ -565,6 +565,7 @@ function showExamSettingsPopup() {
         popupContent.querySelectorAll('[data-edit]').forEach(btn => {
           btn.onclick = function() {
             const examId = btn.getAttribute('data-edit');
+            closePopup();
             showEditExamPopup(examId);
           };
         });
