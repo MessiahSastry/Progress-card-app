@@ -433,12 +433,12 @@ function getClassGroupName(className) {
           .then(() => { closePopup(); renderStudentList(); });
       });
     }
-
     // ======================= SETTINGS POPUP =====================
     function showSettingsPopup() {
   showPopup(`
     <div class="popup-title">Section Tools</div>
     <div style="display:flex;flex-direction:column;gap:13px;">
+      <button class="popup-action-btn" id="uploadStudentsBtn">Upload Students (Excel)</button>
       <button class="popup-action-btn" id="examSettingsBtn">Exam Settings</button>
       <button class="popup-action-btn" id="enterMarksBtn">Enter Marks</button>
       <button class="popup-action-btn" id="attendanceBtn">Take Attendance (WhatsApp)</button>
@@ -451,6 +451,7 @@ function getClassGroupName(className) {
       <button class="popup-cancel-btn">Close</button>
     </div>
   `);
+  document.getElementById('uploadStudentsBtn').onclick = showBulkStudentUploadPopup;
   document.getElementById('examSettingsBtn').onclick = showExamSettingsPopup;
   document.getElementById('enterMarksBtn').onclick = showEnterMarksPopup;
   document.getElementById('attendanceBtn').onclick = showAttendancePopup;
@@ -1340,6 +1341,75 @@ function formatDate(dateStr) {
   if (!dateStr) return '';
   const [y, m, d] = dateStr.split('-');
   return `${d}-${m}-${y}`;
+}
+    function showBulkStudentUploadPopup() {
+  showPopup(`
+    <div class="popup-title">Upload Students (Excel)</div>
+    <input type="file" id="studentFileInput" accept=".xlsx,.csv" style="margin-bottom:15px;" />
+    <div style="font-size:0.97em; color:#555; margin-bottom:10px;">
+      Please upload an Excel (.xlsx) or CSV file with columns: <b>Roll, Name, Father, ParentPhone</b>.
+    </div>
+    <div class="popup-btn-row">
+      <button type="button" class="popup-cancel-btn">Cancel</button>
+      <button type="button" class="popup-action-btn" id="doBulkUploadBtn">Upload</button>
+    </div>
+  `);
+
+  document.getElementById('doBulkUploadBtn').onclick = function() {
+    const fileInput = document.getElementById('studentFileInput');
+    if (!fileInput.files.length) {
+      alert('Please select a file!');
+      return;
+    }
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      let data = new Uint8Array(e.target.result);
+      let workbook = XLSX.read(data, {type: 'array'});
+      let sheet = workbook.Sheets[workbook.SheetNames[0]];
+      let rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval: ''});
+      let headers = rows[0].map(x => x.toString().toLowerCase().trim());
+      let nameIdx = headers.findIndex(h => h === 'name');
+      let rollIdx = headers.findIndex(h => h === 'roll');
+      let fatherIdx = headers.findIndex(h => h === 'father');
+      let phoneIdx = headers.findIndex(h => h.includes('phone'));
+      if (nameIdx < 0 || rollIdx < 0 || fatherIdx < 0) {
+        alert('Excel must have headers: Roll, Name, Father, ParentPhone');
+        return;
+      }
+      let students = [];
+      for (let i=1; i<rows.length; i++) {
+        let row = rows[i];
+        if (!row[nameIdx]) continue;
+        students.push({
+          name: row[nameIdx].toString().trim(),
+          father: row[fatherIdx].toString().trim(),
+          roll: parseInt(row[rollIdx]),
+          parentPhone: phoneIdx >= 0 ? row[phoneIdx].toString().trim() : ""
+        });
+      }
+      if (students.length === 0) {
+        alert('No valid students found!');
+        return;
+      }
+      // Upload students in batch
+      let batch = db.batch();
+      let sectionRef = db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+        .collection('sections').doc(currentSectionId).collection('students');
+      students.forEach(stu => {
+        let ref = sectionRef.doc();
+        batch.set(ref, stu);
+      });
+      batch.commit().then(() => {
+        alert("All students uploaded!");
+        closePopup();
+        renderStudentList();
+      }).catch(e => {
+        alert("Error uploading students: " + e.message);
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
 }
   </script>
 </body>
