@@ -3,269 +3,239 @@
 <head>
   <meta charset="UTF-8">
   <title>Download Hall Tickets - St. Patrick's School</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css?family=Segoe+UI:400,600,700&display=swap" rel="stylesheet">
-  <style>
-    html, body { background: #f4f8fc; margin:0; padding:0; font-family:'Segoe UI',Arial,sans-serif;}
-    .container { max-width: 580px; margin: 30px auto 20px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 18px #0f3d6b22; padding: 24px 18px 30px 18px;}
-    .school-title { color: #0f3d6b; font-size: 1.7em; font-weight: bold; text-align: center;}
-    .subtitle { color: #1762a7; font-size: 1.09em; font-weight: 500; text-align: center; margin-bottom: 16px;}
-    .section { margin-bottom: 20px; }
-    label { font-weight: 600; color: #195084; display: block; margin-bottom: 6px; }
-    .row { display: flex; gap: 13px; }
-    .row > div { flex:1; }
-    .actions { display:flex; gap:14px; margin: 15px 0 14px 0;}
-    .custom-btn, button { background: linear-gradient(90deg, #1762a7 0%, #0f3d6b 100%); color: #fff; font-weight: 600; border:none; padding: 12px 17px; border-radius: 8px; font-size: 1.09em; cursor:pointer; box-shadow: 0 2px 8px #d2e7fa; margin-bottom:0; margin-top:5px; transition: background 0.14s; }
-    .custom-btn:hover, button:hover { background: #113b6c; }
-    .student-list { margin: 8px 0 19px 0; padding-left: 0;}
-    .student-name-row { display: flex; align-items: center; gap: 13px; margin-bottom: 7px; padding-left: 5px;}
-    .student-btn { background: #e5f1fb; color: #1562a7; border: 1px solid #b4c8e9; border-radius: 6px; padding: 7px 11px; font-size: 1em; font-weight:600; cursor:pointer; margin-left: auto; margin-right: 8px; transition: background 0.13s;}
-    .student-btn:hover { background: #cae6fb;}
-    .pdf-preview { border: 2px solid #d1e5f7; border-radius: 12px; padding: 12px; margin-top: 10px; background: #fafdff;}
-    .pdf-preview canvas { max-width: 100%; margin-bottom: 10px;}
-    .toast { display: none; position: fixed; left: 50%; bottom: 38px; transform: translateX(-50%); background: #1762a7; color: #fff; padding: 13px 34px; border-radius: 9px; font-size: 1.08em; box-shadow: 0 2px 16px #19508488; z-index: 9999; opacity: 0.95; font-weight: 600;}
-    @media (max-width: 640px) { .container { max-width: 99vw; padding:6vw 2vw;} .student-btn { font-size: 0.97em; } }
-    select, .custom-select {width: 100%; padding:12px 11px; border: 1.5px solid #b4c8e9; border-radius: 5px; font-size: 1.08em; margin-bottom: 10px;}
-  </style>
-  <!-- Choices.js for custom dropdown -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Segoe+UI:400,600,700&display=swap">
+  <style>
+    body { background: #f4f8fc; font-family: 'Segoe UI', Arial, sans-serif; }
+    .container {
+      max-width: 540px; margin: 34px auto 32px auto;
+      background: #fff; border-radius: 16px; box-shadow: 0 4px 18px #0f3d6b22;
+      padding: 28px 18px 40px 18px;
+    }
+    .school-title { color: #0f3d6b; font-size: 1.5em; font-weight: bold; text-align: center; }
+    .subtitle { color: #1762a7; font-size: 1.1em; font-weight: 500; text-align: center; margin-bottom: 18px;}
+    .actions { display:flex; gap:14px; margin: 18px 0 14px 0;}
+    button, .custom-btn {
+      background: linear-gradient(90deg,#1762a7 0%, #0f3d6b 100%);
+      color:#fff; font-weight:600; border:none; padding:13px 18px;
+      border-radius: 9px; font-size:1.09em; cursor:pointer; margin-top:10px;
+      box-shadow:0 2px 8px #d2e7fa; transition:background 0.13s;
+    }
+    .custom-btn:hover, button:hover { background:#113b6c; }
+    .section { margin-bottom: 20px;}
+    .inline-label { font-weight:600;color:#195084; }
+    .row {display:flex;gap:15px;}
+    .popup-bg {
+      display:none; position:fixed; left:0; top:0; right:0; bottom:0;
+      background: #0006; align-items:center; justify-content:center; z-index:1000;
+    }
+    .popup-bg.show { display:flex;}
+    .popup-content {
+      background:#fff; border-radius:12px; padding:28px 20px 22px 20px;
+      box-shadow:0 6px 28px #19508422; width:340px; max-width:95vw;
+    }
+    .popup-title { font-size:1.14em;color:#0f3d6b;font-weight:700;margin-bottom:16px;}
+    .popup-btn-row { display:flex; gap:12px; justify-content:flex-end; margin-top:14px;}
+    .popup-cancel-btn { background:#eee;color:#444; }
+    .add-btn { background:#1dbb46; color:#fff; margin-bottom:7px; font-size:1em;}
+    .remove-btn { background:#e44; color:#fff; margin-left:9px; font-size:0.98em;}
+    .subject-row { display:flex;gap:7px;margin-bottom:9px;}
+    .subject-row input { flex:2; padding:6px 7px; border-radius:5px; border:1px solid #aaa;}
+    .subject-row input[type="date"] { flex:1.2;}
+    .note { color:#888;font-size:0.99em; margin:13px 0 0 0;}
+  </style>
 </head>
 <body>
   <div class="container">
     <div class="school-title">St. Patrick's School</div>
-    <div class="subtitle">IIT & NEET FOUNDATION<br>Download Hall Tickets (PDF)</div>
-    <div class="section">
-      <label for="yearSel">Academic Year</label>
-      <select id="yearSel" class="custom-select"></select>
-    </div>
+    <div class="subtitle">Download Hall Tickets (PDF)</div>
     <div class="section row">
       <div>
-        <label for="classSel">Class</label>
-        <select id="classSel" class="custom-select"></select>
+        <span class="inline-label">Class:</span>
+        <input type="text" id="className" value="10" style="padding:8px 9px;width:74px;border-radius:7px;border:1.3px solid #aaa;" />
       </div>
       <div>
-        <label for="sectionSel">Section</label>
-        <select id="sectionSel" class="custom-select"></select>
+        <span class="inline-label">Section:</span>
+        <input type="text" id="sectionName" value="A" style="padding:8px 9px;width:74px;border-radius:7px;border:1.3px solid #aaa;" />
+      </div>
+      <div>
+        <span class="inline-label">Exam:</span>
+        <input type="text" id="examName" value="FA1" style="padding:8px 9px;width:88px;border-radius:7px;border:1.3px solid #aaa;" />
+      </div>
+      <div>
+        <span class="inline-label">Year:</span>
+        <input type="text" id="yearName" value="2025" style="padding:8px 9px;width:74px;border-radius:7px;border:1.3px solid #aaa;" />
       </div>
     </div>
     <div class="section">
-      <label for="examSel">Exam</label>
-      <select id="examSel" class="custom-select"></select>
+      <button class="custom-btn" id="editSubjectsBtn">Set Subjects & Dates</button>
     </div>
-    <div class="actions">
-      <button id="previewBtn" class="custom-btn">Preview Hall Ticket</button>
-      <button id="downloadAllBtn" class="custom-btn">Download (PDF)</button>
+    <div class="section actions">
+      <button class="custom-btn" id="downloadBtn">Download All Hall Tickets (PDF)</button>
     </div>
-    <div class="student-list" id="studentList"></div>
-    <div class="pdf-preview" id="pdfPreview"></div>
-    <div style="color:#888;font-size:.98em;margin-top:16px;">
-      <b>Note:</b> Only first 3 tickets shown in preview for speed. Download PDF for all students.
+    <div class="note">
+      1. Update subject names and dates each time before download.<br>
+      2. <b>Make sure hallticket.png</b> is in the same folder.
     </div>
   </div>
-  <div id="toast" class="toast"></div>
 
-  <!-- Firebase libraries -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <!-- Popup -->
+  <div class="popup-bg" id="popupBg">
+    <div class="popup-content" id="popupContent"></div>
+  </div>
+
   <script>
-    // PNG BG coordinates
-    const coords = {
-      name:      [789, 556],
-      father:    [789, 624],
-      class:     [414, 692],
-      hallticket:[1325,699]
-    };
-    // --- SCHOOL HALLTICKET PNG, must be present
-    const BG_IMG = "halticket.png";
-
-    // Firebase config (keep as in your project)
-    const firebaseConfig = {
-      apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
-      authDomain: "stpatricksprogresscard.firebaseapp.com",
-      projectId: "stpatricksprogresscard",
-      storageBucket: "stpatricksprogresscard.appspot.com",
-      messagingSenderId: "671416933178",
-      appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // UI refs
-    const yearSel = document.getElementById('yearSel');
-    const classSel = document.getElementById('classSel');
-    const sectionSel = document.getElementById('sectionSel');
-    const examSel = document.getElementById('examSel');
-    const previewBtn = document.getElementById('previewBtn');
-    const downloadAllBtn = document.getElementById('downloadAllBtn');
-    const studentListDiv = document.getElementById('studentList');
-    const pdfPreview = document.getElementById('pdfPreview');
-    const toastDiv = document.getElementById('toast');
-
-    // Choices.js
-    const classChoices = new Choices(classSel, { searchEnabled:false, itemSelectText:'', shouldSort:false });
-    const sectionChoices = new Choices(sectionSel, { searchEnabled:false, itemSelectText:'', shouldSort:false });
-    const examChoices = new Choices(examSel, { searchEnabled:false, itemSelectText:'', shouldSort:false });
-    const yearChoices = new Choices(yearSel, { searchEnabled:false, itemSelectText:'', shouldSort:false });
-
-    // Loader data
-    let years = [], classes = [], sections = [], exams = [], students = [];
-    let bgImgData = null;
-
-    // ========== LOADERS ==============
-    async function loadYears() {
-      let snap = await db.collection('years').orderBy('name','desc').get();
-      years = snap.docs.map(doc=>({id:doc.id,...doc.data()}));
-      yearChoices.clearStore();
-      yearChoices.setChoices(
-        years.map(y => ({ value: y.id, label: y.id, selected: false })), 'value','label',false
-      );
-      yearChoices.setChoiceByValue(years[0]?.id || '');
-      await loadClasses();
+    // --- PNG --- 
+    let hallticketImgData = null;
+    async function loadHallticketImg() {
+      return fetch('hallticket.png').then(resp=>resp.blob()).then(blob=>new Promise((resolve,reject)=>{
+        let reader=new FileReader();
+        reader.onload=ev=>{ hallticketImgData=ev.target.result; resolve();};
+        reader.onerror=reject; reader.readAsDataURL(blob);
+      }));
     }
-    async function loadClasses() {
-      let year = yearSel.value;
-      let snap = await db.collection('years').doc(year).collection('classes').orderBy('name').get();
-      classes = snap.docs.map(doc=>({id:doc.id,...doc.data()}));
-      classChoices.clearStore();
-      classChoices.setChoices(
-        classes.map(c => ({ value: c.id, label: c.name, selected: false })), 'value','label',false
-      );
-      classChoices.setChoiceByValue(classes[0]?.id || '');
-      await loadSections();
-    }
-    async function loadSections() {
-      let year = yearSel.value, classId = classSel.value;
-      if(!year || !classId){ sectionSel.innerHTML=''; return; }
-      let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').orderBy('name').get();
-      sections = snap.docs.map(doc=>({id:doc.id,...doc.data()}));
-      sectionChoices.clearStore();
-      sectionChoices.setChoices(
-        sections.map(s => ({ value: s.id, label: s.name, selected: false })), 'value','label',false
-      );
-      sectionChoices.setChoiceByValue(sections[0]?.id || '');
-      await loadExams();
-    }
-    async function loadExams() {
-      let year = yearSel.value, classId = classSel.value;
-      let snap = await db.collection('years').doc(year).collection('exams').get();
-      exams = snap.docs.map(doc=>({id:doc.id,...doc.data()}));
-      examChoices.clearStore();
-      if(exams.length===0) {
-        examChoices.setChoices([{ value:'', label:'No choices to choose from', selected:true }],'value','label',false);
-      } else {
-        examChoices.setChoices(
-          exams.map(e=>({value:e.id, label:e.name, selected:false})), 'value','label',false
-        );
-        examChoices.setChoiceByValue(exams[0]?.id || '');
+    // --- Subject/Date DATA ---
+    window.subjectsForHallTicket = [
+      { subject: "Maths", date: "2025-03-16" },
+      { subject: "Physics", date: "2025-03-18" },
+      { subject: "Chemistry", date: "2025-03-20" }
+    ];
+
+    // --- POPUP for subjects/dates ---
+    function showSubjectDatePopup() {
+      let html = `<div class="popup-title">Enter Subjects & Dates</div>
+      <form id="subjectForm">
+        <div id="subjectsList"></div>
+        <button type="button" class="add-btn" id="addSubjectBtn">+ Add Subject</button>
+        <div class="popup-btn-row">
+          <button type="button" class="popup-cancel-btn">Cancel</button>
+          <button type="submit" class="custom-btn">Save</button>
+        </div>
+      </form>`;
+      document.getElementById('popupContent').innerHTML = html;
+      document.getElementById('popupBg').classList.add('show');
+
+      function renderRows() {
+        let rows = window.subjectsForHallTicket.map((row, i) => `
+          <div class="subject-row">
+            <input type="text" placeholder="Subject" value="${row.subject||''}" required>
+            <input type="date" value="${row.date||''}" required>
+            <button type="button" class="remove-btn" data-idx="${i}">Remove</button>
+          </div>
+        `).join('');
+        document.getElementById('subjectsList').innerHTML = rows;
+        // Remove buttons
+        document.querySelectorAll('.remove-btn').forEach(btn=>{
+          btn.onclick = function() {
+            let idx = +btn.getAttribute('data-idx');
+            window.subjectsForHallTicket.splice(idx,1);
+            renderRows();
+          }
+        });
       }
-      await loadStudents();
-    }
-    async function loadStudents() {
-      let year=yearSel.value, classId=classSel.value, sectionId=sectionSel.value;
-      if(!year||!classId||!sectionId){studentListDiv.innerHTML='';students=[];return;}
-      let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').doc(sectionId).collection('students').orderBy('roll').get();
-      students = [];
-      snap.forEach(doc=>{let d=doc.data();if(!d.isDeleted)students.push({id:doc.id,...d});});
-      showStudentList();
-    }
-    function showStudentList() {
-      studentListDiv.innerHTML = students.length ?
-        `<div style="font-weight:600;color:#195084;margin-bottom:8px;">Download Individual:</div>` +
-        students.map(stu =>
-          `<div class="student-name-row"><span style="flex:1;text-align:left;font-size:1.08em;color:#14305a;">${stu.roll ? stu.roll + '. ' : ''}${stu.name}</span>
-          <button class="student-btn" onclick="downloadOne('${stu.id}')">Download</button></div>`
-        ).join('')
-        : `<span style="color:#999;">No students in this section.</span>`;
-    }
-    yearSel.onchange = ()=>loadClasses();
-    classSel.onchange = ()=>loadSections();
-    sectionSel.onchange = ()=>loadExams();
-    examSel.onchange = ()=>loadStudents();
-
-    // ================== PNG LOAD ===============
-    async function loadBgImg() {
-      if(bgImgData) return;
-      const resp = await fetch(BG_IMG);
-      const blob = await resp.blob();
-      bgImgData = await new Promise(res=>{
-        const reader = new FileReader();
-        reader.onload = ev=>res(ev.target.result);
-        reader.readAsDataURL(blob);
-      });
-    }
-
-    // ========== HALLTICKET NUMBER ============
-    function genHallTicketNo(stu, examName, year) {
-      // SPS + Class number (digits only) + ExamName (no spaces) + Year + Roll (3 digit)
-      let cl = (stu.class||"").replace(/[^0-9]/g,'');
-      let ex = (examName||"").replace(/\s/g,'');
-      let roll = stu.roll ? String(stu.roll).padStart(3,'0') : "001";
-      return `SPS${cl}${ex}${year}${roll}`;
-    }
-
-    // ========== PDF GEN ============
-    async function generateHallTicketPDF(studentArr, isPreview) {
-      await loadBgImg();
-      let examObj = exams.find(e=>e.id===examSel.value) || {};
-      let examName = examObj.name || (examSel.options[examSel.selectedIndex]?.textContent||"");
-      let year = yearSel.value;
-      const { jsPDF } = window.jspdf;
-      let pdf = new jsPDF({orientation:"landscape", unit:"px", format:[1540,1086]});
-      for(let idx=0; idx<studentArr.length; idx++) {
-        let stu = studentArr[idx];
-        if(idx>0) pdf.addPage([1540,1086],'l');
-        pdf.addImage(bgImgData, "PNG", 0, 0, 1540, 1086);
-        // NAME
-        pdf.setFont("helvetica","bold"); pdf.setFontSize(30); pdf.setTextColor(25,80,132);
-        pdf.text(stu.name?.toUpperCase()||'', coords.name[0], coords.name[1]);
-        // FATHER
-        pdf.setFont("helvetica","normal"); pdf.setFontSize(29); pdf.setTextColor(20,32,100);
-        pdf.text(stu.father?.toUpperCase()||'', coords.father[0], coords.father[1]);
-        // CLASS
-        pdf.setFont("helvetica","bold"); pdf.setFontSize(29); pdf.setTextColor(22,163,74);
-        pdf.text(stu.class||'', coords.class[0], coords.class[1]);
-        // HALLTICKET
-        pdf.setFont("helvetica","bold"); pdf.setFontSize(29); pdf.setTextColor(20,32,100);
-        pdf.text(genHallTicketNo(stu, examName, year), coords.hallticket[0], coords.hallticket[1]);
+      renderRows();
+      document.getElementById('addSubjectBtn').onclick = ()=>{
+        window.subjectsForHallTicket.push({subject:"",date:""});
+        renderRows();
+      };
+      document.getElementById('subjectForm').onsubmit = function(e){
+        e.preventDefault();
+        // Save all rows
+        let rows = document.querySelectorAll('.subject-row');
+        let arr = [];
+        let valid=true;
+        rows.forEach(row=>{
+          let s = row.querySelector('input[type="text"]').value.trim();
+          let d = row.querySelector('input[type="date"]').value;
+          if (!s || !d) valid=false;
+          arr.push({subject:s,date:d});
+        });
+        if (!valid) return alert("Fill all subject names and dates!");
+        window.subjectsForHallTicket = arr;
+        closePopup();
       }
-      if(isPreview) {
-        // Show preview (first ticket)
-        let url = pdf.output("dataurlstring");
-        pdfPreview.innerHTML = `<iframe src="${url}" style="width:100%;height:420px;border:none;border-radius:8px;"></iframe>`;
-      } else {
-        pdf.save(`halltickets_${year}_${examName}.pdf`);
+      document.querySelector('.popup-cancel-btn').onclick = closePopup;
+    }
+    function closePopup(){
+      document.getElementById('popupBg').classList.remove('show');
+      document.getElementById('popupContent').innerHTML = '';
+    }
+    document.getElementById('editSubjectsBtn').onclick = showSubjectDatePopup;
+
+    // --- Generate Hall Ticket Number ---
+    function genHallTicketNum(cls,exam,year,roll){
+      // SPS10FA12025001
+      let rollStr = String(roll).padStart(3,'0');
+      return `SPS${cls}${exam}${year}${rollStr}`;
+    }
+
+    // --- Draw Hall Ticket PDF ---
+    document.getElementById('downloadBtn').onclick = async ()=>{
+      // Sample students: Replace this with your DB fetch
+      let students = [
+        { name: "Ravi Kumar", father: "S. Srinivas", roll: 1 },
+        { name: "Anjali Devi", father: "B. Krishna", roll: 2 }
+      ];
+      let cls = document.getElementById('className').value.trim();
+      let sec = document.getElementById('sectionName').value.trim();
+      let exam = document.getElementById('examName').value.trim();
+      let year = document.getElementById('yearName').value.trim();
+
+      if (!hallticketImgData) await loadHallticketImg();
+
+      // Coordinates (update for your PNG)
+      const COORDS = {
+        name: [789,556],
+        father: [789,624],
+        class: [414,692],
+        hall: [1325,699],
+        exam: [992,428], // center
+        subjStart: [432,990], // subjects start X,Y (example)
+        subjGapY: 74 // px between subject rows
+      };
+
+      // PDF creation
+      let pdf = new window.jspdf.jsPDF({orientation:"portrait",unit:"px",format:[1985,1403]}); // Size of your PNG
+      for (let idx=0; idx<students.length; idx++) {
+        if (idx>0) pdf.addPage([1985,1403],'p');
+        pdf.addImage(hallticketImgData,"PNG",0,0,1985,1403);
+
+        let stu = students[idx];
+        let hallNo = genHallTicketNum(cls,exam,year,stu.roll);
+
+        // Draw exam name (centered)
+        pdf.setFont("helvetica","bold");
+        pdf.setFontSize(55);
+        pdf.setTextColor(30, 45, 170);
+        pdf.text(exam, COORDS.exam[0], COORDS.exam[1], {align:"center"});
+
+        // Draw fields
+        pdf.setFontSize(38);
+        pdf.setTextColor(30,70,70);
+        pdf.text(stu.name, COORDS.name[0], COORDS.name[1]);
+        pdf.text(stu.father, COORDS.father[0], COORDS.father[1]);
+        pdf.text(cls, COORDS.class[0], COORDS.class[1]);
+        pdf.text(hallNo, COORDS.hall[0], COORDS.hall[1]);
+
+        // Draw subjects & dates
+        pdf.setFontSize(34);
+        pdf.setTextColor(34,34,34);
+        let x = COORDS.subjStart[0], y = COORDS.subjStart[1];
+        for (let i=0; i<window.subjectsForHallTicket.length; i++) {
+          let s = window.subjectsForHallTicket[i];
+          pdf.text(s.subject, x, y+i*COORDS.subjGapY);
+          pdf.text(formatDate(s.date), x+520, y+i*COORDS.subjGapY); // adjust X for date col
+        }
       }
+      pdf.save(`HallTickets_${cls}_${sec}_${exam}.pdf`);
+    };
+
+    function formatDate(dateStr){
+      if(!dateStr) return '';
+      let d = new Date(dateStr);
+      return d.toLocaleDateString('en-GB').replace(/\//g,'-');
     }
-
-    window.downloadOne = async function(studentId) {
-      let stu = students.find(s=>s.id===studentId);
-      if(!stu) return;
-      await generateHallTicketPDF([stu], false);
-      showToast("Download completed.");
-    };
-
-    previewBtn.onclick = async () => {
-      pdfPreview.innerHTML = `<i>Generating preview...</i>`;
-      await generateHallTicketPDF(students.slice(0,1), true);
-    };
-    downloadAllBtn.onclick = async () => {
-      await generateHallTicketPDF(students, false);
-      showToast("Download completed.");
-    };
-
-    function showToast(msg) {
-      toastDiv.innerHTML = msg;
-      toastDiv.style.display = 'block';
-      setTimeout(()=>{toastDiv.style.display='none';}, 2000);
-    }
-    // INIT
-    (async function() {
-      await loadBgImg();
-      await loadYears();
-    })();
   </script>
 </body>
 </html>
