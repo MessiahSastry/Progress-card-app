@@ -300,9 +300,10 @@
   classSel.onchange = () => loadSections();
   sectionSel.onchange = () => loadExams();
 
-  (async function() {
-    await loadYears();
-  })();
+  firebase.auth().onAuthStateChanged(function(user) {
+  if (!user) window.location.replace("login.html");
+  else loadYears();
+});
 
   // Generate Hall Ticket Number (customize if needed)
   function genHallTicketNum(cls,exam,year,roll){
