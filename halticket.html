@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Download Hall Tickets - St. Patrick's School</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- PDF & Dropdowns -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <style>
+    body { background: #f4f8fc; margin: 0; font-family: 'Segoe UI', Arial, sans-serif;}
+    .container { max-width: 580px; margin: 30px auto 20px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 18px #0f3d6b22; padding: 24px 18px 30px 18px;}
+    .school-title { color: #0f3d6b; font-size: 1.7em; font-weight: bold; text-align: center;}
+    .subtitle { color: #1762a7; font-size: 1.09em; font-weight: 500; text-align: center; margin-bottom: 16px;}
+    .section { margin-bottom: 20px; }
+    label { font-weight: 600; color: #195084; display: block; margin-bottom: 6px; }
+    .row { display: flex; gap: 13px; }
+    .row > div { flex:1; }
+    .actions { display:flex; gap:14px; margin: 15px 0 14px 0;}
+    .custom-btn, button { background: linear-gradient(90deg, #1762a7 0%, #0f3d6b 100%); color: #fff; font-weight: 600; border:none; padding: 12px 17px; border-radius: 8px; font-size: 1.09em; cursor:pointer; box-shadow: 0 2px 8px #d2e7fa; margin-bottom:0; margin-top:5px; transition: background 0.14s; }
+    .custom-btn:hover, button:hover { background: #113b6c; }
+    .student-list { margin: 8px 0 19px 0; padding-left: 0;}
+    .student-name-row { display: flex; align-items: center; gap: 13px; margin-bottom: 7px; padding-left: 5px;}
+    .student-btn { background: #e5f1fb; color: #1562a7; border: 1px solid #b4c8e9; border-radius: 6px; padding: 7px 11px; font-size: 1em; font-weight:600; cursor:pointer; margin-left: auto; margin-right: 8px; transition: background 0.13s;}
+    .student-btn:hover { background: #cae6fb;}
+    .pdf-preview { border: 2px solid #d1e5f7; border-radius: 12px; padding: 12px; margin-top: 10px; background: #fafdff;}
+    .pdf-preview iframe { width: 100%; min-height: 440px; }
+    .toast { display: none; position: fixed; left: 50%; bottom: 38px; transform: translateX(-50%); background: #1762a7; color: #fff; padding: 13px 34px; border-radius: 9px; font-size: 1.08em; box-shadow: 0 2px 16px #19508488; z-index: 9999; opacity: 0.95; font-weight: 600;}
+    @media (max-width: 640px) { .container { max-width: 99vw; padding:6vw 2vw;} .student-btn { font-size: 0.97em; } }
+    .custom-select.styled-dropdown, select.styled-dropdown {
+      background: #fff; border: 1.5px solid #b4c8e9; color: #14305a; font-size: 1.12em;
+      border-radius: 5px; appearance: none; outline: none; box-shadow: none; background-image: none;
+      padding: 14px 16px; margin-bottom: 14px; min-width: 0; width: 100%; transition: border 0.15s;
+    }
+    .custom-select.styled-dropdown:focus, select.styled-dropdown:focus { border: 1.5px solid #1762a7; outline: none;}
+    select.styled-dropdown::-ms-expand { display: none; }
+    @media (max-width: 800px) { .custom-select.styled-dropdown, select.styled-dropdown { font-size: 1.08em; padding: 13px 12px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="school-title">St. Patrick's School</div>
+    <div class="subtitle">IIT & NEET FOUNDATION<br>Download Hall Tickets (PDF)</div>
+    <div class="section">
+      <label for="yearSel">Academic Year</label>
+      <select id="yearSel" class="custom-select styled-dropdown"></select>
+    </div>
+    <div class="section row">
+      <div>
+        <label for="classSel">Class</label>
+        <select id="classSel" class="custom-select styled-dropdown"></select>
+      </div>
+      <div>
+        <label for="sectionSel">Section</label>
+        <select id="sectionSel" class="custom-select styled-dropdown"></select>
+      </div>
+    </div>
+    <div class="section">
+      <label for="examSel">Exam</label>
+      <select id="examSel" class="custom-select styled-dropdown"></select>
+    </div>
+    <div class="actions">
+      <button id="previewBtn" class="custom-btn">Preview (First 3)</button>
+      <button id="downloadAllBtn" class="custom-btn">Download All (PDF)</button>
+    </div>
+    <div class="student-list" id="studentList"></div>
+    <div class="pdf-preview" id="pdfPreview"></div>
+    <div style="color:#888;font-size:.98em;margin-top:16px;">
+      <b>Note:</b> Only first 3 hall tickets shown as preview for speed. Download PDF for all.
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <!-- Firebase libraries -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    // ---- PNG and COORDS ----
+    const pngFile = "halticket.png"; // must be in root or update path as needed
+    // Coordinates for text (as per your input)
+    const coords = {
+      name: [789, 556],
+      father: [789, 624],
+      class: [414, 692],
+      hallticket: [1325, 699],
+    };
+
+    // --- UI bindings
+    const yearSel = document.getElementById('yearSel');
+    const classSel = document.getElementById('classSel');
+    const sectionSel = document.getElementById('sectionSel');
+    const examSel = document.getElementById('examSel');
+    const previewBtn = document.getElementById('previewBtn');
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
+    const pdfPreview = document.getElementById('pdfPreview');
+    const studentListDiv = document.getElementById('studentList');
+    const toastDiv = document.getElementById('toast');
+
+    // --- Dropdowns
+    const yearChoices = new Choices(yearSel, { searchEnabled: false, itemSelectText: '', shouldSort: false });
+    const classChoices = new Choices(classSel, { searchEnabled: false, itemSelectText: '', shouldSort: false });
+    const sectionChoices = new Choices(sectionSel, { searchEnabled: false, itemSelectText: '', shouldSort: false });
+    const examChoices = new Choices(examSel, { searchEnabled: false, itemSelectText: '', shouldSort: false });
+
+    // ---- FIREBASE ----
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
+      authDomain: "stpatricksprogresscard.firebaseapp.com",
+      projectId: "stpatricksprogresscard",
+      storageBucket: "stpatricksprogresscard.appspot.com",
+      messagingSenderId: "671416933178",
+      appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) { window.location.replace("index.html"); }
+    });
+
+    // -------- Dropdown Data Loaders --------
+    let years = [], classes = [], sections = [], exams = [], students = [];
+    async function loadYears() {
+      let snap = await db.collection('years').orderBy('name', 'desc').get();
+      years = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      yearChoices.clearStore();
+      yearChoices.setChoices(
+        years.map(y => ({ value: y.id, label: y.id, selected: false })), 'value', 'label', false
+      );
+      yearChoices.setChoiceByValue(years[0]?.id || '');
+      await loadClasses();
+    }
+    async function loadClasses() {
+      let year = yearSel.value;
+      let snap = await db.collection('years').doc(year).collection('classes').orderBy('name').get();
+      classes = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      classChoices.clearStore();
+      classChoices.setChoices(
+        classes.map(c => ({ value: c.id, label: c.name, selected: false })), 'value', 'label', false
+      );
+      classChoices.setChoiceByValue(classes[0]?.id || '');
+      await loadSections();
+    }
+    async function loadSections() {
+      let year = yearSel.value, classId = classSel.value;
+      if (!year || !classId) { sectionSel.innerHTML = ''; return; }
+      let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').orderBy('name').get();
+      sections = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      sectionChoices.clearStore();
+      sectionChoices.setChoices(
+        sections.map(s => ({ value: s.id, label: s.name, selected: false })), 'value', 'label', false
+      );
+      sectionChoices.setChoiceByValue(sections[0]?.id || '');
+      await loadExams();
+    }
+    // Uses same class group logic as memo.html:
+    const CLASS_GROUP_MAP = {
+      "Nursery": "nursery-lkg-ukg", "LKG": "nursery-lkg-ukg", "UKG": "nursery-lkg-ukg",
+      "1": "1-2", "2": "1-2", "1st": "1-2", "2nd": "1-2",
+      "3": "3-5", "4": "3-5", "5": "3-5", "3rd": "3-5", "4th": "3-5", "5th": "3-5",
+      "6": "6-9", "7": "6-9", "8": "6-9", "9": "6-9", "6th": "6-9", "7th": "6-9", "8th": "6-9", "9th": "6-9",
+      "10": "10", "10th": "10"
+    };
+    function getClassGroupName(className) {
+      className = (className+"").replace(/[^a-z0-9]/gi,'').toLowerCase();
+      for (let [k, v] of Object.entries(CLASS_GROUP_MAP)) {
+        let key = k.replace(/[^a-z0-9]/gi,'').toLowerCase();
+        if (className === key || className === key.replace("th","")) return v;
+      }
+      return "6-9";
+    }
+    async function loadExams() {
+      let year = yearSel.value, classId = classSel.value;
+      let classObj = classes.find(c => c.id === classId);
+      let className = classObj ? classObj.name : '';
+      let classGroup = getClassGroupName(className);
+      if (!classGroup) {
+        examChoices.clearStore();
+        examChoices.setChoices([{ value: '', label: 'No choices to choose from', selected: true }], 'value', 'label', false);
+        await loadStudents();
+        return;
+      }
+      let snap = await db.collection('years').doc(year)
+        .collection('exams').doc('classGroups')
+        .collection(classGroup).get();
+      exams = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      examChoices.clearStore();
+      if (exams.length === 0) {
+        examChoices.setChoices([{ value: '', label: 'No choices to choose from', selected: true }], 'value', 'label', false);
+      } else {
+        examChoices.setChoices(
+          exams.map(e => ({ value: e.id, label: e.name, selected: false })),
+          'value', 'label', false
+        );
+        examChoices.setChoiceByValue(exams[0]?.id || '');
+      }
+      await loadStudents();
+    }
+    async function loadStudents() {
+      let year = yearSel.value, classId = classSel.value, sectionId = sectionSel.value;
+      if (!year || !classId || !sectionId) { studentListDiv.innerHTML = ''; students = []; return; }
+      let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').doc(sectionId).collection('students').orderBy('roll').get();
+      students = [];
+      snap.forEach(doc => { let d=doc.data(); if (!d.isDeleted) students.push({id: doc.id, ...d}); });
+      showStudentList();
+    }
+    function showStudentList() {
+      studentListDiv.innerHTML = students.length ?
+        `<div style="font-weight:600;color:#195084;margin-bottom:8px;">Download Individual:</div>` +
+        students.map(stu =>
+          `<div class="student-name-row"><span style="flex:1;text-align:left;font-size:1.08em;color:#14305a;">${stu.roll ? stu.roll + '. ' : ''}${stu.name}</span>
+          <button class="student-btn" onclick="downloadOne('${stu.id}')">Download</button></div>`
+        ).join('')
+        : `<span style="color:#999;">No students in this section.</span>`;
+    }
+    // Reload on dropdown changes
+    yearSel.onchange = () => loadClasses();
+    classSel.onchange = () => loadSections();
+    sectionSel.onchange = () => loadExams();
+    examSel.onchange = () => loadStudents();
+
+    // ------ Hall Ticket No ------
+    function pad(num, size) { let s = "000" + num; return s.substr(s.length-size);}
+    function generateHallTicketNo(stu, className, examName, year) {
+      return `SPS${className}${examName}${year}${pad(stu.roll,3)}`;
+    }
+
+    // ------ PNG Data URL ------
+    async function loadImageAsDataURL(src) {
+      return new Promise((resolve, reject) => {
+        const img = new window.Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = function () {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    // -------- PDF GEN ---------
+    async function generateHallTicketPDF(stuArr, isSingle, showPreview) {
+      // Load PNG
+      const pngData = await loadImageAsDataURL(pngFile);
+      const pdf = new window.jspdf.jsPDF({orientation: "landscape", unit: "px", format: [1089, 768]});
+      for (let idx = 0; idx < stuArr.length; idx++) {
+        let stu = stuArr[idx];
+        let classObj = classes.find(c=>c.id===classSel.value);
+        let className = classObj ? classObj.name : "";
+        let examObj = exams.find(e=>e.id===examSel.value);
+        let examName = examObj ? examObj.name : "";
+        let hallNo = generateHallTicketNo(stu, className, examName, yearSel.value);
+
+        if (idx !== 0) pdf.addPage([1089,768], 'l');
+        pdf.addImage(pngData, "PNG", 0, 0, 1089, 768);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(58);
+        pdf.text(stu.name || '', coords.name[0], coords.name[1]);
+        pdf.text(stu.father || '', coords.father[0], coords.father[1]);
+        pdf.text(className, coords.class[0], coords.class[1]);
+        pdf.text(hallNo, coords.hallticket[0], coords.hallticket[1]);
+      }
+      if (showPreview) {
+        const dataUrl = pdf.output('dataurlstring');
+        pdfPreview.innerHTML = `<iframe src="${dataUrl}" style="width:100%;min-height:470px;border-radius:12px;border:2px solid #ddeefa;"></iframe>`;
+      } else {
+        pdf.save(`halltickets_${classSel.options[classSel.selectedIndex].text}_${sectionSel.options[sectionSel.selectedIndex].text}.pdf`);
+      }
+    }
+
+    // Download one student only
+    window.downloadOne = async function(studentId) {
+      let stu = students.find(s => s.id === studentId);
+      if (!stu) return;
+      await generateHallTicketPDF([stu], true, false);
+      showToast("Download completed.");
+    };
+
+    // Download all students (PDF)
+    downloadAllBtn.onclick = async () => {
+      await generateHallTicketPDF(students, false, false);
+      showToast("Download completed.");
+    };
+    // Preview first 3
+    previewBtn.onclick = async () => {
+      pdfPreview.innerHTML = `<i>Generating preview...</i>`;
+      await generateHallTicketPDF(students.slice(0,3), false, true);
+    };
+
+    // Toasts
+    function showToast(msg) {
+      toastDiv.innerHTML = msg;
+      toastDiv.style.display = 'block';
+      setTimeout(()=>{toastDiv.style.display='none';}, 2200);
+    }
+
+    // INIT
+    (async function() {
+      await loadYears();
+    })();
+  </script>
+</body>
+</html>
