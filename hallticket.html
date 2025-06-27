@@ -411,8 +411,9 @@ const PAGE_HEIGHT = 1403;
 const IMG_WIDTH = 2000;
 const IMG_HEIGHT = 1410;
 
-const TICKET_HEIGHT = PAGE_HEIGHT / 2;  // Half page height
-const scale = TICKET_HEIGHT / IMG_HEIGHT; // scale image to half height
+// Calculate scale to fit the image into half page height
+const TICKET_HEIGHT = PAGE_HEIGHT / 2;
+const scale = TICKET_HEIGHT / IMG_HEIGHT;
 const TICKET_WIDTH = IMG_WIDTH * scale;
 
 let pdf = new window.jspdf.jsPDF({orientation:"portrait",unit:"px",format:[PAGE_WIDTH, PAGE_HEIGHT]});
@@ -420,65 +421,43 @@ let pdf = new window.jspdf.jsPDF({orientation:"portrait",unit:"px",format:[PAGE_
 for (let idx = 0; idx < students.length; idx += 2) {
   if (idx > 0) pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT], 'p');
 
-  // Draw top ticket
+  // Draw top ticket background image at (0,0)
   pdf.addImage(hallticketImgData, "PNG", 0, 0, PAGE_WIDTH, TICKET_HEIGHT);
 
-  // Draw bottom ticket if exists
+  // Draw bottom ticket background image at (0, TICKET_HEIGHT)
   if (students[idx + 1]) {
     pdf.addImage(hallticketImgData, "PNG", 0, TICKET_HEIGHT, PAGE_WIDTH, TICKET_HEIGHT);
   }
 
-  // Vertical offsets for text positioning
-  const offsetTop = 0;
-  const offsetBottom = TICKET_HEIGHT;
-
-  // Draw top ticket details
-  let stu1 = students[idx];
-  let hallNo1 = genHallTicketNum(cls, exam, year, stu1.roll);
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(55);
-  pdf.setTextColor(30, 45, 170);
-  pdf.text(exam, COORDS.exam[0], COORDS.exam[1] + offsetTop, { align: "center" });
-
-  pdf.setFontSize(38);
-  pdf.setTextColor(30, 70, 70);
-  pdf.text(stu1.name, COORDS.name[0], COORDS.name[1] + offsetTop);
-  pdf.text(stu1.father, COORDS.father[0], COORDS.father[1] + offsetTop);
-  pdf.text(cls, COORDS.class[0], COORDS.class[1] + offsetTop);
-  pdf.text(hallNo1, COORDS.hall[0], COORDS.hall[1] + offsetTop);
-
-  pdf.setFontSize(34);
-  pdf.setTextColor(34, 34, 34);
-  for (let i = 0; i < subjectsForHallTicket.length; i++) {
-    let s = subjectsForHallTicket[i];
-    pdf.text(s.subject, COORDS.subjStart[0], COORDS.subjStart[1] + i * COORDS.subjGapY + offsetTop);
-    pdf.text(formatDate(s.date), COORDS.subjStart[0] + 520, COORDS.subjStart[1] + i * COORDS.subjGapY + offsetTop);
-  }
-
-  // Draw bottom ticket details if present
-  if (students[idx + 1]) {
-    let stu2 = students[idx + 1];
-    let hallNo2 = genHallTicketNum(cls, exam, year, stu2.roll);
+  // Function to draw ticket data on given vertical offset
+  function drawTicket(stu, offsetY) {
+    let hallNo = genHallTicketNum(cls, exam, year, stu.roll);
 
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(55);
     pdf.setTextColor(30, 45, 170);
-    pdf.text(exam, COORDS.exam[0], COORDS.exam[1] + offsetBottom, { align: "center" });
+    pdf.text(exam, COORDS.exam[0], COORDS.exam[1] + offsetY, { align: "center" });
 
     pdf.setFontSize(38);
     pdf.setTextColor(30, 70, 70);
-    pdf.text(stu2.name, COORDS.name[0], COORDS.name[1] + offsetBottom);
-    pdf.text(stu2.father, COORDS.father[0], COORDS.father[1] + offsetBottom);
-    pdf.text(cls, COORDS.class[0], COORDS.class[1] + offsetBottom);
-    pdf.text(hallNo2, COORDS.hall[0], COORDS.hall[1] + offsetBottom);
+    pdf.text(stu.name, COORDS.name[0], COORDS.name[1] + offsetY);
+    pdf.text(stu.father, COORDS.father[0], COORDS.father[1] + offsetY);
+    pdf.text(cls, COORDS.class[0], COORDS.class[1] + offsetY);
+    pdf.text(hallNo, COORDS.hall[0], COORDS.hall[1] + offsetY);
 
     pdf.setFontSize(34);
     pdf.setTextColor(34, 34, 34);
     for (let i = 0; i < subjectsForHallTicket.length; i++) {
       let s = subjectsForHallTicket[i];
-      pdf.text(s.subject, COORDS.subjStart[0], COORDS.subjStart[1] + i * COORDS.subjGapY + offsetBottom);
-      pdf.text(formatDate(s.date), COORDS.subjStart[0] + 520, COORDS.subjStart[1] + i * COORDS.subjGapY + offsetBottom);
+      pdf.text(s.subject, COORDS.subjStart[0], COORDS.subjStart[1] + i * COORDS.subjGapY + offsetY);
+      pdf.text(formatDate(s.date), COORDS.subjStart[0] + 520, COORDS.subjStart[1] + i * COORDS.subjGapY + offsetY);
     }
+  }
+
+  // Draw the two tickets (top and bottom)
+  drawTicket(students[idx], 0);
+  if (students[idx + 1]) {
+    drawTicket(students[idx + 1], TICKET_HEIGHT);
   }
 }
     pdf.save(`HallTickets_${cls}_${sec}_${exam}.pdf`);
