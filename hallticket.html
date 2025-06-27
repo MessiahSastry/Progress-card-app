@@ -233,7 +233,15 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-
+  async function getStudents() {
+  let year = yearSel.value;
+  let classId = classSel.value;
+  let sectionId = sectionSel.value;
+  let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').doc(sectionId).collection('students').orderBy('roll').get();
+  let arr = [];
+  snap.forEach(doc => { let d=doc.data(); if (!d.isDeleted) arr.push({ ...d }); });
+  return arr;
+}
   // Choices.js
   const yearSel = document.getElementById('yearSel');
   const classSel = document.getElementById('classSel');
@@ -305,10 +313,11 @@
   // ---- Download PDF logic ----
   document.getElementById('downloadBtn').onclick = async ()=>{
     // Sample students—replace with your DB data!
-    let students = [
-      { name: "Ravi Kumar", father: "S. Srinivas", roll: 1 },
-      { name: "Anjali Devi", father: "B. Krishna", roll: 2 }
-    ];
+    let students = await getStudents();
+    if (!students.length) {
+      alert("No students found for this class/section!");
+      return;
+    }
     let cls = classSel.options[classSel.selectedIndex]?.textContent || '';
     let sec = sectionSel.options[sectionSel.selectedIndex]?.textContent || '';
     let exam = examSel.options[examSel.selectedIndex]?.textContent || '';
