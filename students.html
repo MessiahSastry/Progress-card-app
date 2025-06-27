@@ -883,7 +883,7 @@ db.collection('years').doc(academicYear)
           let attData = attSnap.exists ? attSnap.data() : {};
           let html = `
           <form id="attendanceForm">
-            <div class="popup-title">Take Attendance - ${today}</div>
+            <div class="popup-title">Take Attendance - ${date}</div>
             <div style="max-height:270px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
              ${students.map(stu => {
               let mChecked = attData[stu.id]?.M === 'absent' ? 'checked' : '';
