@@ -582,7 +582,8 @@ function showEditExamPopup(examId) {
       if (!doc.exists) return alert("Exam not found!");
       const exam = doc.data();
       showPopup(`
-        <form id="editExamForm">
+        <form id="editExamForm" style="display:flex; flex-direction:column; max-height:75vh;">
+      <div style="flex:1; overflow-y:auto; padding-right:4px;">
           <div class="popup-title">Edit Exam</div>
           <label>Exam Name</label>
           <input name="examName" maxlength="30" required value="${exam.name}">
