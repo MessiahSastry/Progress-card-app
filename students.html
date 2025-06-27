@@ -336,7 +336,7 @@ function getClassGroupName(className) {
         <label>Roll Number</label>
         <input name="rollNo" type="number" min="1" max="999" required>
         <label>Parent Phone Number</label>
-        <input name="parentPhone" maxlength="12" required placeholder="e.g., 9876543210">
+        <input name="parentPhone" type="tel" maxlength="12" required placeholder="e.g., 9876543210" pattern="[0-9]{10,12}">
         <div class="popup-btn-row">
           <button type="button" class="popup-cancel-btn">Cancel</button>
           <button type="submit" class="popup-action-btn">Add</button>
