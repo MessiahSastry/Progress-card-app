@@ -255,56 +255,54 @@ function getClassGroupName(className) {
 
     // ======================= MAIN LIST ===========================
     function renderStudentList() {
-      if (!currentClassId || !currentSectionId) {
-        mainArea.innerHTML = `<div style="color:#e74c3c; margin-top:40px;">Error: Class or Section not selected.</div>`;
-        fab.style.display = "none";
-        settingsBtn.style.display = "none";
-        return;
-      }
-        const classGroup = getClassGroupName(currentClassName);
-          db.collection('years').doc(academicYear)
-          .collection('exams').doc('classGroups')
-          .collection(classGroup)
-          .collection('sections').doc(currentSectionId)
-          .collection('students')
-          .orderBy('roll')
-          .get()
-          .then(snap => {
-            let students = [];
-            snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-            let html = `<div class="screen-title">${currentClassName} – ${currentSectionName}</div>`;
-            <div class="student-list">`;
-          if (students.length === 0) html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
-          students.filter(stu => !stu.isDeleted).forEach(stu => {
-            html += `<div class="student-row"
-              data-student-id="${stu.id}">
-              <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span>
-              <span style="color:#1467b7; font-weight:600;">${stu.name}</span>
-            </div>`;
-          });
-          html += "</div>";
-          mainArea.innerHTML = html;
+  if (!currentClassId || !currentSectionId) {
+    mainArea.innerHTML = `<div style="color:#e74c3c; margin-top:40px;">Error: Class or Section not selected.</div>`;
+    fab.style.display = "none";
+    settingsBtn.style.display = "none";
+    return;
+  }
+  const classGroup = getClassGroupName(currentClassName);
+  db.collection('years').doc(academicYear)
+    .collection('classes').doc(currentClassId)
+    .collection('sections').doc(currentSectionId)
+    .collection('students')
+    .orderBy('roll')
+    .get()
+    .then(snap => {
+      let students = [];
+      snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+      let html = `<div class="screen-title">${currentClassName} – ${currentSectionName}</div>
+        <div class="student-list">`;
+      if (students.length === 0) html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
+      students.filter(stu => !stu.isDeleted).forEach(stu => {
+        html += `<div class="student-row"
+          data-student-id="${stu.id}">
+          <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span>
+          <span style="color:#1467b7; font-weight:600;">${stu.name}</span>
+        </div>`;
+      });
+      html += "</div>";
+      mainArea.innerHTML = html;
 
-          document.querySelectorAll('.student-row').forEach(row => {
-            let pressTimer = null;
-            row.addEventListener('mousedown', startPress);
-            row.addEventListener('touchstart', startPress);
-            row.addEventListener('mouseup', clearPress);
-            row.addEventListener('mouseleave', clearPress);
-            row.addEventListener('touchend', clearPress);
+      document.querySelectorAll('.student-row').forEach(row => {
+        let pressTimer = null;
+        row.addEventListener('mousedown', startPress);
+        row.addEventListener('touchstart', startPress);
+        row.addEventListener('mouseup', clearPress);
+        row.addEventListener('mouseleave', clearPress);
+        row.addEventListener('touchend', clearPress);
 
-            function startPress(e) {
-              pressTimer = setTimeout(() => {
-                showStudentActionPopup(row.dataset.studentId);
-              }, 600);
-            }
-            function clearPress(e) {
-              clearTimeout(pressTimer);
-            }
-          });
-        });
-    }
-
+        function startPress(e) {
+          pressTimer = setTimeout(() => {
+            showStudentActionPopup(row.dataset.studentId);
+          }, 600);
+        }
+        function clearPress(e) {
+          clearTimeout(pressTimer);
+        }
+      });
+    });
+}
     // ===================== POPUP BASE ===========================
     function showPopup(htmlContent, formId = null, formSubmitHandler = null) {
       popupContent.innerHTML = htmlContent;
