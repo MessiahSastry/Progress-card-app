@@ -31,19 +31,46 @@
       background: #0006; align-items:center; justify-content:center; z-index:1000;
     }
     .popup-bg.show { display:flex;}
-    .popup-content {
-      background:#fff; border-radius:12px; padding:28px 20px 22px 20px;
-      box-shadow:0 6px 28px #19508422; width:340px; max-width:95vw;
-    }
-    .popup-title { font-size:1.14em;color:#0f3d6b;font-weight:700;margin-bottom:16px;}
-    .popup-btn-row { display:flex; gap:12px; justify-content:flex-end; margin-top:14px;}
-    .popup-cancel-btn { background:#eee;color:#444; }
-    .add-btn { background:#1dbb46; color:#fff; margin-bottom:7px; font-size:1em;}
-    .remove-btn { background:#e44; color:#fff; margin-left:9px; font-size:0.98em;}
-    .subject-row { display:flex;gap:7px;margin-bottom:9px;}
-    .subject-row input { flex:2; padding:6px 7px; border-radius:5px; border:1px solid #aaa;}
-    .subject-row input[type="date"] { flex:1.2;}
-    .note { color:#888;font-size:0.99em; margin:13px 0 0 0;}
+    #popup-content {
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 30px #0f3d6b22;
+  padding: 22px 10px 18px 10px;
+  min-width: unset;
+  max-width: 98vw;
+  width: 98vw;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+}
+.popup-title { font-size:1.14em;color:#0f3d6b;font-weight:700;margin-bottom:16px;}
+.popup-btn-row { display:flex; gap:12px; justify-content:flex-end; margin-top:14px;}
+.popup-cancel-btn { background:#eee;color:#444; }
+.add-btn { background:#1dbb46; color:#fff; margin-bottom:7px; font-size:1em;}
+.remove-btn { background:#e44; color:#fff; margin-left:9px; font-size:0.98em;}
+.subject-row { display:flex;gap:7px;margin-bottom:9px;}
+.subject-row input { flex:2; padding:6px 7px; border-radius:5px; border:1px solid #aaa;}
+.subject-row input[type="date"] { flex:1.2;}
+.note { color:#888;font-size:0.99em; margin:13px 0 0 0;}
+.popup-row {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+.popup-row input, .popup-row select {
+  flex: 1 1 0px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.popup-remove-btn {
+  flex: 0 0 auto;
+  min-width: 64px;
+}
+
   </style>
 </head>
 <body>
