@@ -31,8 +31,7 @@
     .custom-btn:hover, button:hover { background:#113b6c; }
     .section { margin-bottom: 20px;}
     .inline-label { font-weight:600;color:#195084; }
-    .row {display:flex;gap:15px;}
-
+   
     /* --- Popup --- */
     #popup-bg {
       display:none; position:fixed; left:0; top:0; right:0; bottom:0;
@@ -72,6 +71,26 @@
     html, body {
   max-width: 100vw;
   overflow-x: hidden;
+      label {
+  font-weight: 600;
+  color: #195084;
+  display: block;
+  margin-bottom: 6px;
+  margin-top: 10px;
+}
+.custom-input {
+  width: 100%;
+  padding: 12px 11px;
+  border-radius: 7px;
+  border: 1.3px solid #aaa;
+  background: #f8fcff;
+  font-size: 1.09em;
+  margin-bottom: 3px;
+  box-sizing: border-box;
+}
+@media (max-width: 640px) {
+  .container { max-width: 99vw; padding: 6vw 2vw; }
+}
 }
   </style>
 </head>
@@ -79,24 +98,19 @@
   <div class="container">
     <div class="school-title">St. Patrick's School</div>
     <div class="subtitle">Download Hall Tickets (PDF)</div>
-    <div class="section row">
-      <div>
-        <span class="inline-label">Class:</span>
-        <input type="text" id="className" value="10" style="padding:8px 9px;width:74px;border-radius:7px;border:1.3px solid #aaa;" />
-      </div>
-      <div>
-        <span class="inline-label">Section:</span>
-        <input type="text" id="sectionName" value="A" style="padding:8px 9px;width:74px;border-radius:7px;border:1.3px solid #aaa;" />
-      </div>
-      <div>
-        <span class="inline-label">Exam:</span>
-        <input type="text" id="examName" value="FA1" style="padding:8px 9px;width:88px;border-radius:7px;border:1.3px solid #aaa;" />
-      </div>
-      <div>
-        <span class="inline-label">Year:</span>
-        <input type="text" id="yearName" value="2025" style="padding:8px 9px;width:74px;border-radius:7px;border:1.3px solid #aaa;" />
-      </div>
-    </div>
+    <div class="section">
+  <label for="className">Class</label>
+  <input type="text" id="className" value="10" class="custom-input" />
+
+  <label for="sectionName">Section</label>
+  <input type="text" id="sectionName" value="A" class="custom-input" />
+
+  <label for="examName">Exam</label>
+  <input type="text" id="examName" value="FA1" class="custom-input" />
+
+  <label for="yearName">Year</label>
+  <input type="text" id="yearName" value="2025" class="custom-input" />
+</div>
     <div class="section">
       <button class="custom-btn" id="editSubjectsBtn">Set Subjects & Dates</button>
     </div>
