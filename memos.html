@@ -101,6 +101,43 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
+    // Maps each class name to a group string (used for fetching exams)
+const CLASS_GROUP_MAP = {
+  "Nursery": "nursery-ukg",
+  "LKG": "nursery-ukg",
+  "UKG": "nursery-ukg",
+  "1": "1-2",
+  "2": "1-2",
+  "1st": "1-2",
+  "2nd": "1-2",
+  "3": "3-5",
+  "4": "3-5",
+  "5": "3-5",
+  "3rd": "3-5",
+  "4th": "3-5",
+  "5th": "3-5",
+  "6": "6-9",
+  "7": "6-9",
+  "8": "6-9",
+  "9": "6-9",
+  "6th": "6-9",
+  "7th": "6-9",
+  "8th": "6-9",
+  "9th": "6-9",
+  "10": "10",
+  "10th": "10"
+};
+
+// Returns the group name for a given class name
+function getClassGroupName(className) {
+  className = (className+"").replace(/[^a-z0-9]/gi,'').toLowerCase();
+  for (let [k, v] of Object.entries(CLASS_GROUP_MAP)) {
+    let key = k.replace(/[^a-z0-9]/gi,'').toLowerCase();
+    if (className === key || className === key.replace("th","")) return v;
+  }
+  // Default group (for safety)
+  return "6-9";
+}
 const PNG_CONFIG = [
   {
     file: "memo-nursery.png",
@@ -266,15 +303,33 @@ await loadExams();
 }
 async function loadExams() {
   let year = yearSel.value;
-  let snap = await db.collection('years').doc(year).collection('exams').orderBy('name').get();
+  let classId = classSel.value;
+  // Get class group for this class (reuse your CLASS_GROUP_MAP from students.html if possible)
+  let classObj = classes.find(c => c.id === classId);
+  let className = classObj ? classObj.name : '';
+  let classGroup = getClassGroupName ? getClassGroupName(className) : '';
+  if (!classGroup) {
+    examChoices.clearStore();
+    examChoices.setChoices([{ value: '', label: 'No choices to choose from', selected: true }], 'value', 'label', false);
+    await loadStudents();
+    return;
+  }
+  // Get exams for this classGroup (same logic as in students.html)
+  let snap = await db.collection('years').doc(year)
+    .collection('exams').doc('classGroups')
+    .collection(classGroup).get();
   exams = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
   examChoices.clearStore();
-examChoices.setChoices(
-  exams.map(e => ({ value: e.id, label: e.name, selected: false })),
-  'value', 'label', false
-);
-examChoices.setChoiceByValue(exams[0]?.id || '');
-await loadStudents();
+  if (exams.length === 0) {
+    examChoices.setChoices([{ value: '', label: 'No choices to choose from', selected: true }], 'value', 'label', false);
+  } else {
+    examChoices.setChoices(
+      exams.map(e => ({ value: e.id, label: e.name, selected: false })),
+      'value', 'label', false
+    );
+    examChoices.setChoiceByValue(exams[0]?.id || '');
+  }
+  await loadStudents();
 }
 async function loadStudents() {
   let year = yearSel.value, classId = classSel.value, sectionId = sectionSel.value;
