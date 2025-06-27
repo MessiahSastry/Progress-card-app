@@ -456,36 +456,41 @@
           let exams = [];
           snap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
           let html = `
-            <div class="popup-title">Exam Settings</div>
-            <div id="examListArea" style="max-height:240px;overflow-y:auto;margin-bottom:12px;">
-              ${exams.length === 0 ? '<div style="color:#888;font-style:italic;">No exams found.</div>' : exams.map((exam, idx) => `
-                <div style="border-bottom:1px solid #f1f1f1;margin-bottom:7px;padding-bottom:7px;">
-                  <strong>${exam.name}</strong>
-                  <button type="button" class="popup-action-btn" data-edit="${exam.id}" style="margin-left:10px;padding:2px 8px;font-size:0.9em;">Edit</button>
-                  <button type="button" class="popup-action-btn" data-del="${exam.id}" style="margin-left:5px;padding:2px 8px;font-size:0.9em;background:#e74c3c;">Delete</button>
-                  <div style="margin-top:6px;margin-left:8px;font-size:0.99em;">
-                    ${Array.isArray(exam.subjects) && exam.subjects.length > 0
-                      ? exam.subjects.map(subj => `${subj.name} <span style="color:#888;">(Max: ${subj.max})</span>`).join(', ')
-                      : '<span style="color:#aaa;">No subjects</span>'
-                    }
-                  </div>
+          <div class="popup-title">Exam Settings</div>
+          <div id="examListArea" style="max-height:240px;overflow-y:auto;margin-bottom:12px;">
+            ${exams.length === 0 ? '<div style="color:#888;font-style:italic;">No exams found.</div>' : exams.map((exam, idx) => `
+              <div style="border-bottom:1px solid #f1f1f1;margin-bottom:7px;padding-bottom:7px;">
+                <strong>${exam.name}</strong>
+                <button type="button" class="popup-action-btn" data-edit="${exam.id}" style="margin-left:10px;padding:2px 8px;font-size:0.9em;">Edit</button>
+                <button type="button" class="popup-action-btn" data-del="${exam.id}" style="margin-left:5px;padding:2px 8px;font-size:0.9em;background:#e74c3c;">Delete</button>
+                <div style="margin-top:6px;margin-left:8px;font-size:0.99em;">
+                  ${Array.isArray(exam.subjects) && exam.subjects.length > 0
+                    ? exam.subjects.map(subj => `${subj.name} <span style="color:#888;">(Max: ${subj.max})</span>`).join(', ')
+                    : '<span style="color:#aaa;">No subjects</span>'
+                  }
                 </div>
-              `).join('')}
+              </div>
+            `).join('')}
+          </div>
+        
+          <form id="addExamForm" style="display:flex; flex-direction:column; max-height:58vh;">
+            <div style="flex:1; overflow-y:auto; padding-right:4px;">
+              <label>Exam Name</label>
+              <input name="examName" maxlength="30" required placeholder="e.g., FA1">
+              <label>Subjects</label>
+              <div id="subjectsContainer"></div>
+              <button type="button" id="addSubjectBtn"
+                style="margin:6px 0 14px 0; background:#1762a7;color:#fff;
+                       padding:7px 13px;border:none;border-radius:7px;font-weight:600;">
+                + Add Subject
+              </button>
             </div>
-                   <form id="addExamForm" style="display:flex; flex-direction:column; max-height:70vh;">
-          <div style="flex:1; overflow-y:auto; padding-right:4px;" class="popup-scroll-area">
-            <label>Exam Name</label>
-            <input name="examName" maxlength="30" required placeholder="e.g., FA1">
-            <label>Subjects</label>
-            <div id="subjectsContainer"></div>
-            <button type="button" id="addSubjectBtn" style="margin:6px 0 14px 0; background:#1762a7;color:#fff;padding:7px 13px;border:none;border-radius:7px;font-weight:600;">+ Add Subject</button>
-          </div>
-          <div class="popup-btn-row" style="margin-top:10px;">
-            <button type="button" class="popup-cancel-btn">Close</button>
-            <button type="submit" class="popup-action-btn">Add Exam</button>
-          </div>
-        </form>
-          `;
+            <div class="popup-btn-row" style="margin-top:10px;">
+              <button type="button" class="popup-cancel-btn">Close</button>
+              <button type="submit" class="popup-action-btn">Add Exam</button>
+            </div>
+          </form>
+        `;
           showPopup(html, 'addExamForm', function (e) {
             e.preventDefault();
             const name = e.target.examName.value.trim();
