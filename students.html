@@ -571,6 +571,81 @@ function showExamSettingsPopup() {
       }, 200);
     });
 }
+function showEditExamPopup(examId) {
+  const classGroup = getClassGroupName(currentClassName);
+  db.collection('years').doc(academicYear)
+    .collection('exams').doc('classGroups')
+    .collection(classGroup).doc(examId)
+    .get()
+    .then(doc => {
+      if (!doc.exists) return alert("Exam not found!");
+      const exam = doc.data();
+      showPopup(`
+        <form id="editExamForm">
+          <div class="popup-title">Edit Exam</div>
+          <label>Exam Name</label>
+          <input name="examName" maxlength="30" required value="${exam.name}">
+          <label>Subjects</label>
+          <div id="editSubjectsContainer"></div>
+          <button type="button" id="editAddSubjectBtn"
+            style="margin:6px 0 14px 0; background:#1762a7;color:#fff;
+                   padding:7px 13px;border:none;border-radius:7px;font-weight:600;">
+            + Add Subject
+          </button>
+          <div class="popup-btn-row" style="margin-top:10px;">
+            <button type="button" class="popup-cancel-btn">Cancel</button>
+            <button type="submit" class="popup-action-btn">Save Changes</button>
+          </div>
+        </form>
+      `, 'editExamForm', function (e) {
+        e.preventDefault();
+        const name = e.target.examName.value.trim();
+        let subjects = [];
+        const container = popupContent.querySelector('#editSubjectsContainer');
+        if (container) {
+          const subjectDivs = container.querySelectorAll('div[data-subject-row]');
+          subjectDivs.forEach(div => {
+            const subjInput = div.querySelector('input[type="text"]');
+            const marksInput = div.querySelector('input[type="number"]');
+            const subjName = subjInput ? subjInput.value.trim() : '';
+            const maxMarks = marksInput ? parseInt(marksInput.value.trim()) : 0;
+            if (subjName && maxMarks) {
+              subjects.push({ name: subjName, max: maxMarks });
+            }
+          });
+        }
+        if (!name || !subjects.length) {
+          alert("Please enter exam name and at least one subject!");
+          return;
+        }
+        db.collection('years').doc(academicYear)
+          .collection('exams').doc('classGroups')
+          .collection(classGroup).doc(examId)
+          .update({ name, subjects })
+          .then(() => { closePopup(); showExamSettingsPopup(); });
+      });
+
+      // --- Subject Fields Logic for Edit ---
+      const subjectsContainer = popupContent.querySelector('#editSubjectsContainer');
+      const addSubjectBtn = popupContent.querySelector('#editAddSubjectBtn');
+      function addSubjectField(name = '', max = '') {
+        const idx = subjectsContainer.children.length;
+        const div = document.createElement('div');
+        div.setAttribute("data-subject-row", "");
+        div.style = "display:flex;align-items:center;gap:8px;margin-bottom:7px;";
+        div.innerHTML = `
+         <input type="text" name="subjectName_${idx}" placeholder="Subject Name" value="${name}" required style="width:80%; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd; margin-right:7px;" />
+         <input type="number" name="maxMarks_${idx}" placeholder="Max Marks" min="1" max="200" value="${max}" required style="width:25%; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd;" />
+         <button type="button" class="option-btn" style="width: 70px; padding: 5px;" onclick="this.parentNode.remove()">Remove</button>
+        `;
+        subjectsContainer.appendChild(div);
+      }
+      if (exam.subjects && Array.isArray(exam.subjects)) {
+        exam.subjects.forEach(subj => addSubjectField(subj.name, subj.max));
+      }
+      addSubjectBtn.onclick = () => addSubjectField();
+    });
+}
 
    // ============= ENTER MARKS ===============
 function showEnterMarksPopup() {
