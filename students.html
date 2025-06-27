@@ -471,7 +471,7 @@ function getClassGroupName(className) {
 }
 
     // ========== EXAM SETTINGS ===========
-          function showExamSettingsPopup() {
+         function showExamSettingsPopup() {
             const classGroup = getClassGroupName(currentClassName);
             // First: fetch all exams for this group
             db.collection('years').doc(academicYear)
@@ -543,7 +543,7 @@ function getClassGroupName(className) {
                     .then(() => { closePopup(); showExamSettingsPopup(); });
                 });
           
-                // Attach Edit button handlers etc. (leave unchanged from your previous logic if you wish)
+                // Attach Edit button handlers
                 setTimeout(() => {
                   popupContent.querySelectorAll('[data-edit]').forEach(btn => {
                     btn.onclick = function() {
