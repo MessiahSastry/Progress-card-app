@@ -201,7 +201,25 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
       const auth = firebase.auth();
-      
+      const CLASS_GROUP_MAP = {
+  'Nursery': 'nursery-lkg-ukg',
+  'LKG': 'nursery-lkg-ukg',
+  'UKG': 'nursery-lkg-ukg',
+  '1st Class': 'class-1-2',
+  '2nd Class': 'class-1-2',
+  '3rd Class': 'class-3-5',
+  '4th Class': 'class-3-5',
+  '5th Class': 'class-3-5',
+  '6th Class': 'class-6-9',
+  '7th Class': 'class-6-9',
+  '8th Class': 'class-6-9',
+  '9th Class': 'class-6-9',
+  '10th Class': 'class-10'
+};
+
+function getClassGroupName(className) {
+  return CLASS_GROUP_MAP[className] || 'default';
+}
       function formatDate(dateStr) {
         // Converts "YYYY-MM-DD" to "DD-MM-YYYY"
         if (!dateStr) return '';
@@ -243,7 +261,10 @@
         settingsBtn.style.display = "none";
         return;
       }
-         db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+        const classGroup = getClassGroupName(currentClassName);
+        db.collection('years').doc(academicYear)
+          .collection('exams').doc('classGroups')
+          .collection(classGroup).orderBy('name').get()
         .collection('sections').doc(currentSectionId)
         .collection('students').orderBy('roll').get()
         .then(snap => {
@@ -450,8 +471,10 @@
 }
 
     // ========== EXAM SETTINGS ===========
-    function showExamSettingsPopup() {
-      db.collection('years').doc(academicYear).collection('exams').orderBy('name').get()
+          function showExamSettingsPopup() {
+            db.collection('years').doc(academicYear)
+        .collection('exams').doc('classGroups')
+        .collection(classGroup).doc(examId).set({ name, subjects })
         .then(snap => {
           let exams = [];
           snap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
@@ -579,7 +602,10 @@
     }
 
     function showEditExamPopup(examId) {
-      db.collection('years').doc(academicYear).collection('exams').doc(examId).get()
+      const classGroup = getClassGroupName(currentClassName);
+    db.collection('years').doc(academicYear)
+      .collection('exams').doc('classGroups')
+      .collection(classGroup).doc(examId).get()
         .then(doc => {
           if (!doc.exists) return alert("Exam not found!");
           const exam = doc.data();
@@ -622,7 +648,10 @@
 function showEnterMarksPopup() {
   console.log('showEnterMarksPopup called');
   console.log('academicYear:', academicYear);
-  db.collection('years').doc(academicYear).collection('exams').orderBy('name').get()
+  const classGroup = getClassGroupName(currentClassName);
+db.collection('years').doc(academicYear)
+  .collection('exams').doc('classGroups')
+  .collection(classGroup).orderBy('name').get()
     .then(examSnap => {
       let exams = [];
       examSnap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
