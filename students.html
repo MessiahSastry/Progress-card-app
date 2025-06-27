@@ -262,16 +262,17 @@ function getClassGroupName(className) {
         return;
       }
         const classGroup = getClassGroupName(currentClassName);
-        db.collection('years').doc(academicYear)
-        .collection('classGroups').doc(classGroup)
-        .collection('students')
-        .where('sectionId', '==', currentSectionId)
-        .orderBy('roll')
-        .get()
-        .then(snap => {
-          let students = [];
-          snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-          let html = `<div class="screen-title">${currentClassName} – ${currentSectionName}</div>
+          db.collection('years').doc(academicYear)
+          .collection('exams').doc('classGroups')
+          .collection(classGroup)
+          .collection('sections').doc(currentSectionId)
+          .collection('students')
+          .orderBy('roll')
+          .get()
+          .then(snap => {
+            let students = [];
+            snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+            let html = `<div class="screen-title">${currentClassName} – ${currentSectionName}</div>`;
             <div class="student-list">`;
           if (students.length === 0) html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
           students.filter(stu => !stu.isDeleted).forEach(stu => {
