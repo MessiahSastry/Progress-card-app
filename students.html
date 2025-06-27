@@ -474,12 +474,18 @@ function getClassGroupName(className) {
           function showExamSettingsPopup() {
   const classGroup = getClassGroupName(currentClassName);
   db.collection('years').doc(academicYear)
-    .collection('exams').doc('classGroups')
-    .collection(classGroup)
-    .get()
-    .then(snap => {
-      let exams = [];
-      snap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
+  .collection('exams').doc('classGroups')
+  .collection(classGroup).doc(examId).set({ name, subjects })
+  .then(() => {
+    // After adding, fetch the full list of exams again:
+    return db.collection('years').doc(academicYear)
+      .collection('exams').doc('classGroups')
+      .collection(classGroup)
+      .get();
+  })
+  .then(snap => {
+    let exams = [];
+    snap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
       let html = `
         <div class="popup-title">Exam Settings</div>
         <div id="examListArea" style="max-height:240px;overflow-y:auto;margin-bottom:12px;">
