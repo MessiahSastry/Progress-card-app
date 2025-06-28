@@ -423,13 +423,13 @@ function getClassGroupName(className) {
       name: [305, 202],     // Left
       father: [305, 230],   // Left
       class: [164, 253],    // Left
-      hall: [470, 253],     // Left
+      hall: [477, 253],     // Left
       subjCol1: [110, 306],
       subjCol2: [430, 306],
       subjGapY: 38          // Gap between subject rows
     };
 
-    pdf.setFont("helvetica", "bold");
+    pdf.setFont("courier", "normal");
     pdf.setFontSize(20); // Scaled down for this image size
 
     // Exam Name (centered)
@@ -438,10 +438,10 @@ function getClassGroupName(className) {
 
     // Student Details
     pdf.setTextColor(30, 70, 70);
-    pdf.text(stu.name, COORDS.name[0], COORDS.name[1], { align: "left" });
-    pdf.text(stu.father, COORDS.father[0], COORDS.father[1], { align: "left" });
-    pdf.text(cls, COORDS.class[0], COORDS.class[1], { align: "left" });
-    pdf.text(hallNo, COORDS.hall[0], COORDS.hall[1], { align: "left" });
+    pdf.text((stu.name+"").toUpperCase(), COORDS.name[0], COORDS.name[1], { align: "left" });
+    pdf.text((stu.father+"").toUpperCase(), COORDS.father[0], COORDS.father[1], { align: "left" });
+    pdf.text((cls+"").toUpperCase(), COORDS.class[0], COORDS.class[1], { align: "left" });
+    pdf.text((hallNo+"").toUpperCase(), COORDS.hall[0], COORDS.hall[1], { align: "left" });
 
     // Subjects & Dates (Two columns)
     pdf.setTextColor(34, 34, 34);
@@ -453,14 +453,14 @@ function getClassGroupName(className) {
     for (let i = 0; i < split; i++) {
       const subj = subjectsForHallTicket[i];
       const y = COORDS.subjCol1[1] + i * COORDS.subjGapY;
-      pdf.text(subj.subject, COORDS.subjCol1[0], y, { align: "left" });
+      pdf.text((subj.subject+"").toUpperCase(), COORDS.subjCol1[0], y, { align: "left" });
       pdf.text(formatDate(subj.date), COORDS.subjCol1[0] + 120, y, { align: "left" });
     }
     // Second column
     for (let i = split; i < totalSubjects; i++) {
       const subj = subjectsForHallTicket[i];
       const y = COORDS.subjCol2[1] + (i - split) * COORDS.subjGapY;
-      pdf.text(subj.subject, COORDS.subjCol2[0], y, { align: "left" });
+      pdf.text((subj.subject+"").toUpperCase(), COORDS.subjCol2[0], y, { align: "left" });
       pdf.text(formatDate(subj.date), COORDS.subjCol2[0] + 120, y, { align: "left" });
     }
   }
