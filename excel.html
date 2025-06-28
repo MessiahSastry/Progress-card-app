@@ -2,84 +2,76 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Download Class Marks (Excel) - St. Patrick's School</title>
+  <title>Performance Graph - St. Patrick's School</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Segoe+UI:400,600,700&display=swap">
   <style>
     body {
       background: #f4f8fc;
       font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0; padding: 0;
-      min-height: 100vh;
+      margin: 0; padding: 0; min-height: 100vh;
     }
     .container {
-      max-width: 520px;
-      margin: 50px auto 30px auto;
+      max-width: 560px;
+      margin: 44px auto 30px auto;
       background: #fff;
       border-radius: 16px;
       box-shadow: 0 4px 18px #0f3d6b22;
-      padding: 36px 24px 32px 24px;
+      padding: 34px 24px 32px 24px;
       text-align: center;
     }
     .title {
       color: #0f3d6b;
-      font-size: 1.3em;
+      font-size: 1.5em;
       font-weight: bold;
-      margin-bottom: 6px;
-      letter-spacing: .2px;
+      margin-bottom: 4px;
+      letter-spacing: 1.5px;
     }
-    .desc {
-      font-size: 1.06em;
-      color: #2d4870;
-      margin-bottom: 20px;
-      margin-top: 0;
+    .subtitle {
+      color: #1467b7;
+      font-size: 1.07em;
+      margin-bottom: 14px;
+      font-weight: 500;
     }
-    .download-btn {
+    #chartContainer { margin: 36px 0 12px 0; }
+    #downloadBtn {
       background: #0f3d6b;
       color: #fff;
-      font-size: 1.13em;
+      font-size: 1.1em;
       font-weight: bold;
       border: none;
       border-radius: 10px;
-      padding: 13px 35px;
+      padding: 11px 32px;
       cursor: pointer;
-      margin-top: 28px;
+      margin-top: 18px;
       transition: background .17s;
     }
-    .download-btn:disabled { background: #b8c7da; cursor: not-allowed; }
-    .download-btn:hover:not(:disabled) { background: #164b7d; }
-    .status {
+    #downloadBtn:hover { background: #1762a7; }
+    #status {
       color: #e26c17;
       margin-top: 18px;
-      font-size: 1.08em;
+      font-size: 1.04em;
       min-height: 25px;
     }
-    .back-link {
-      display: inline-block;
-      margin-top: 22px;
-      color: #0f3d6b;
-      text-decoration: underline;
-      cursor: pointer;
-      font-size: 1em;
-    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <div class="title">Download Class Marks (Excel)</div>
-    <div class="desc">
-      Export all students' marks, totals, grades, and ranks for every exam.<br>
-      Format: Roll, Name, Father, [FA1 Tel, FA1 Eng1, ..., Total, Grade, Rank], [FA2...], etc.
+    <div class="title">St. Patrick's School</div>
+    <div class="subtitle" id="classSec"></div>
+    <div id="chartContainer">
+      <canvas id="barChart" width="400" height="340"></canvas>
     </div>
-    <button class="download-btn" id="downloadBtn" disabled>Download Excel</button>
-    <div class="status" id="status"></div>
-     </div>
+    <button id="downloadBtn">Download Chart as Image</button>
+    <div id="status"></div>
+  </div>
   <script>
-    // ----------- Firebase config -------------
+    // --- Firebase Config ---
     const firebaseConfig = {
       apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
       authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -90,9 +82,8 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    // ---- Class group map -----
+    // Utility for class group name
     const CLASS_GROUP_MAP = {
       'Nursery': 'nursery-lkg-ukg', 'LKG': 'nursery-lkg-ukg', 'UKG': 'nursery-lkg-ukg',
       '1st Class': 'class-1-2', '2nd Class': 'class-1-2',
@@ -104,95 +95,43 @@
       return CLASS_GROUP_MAP[className] || 'default';
     }
 
-    // Subject Short Names Map
-    const SUBJECT_SHORT = {
-      "Telugu": "Tel",
-      "English 1": "Eng1",
-      "English 2": "Eng2",
-      "Mathematics": "Math",
-      "Maths": "Math",
-      "Science": "Sci",
-      "Physical Science": "Phy",
-      "Biology": "Bio",
-      "Social": "Soc",
-      "Hindi": "Hin",
-      "GK": "GK"
-      // Add more as per your subjects
-    };
+    // --- Globals for download chart ---
+    let subjectNames = [];
+    let subjectPercents = [];
+    let className = '', sectionName = '', academicYear = '';
 
-    function getSubjectShort(name) {
-      if (!name) return '';
-      return SUBJECT_SHORT[name] || name.replace(/[^a-zA-Z0-9]/g,'').slice(0, 4);
-    }
-    function getExamShort(name) {
-      let m = name.match(/FA[0-9]+|SA[0-9]+/i);
-      if (m) return m[0].toUpperCase();
-      if (name.toLowerCase().includes("formative")) return "FA" + (name.match(/\d+/)?.[0] || "");
-      if (name.toLowerCase().includes("summative")) return "SA" + (name.match(/\d+/)?.[0] || "");
-      return name.slice(0, 4).toUpperCase();
-    }
+    const academicYearLS = localStorage.getItem('sp_selectedYear') || '';
+    const classId = localStorage.getItem('sp_selectedClassId') || '';
+    className = localStorage.getItem('sp_selectedClassName') || '';
+    const sectionId = localStorage.getItem('sp_selectedSectionId') || '';
+    sectionName = localStorage.getItem('sp_selectedSectionName') || '';
+    academicYear = academicYearLS;
+    document.getElementById('classSec').textContent = `${className} – ${sectionName} (${academicYear})`;
 
-    // ---------- Grade logic ----------
-    function getGrade(percent) {
-      if (percent >= 95) return 'A+';
-      if (percent >= 90) return 'A';
-      if (percent >= 85) return 'B+';
-      if (percent >= 80) return 'B';
-      if (percent >= 70) return 'C+';
-      if (percent >= 60) return 'C';
-      if (percent >= 50) return 'D';
-      if (percent >= 40) return 'E';
-      return 'F';
-    }
-
-    // --- Auth check and button logic ---
     const statusDiv = document.getElementById('status');
-    const downloadBtn = document.getElementById('downloadBtn');
-    downloadBtn.disabled = true; // default
+    const chartCanvas = document.getElementById('barChart');
+    let chartInstance = null;
 
-    auth.onAuthStateChanged(function(user) {
-      if (!user) {
-        statusDiv.textContent = "You must be logged in to download marks.";
-        downloadBtn.disabled = true;
-      } else {
-        statusDiv.textContent = "";
-        downloadBtn.disabled = false;
-      }
-    });
-
-    // ---------- Download Excel Button ----------
-    downloadBtn.onclick = async function () {
-      statusDiv.textContent = "Preparing data. Please wait...";
-
-      // Get academic year, class, section from localStorage
-      let academicYear = localStorage.getItem('sp_selectedYear') || '';
-      let classId = localStorage.getItem('sp_selectedClassId') || '';
-      let className = localStorage.getItem('sp_selectedClassName') || '';
-      let sectionId = localStorage.getItem('sp_selectedSectionId') || '';
-      let sectionName = localStorage.getItem('sp_selectedSectionName') || '';
+    window.onload = async function () {
       if (!academicYear || !classId || !sectionId) {
         statusDiv.textContent = "Error: Class or section not selected.";
         return;
       }
-
       try {
-        // 1. Fetch all students
-        let studentsSnap = await db.collection('years').doc(academicYear)
+        statusDiv.textContent = "Loading data...";
+        // Get all students
+        let stuSnap = await db.collection('years').doc(academicYear)
           .collection('classes').doc(classId)
           .collection('sections').doc(sectionId)
           .collection('students').orderBy('roll').get();
         let students = [];
-        studentsSnap.forEach(doc => {
-          const s = doc.data();
-          if (!s.isDeleted) students.push({ id: doc.id, ...s });
-        });
-
+        stuSnap.forEach(doc => { let d = doc.data(); if (!d.isDeleted) students.push({ id: doc.id, ...d }); });
         if (students.length === 0) {
           statusDiv.textContent = "No students found in this section.";
           return;
         }
 
-        // 2. Fetch all exams for this class group
+        // Get all exams for this class group
         const classGroup = getClassGroupName(className);
         let examsSnap = await db.collection('years').doc(academicYear)
           .collection('exams').doc('classGroups')
@@ -203,136 +142,212 @@
           ex.id = doc.id;
           exams.push(ex);
         });
-
         if (exams.length === 0) {
           statusDiv.textContent = "No exams found for this class group.";
           return;
         }
 
-        // 3. Prepare columns: Roll, Name, Father, [exam1 subject1, subject2,...Total, Grade, Rank]...
-        let headers = ['Roll', 'Name', 'Father'];
-        let examColumns = [];
+        // Collect marks per subject across all exams
+        let subjectTotals = {};
         for (let exam of exams) {
-          let examShort = getExamShort(exam.name);
-          let cols = [];
-          if (Array.isArray(exam.subjects)) {
-            exam.subjects.forEach(subj => {
-              if (!subj || !subj.name) return;
-              let subjShort = getSubjectShort(subj.name);
-              cols.push(`${examShort} ${subjShort}`);
-            });
+          if (!Array.isArray(exam.subjects)) continue;
+          for (let subj of exam.subjects) {
+            if (!subj || !subj.name) continue;
+            let subjName = subj.name;
+            if (!subjectTotals[subjName]) subjectTotals[subjName] = { total: 0, max: 0, count: 0 };
           }
-          cols.push(`${examShort} Total`, `${examShort} Grade`, `${examShort} Rank`);
-          headers.push(...cols);
-          examColumns.push({
-            name: exam.name,
-            subjects: Array.isArray(exam.subjects) ? exam.subjects.map(s => s?.name || '') : [],
-            id: exam.id
-          });
         }
-
-        // 4. Fetch marks for each student for each exam
-        statusDiv.textContent = "Loading marks for all students...";
-        let studentsWithMarks = {};
         for (let stu of students) {
-          studentsWithMarks[stu.id] = { ...stu, marks: {} };
-        }
-
-        // For rank calculation, keep: examTotals[examName] = [ {stuId, total}, ... ]
-        let examTotals = {};
-        for (let exam of exams) {
-          examTotals[exam.name] = [];
-          for (let stu of students) {
+          for (let exam of exams) {
+            if (!Array.isArray(exam.subjects)) continue;
             let markDoc = await db.collection('years').doc(academicYear)
               .collection('classes').doc(classId)
               .collection('sections').doc(sectionId)
               .collection('students').doc(stu.id)
               .collection('marks').doc(exam.id).get();
-            let marksObj = (markDoc.exists ? markDoc.data() : {});
-            let subjMarks = {};
-            let total = 0, maxTotal = 0;
-            if (Array.isArray(exam.subjects)) {
-              for (let subj of exam.subjects) {
-                if (!subj || !subj.name) continue;
-                let val = marksObj[subj.name];
-                val = (typeof val === 'number' && !isNaN(val)) ? val : '';
-                subjMarks[subj.name] = val;
-                if (val !== '' && val != null) {
-                  total += Number(val);
-                  maxTotal += Number(subj.max || 100);
-                } else {
-                  maxTotal += Number(subj.max || 100);
-                }
+            let marksObj = markDoc.exists ? markDoc.data() : {};
+            for (let subj of exam.subjects) {
+              if (!subj || !subj.name) continue;
+              let val = marksObj[subj.name];
+              if (typeof val === 'number' && !isNaN(val)) {
+                subjectTotals[subj.name].total += val;
+                subjectTotals[subj.name].max += (subj.max || 100);
+                subjectTotals[subj.name].count += 1;
+              } else {
+                subjectTotals[subj.name].total += 0;
+                subjectTotals[subj.name].max += (subj.max || 100);
+                subjectTotals[subj.name].count += 1;
               }
             }
-            studentsWithMarks[stu.id].marks[exam.name] = {
-              ...subjMarks, _total: total, _max: maxTotal
-            };
-            examTotals[exam.name].push({ stuId: stu.id, total });
           }
         }
-
-        // 5. Calculate ranks for each exam
-        let examRanks = {};
-        for (let exam of exams) {
-          let scores = examTotals[exam.name].map(x => x.total);
-          let sortedTotals = Array.from(new Set(scores)).sort((a, b) => b - a);
-          examRanks[exam.name] = {};
-          examTotals[exam.name].forEach(({ stuId, total }) => {
-            let rank = sortedTotals.indexOf(total) + 1;
-            examRanks[exam.name][stuId] = rank;
-          });
+        subjectNames = [];
+        subjectPercents = [];
+        for (let subj in subjectTotals) {
+          subjectNames.push(subj);
+          let obj = subjectTotals[subj];
+          let percent = obj.max > 0 ? (obj.total / obj.max) * 100 : 0;
+          subjectPercents.push(Math.round(percent * 10) / 10);
+        }
+        if (subjectNames.length === 0) {
+          statusDiv.textContent = "No subject data available.";
+          return;
         }
 
-        // 6. Build Excel data rows
-        let data = [];
-        data.push(headers);
-
-        for (let stu of students) {
-          let row = [stu.roll, stu.name, stu.father];
-          for (let exam of exams) {
-            let mks = (studentsWithMarks[stu.id].marks[exam.name] || {});
-            let ttotal = 0, tmax = 0;
-            if (Array.isArray(exam.subjects)) {
-              for (let subj of exam.subjects) {
-                if (!subj || !subj.name) continue;
-                let val = mks[subj.name];
-                row.push(val !== undefined ? val : '');
-                if (typeof val === 'number' && !isNaN(val)) {
-                  ttotal += Number(val);
-                  tmax += Number(subj.max || 100);
-                } else {
-                  tmax += Number(subj.max || 100);
+        // Vertical (on-page) chart
+        if (chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(chartCanvas, {
+          type: 'bar',
+          data: {
+            labels: subjectNames,
+            datasets: [{
+              label: 'Average Percentage',
+              data: subjectPercents,
+              backgroundColor: [
+                '#1762a7', '#eb6877', '#5db5e6', '#fdc600', '#24b47e',
+                '#f97d09', '#8661d1', '#b8336a', '#03a87c', '#e14c53',
+                '#3369e7', '#cfb019'
+              ],
+              borderWidth: 2,
+              borderRadius: 10
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              title: {
+                display: true,
+                text: "Class Performance by Subject",
+                color: "#1467b7",
+                font: { size: 20, weight: 'bold' }
+              },
+              datalabels: {
+                display: true,
+                anchor: 'center',
+                align: 'center',
+                color: '#fff',
+                font: { weight: 'bold', size: 15 },
+                formatter: function (value, ctx) {
+                  return ctx.chart.data.labels[ctx.dataIndex];
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) { return ctx.parsed.y + "%"; }
                 }
               }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                title: { display: true, text: "Average (%)", color: "#0f3d6b" },
+                ticks: { color: "#1467b7", font: { size: 14 } }
+              },
+              x: {
+                ticks: { color: "#1762a7", font: { size: 14 } }
+              }
             }
-            ttotal = mks._total !== undefined ? mks._total : ttotal;
-            tmax = mks._max !== undefined ? mks._max : tmax;
-            let percent = (tmax > 0) ? Math.round((ttotal / tmax) * 100) : 0;
-            let grade = getGrade(percent);
-            let rank = examRanks[exam.name][stu.id] || '';
-            row.push(ttotal, grade, rank);
-          }
-          data.push(row);
-        }
-
-        // 7. Export to Excel using SheetJS
-        let ws = XLSX.utils.aoa_to_sheet(data);
-        let colWidths = [ { wch: 8 }, { wch: 20 }, { wch: 20 } ];
-        for (let i = 3; i < headers.length; ++i) colWidths.push({ wch: 14 });
-        ws['!cols'] = colWidths;
-
-        let wb = XLSX.utils.book_new();
-        let sheetName = `${className}-${sectionName}`;
-        XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-        // 8. Save file
-        let fname = `Marks_${className}_${sectionName}_${academicYear}.xlsx`;
-        XLSX.writeFile(wb, fname);
-        statusDiv.textContent = "Excel downloaded!";
+          },
+          plugins: [ChartDataLabels]
+        });
+        statusDiv.textContent = "";
       } catch (err) {
         statusDiv.textContent = "Error: " + err.message;
       }
+    };
+
+    // DOWNLOAD AS LANDSCAPE HORIZONTAL CHART
+    document.getElementById('downloadBtn').onclick = async function () {
+      if (!chartInstance) return;
+
+      // Save current canvas size
+      let prevW = chartCanvas.width, prevH = chartCanvas.height;
+      // Resize for horizontal image
+      chartInstance.destroy();
+      chartCanvas.width = 1100;
+      chartCanvas.height = Math.max(60 * subjectNames.length, 400);
+
+      // Draw horizontal chart for download
+      const chartForImage = new Chart(chartCanvas, {
+        type: 'bar',
+        data: {
+          labels: subjectNames,
+          datasets: [{
+            label: 'Average Percentage',
+            data: subjectPercents,
+            backgroundColor: [
+              '#1762a7', '#eb6877', '#5db5e6', '#fdc600', '#24b47e',
+              '#f97d09', '#8661d1', '#b8336a', '#03a87c', '#e14c53',
+              '#3369e7', '#cfb019'
+            ],
+            borderWidth: 2,
+            borderRadius: 10
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: false,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: "St. Patrick's School",
+              color: "#0f3d6b",
+              font: { size: 28, weight: 'bold' },
+              padding: { top: 18, bottom: 3 }
+            },
+            subtitle: {
+              display: true,
+              text: `${className} – ${sectionName} (${academicYear})\nClass Performance by Subject`,
+              color: "#1762a7",
+              font: { size: 20, weight: 'bold' },
+              padding: { top: 0, bottom: 15 }
+            },
+            datalabels: {
+              anchor: 'end',
+              align: 'end',
+              color: '#1762a7',
+              font: { weight: 'bold', size: 24 },
+              formatter: (value, ctx) => value > 0 ? value + '%' : '',
+              offset: -12
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              max: 100,
+              title: { display: true, text: "Average (%)", color: "#0f3d6b", font: { size: 18, weight: 'bold' } },
+              ticks: { color: "#1467b7", font: { size: 16 } }
+            },
+            y: {
+              ticks: {
+                color: "#1762a7",
+                font: { size: 18, weight: 'bold' }
+              }
+            }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+
+      await new Promise(r => setTimeout(r, 350)); // Wait to render
+
+      // Download as image
+      const url = chartForImage.toBase64Image();
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Performance_Graph_${className}_${sectionName}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      // Restore original chart
+      chartForImage.destroy();
+      chartCanvas.width = prevW;
+      chartCanvas.height = prevH;
+      window.onload();
     };
   </script>
 </body>
