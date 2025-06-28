@@ -95,6 +95,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
     // ---- Utility for getting class group name ----
     const CLASS_GROUP_MAP = {
@@ -120,7 +121,13 @@
     const chartCanvas = document.getElementById('barChart');
     let chartInstance = null;
 
-    window.onload = async function () {
+    // ---- AUTH-GUARDED LOGIC ----
+    auth.onAuthStateChanged(async function(user) {
+      if (!user) {
+        statusDiv.textContent = "Error: Missing or insufficient permissions. (Not logged in)";
+        document.getElementById('downloadBtn').disabled = true;
+        return;
+      }
       if (!academicYear || !classId || !sectionId) {
         statusDiv.textContent = "Error: Class or section not selected.";
         return;
@@ -259,7 +266,7 @@
       } catch (err) {
         statusDiv.textContent = "Error: " + err.message;
       }
-    };
+    });
 
     // Download as PNG
     document.getElementById('downloadBtn').onclick = function () {
