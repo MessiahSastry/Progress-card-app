@@ -104,7 +104,8 @@
     const statusDiv = document.getElementById('status');
     const chartCanvas = document.getElementById('barChart');
     let chartInstance = null;
-
+    let subjectNames = [];
+    let subjectPercents = [];
     // Main logic (no auth check as per your last request)
     window.onload = async function () {
       if (!academicYear || !classId || !sectionId) {
@@ -176,11 +177,11 @@
           }
         }
 
-        let subjectNames = [];
-        let subjectPercents = [];
+        subjectNames.length = 0;
+        subjectPercents.length = 0;
         for (let subj in subjectTotals) {
           subjectNames.push(subj);
-          let obj = subjectTotals[subj];
+           let obj = subjectTotals[subj];
           let percent = obj.max > 0 ? (obj.total / obj.max) * 100 : 0;
           subjectPercents.push(Math.round(percent * 10) / 10);
         }
