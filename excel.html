@@ -321,8 +321,8 @@
 
         // 7. Export to Excel using SheetJS
         let ws = XLSX.utils.aoa_to_sheet(data);
-        let colWidths = [ { wch: 6 }, { wch: 18 }, { wch: 18 } ];
-        for (let i = 3; i < headers.length; ++i) colWidths.push({ wch: 11 });
+        let colWidths = [ { wch: 8 }, { wch: 20 }, { wch: 20 } ];
+        for (let i = 3; i < headers.length; ++i) colWidths.push({ wch: 14 });
         ws['!cols'] = colWidths;
 
         let wb = XLSX.utils.book_new();
