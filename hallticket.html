@@ -476,9 +476,9 @@ function getClassGroupName(className) {
       pdf.line(lineX, topY, lineX, bottomY);
       
       // --- SUBJECTS (slightly reduced gap) ---
-      const gap = 140; // Reduced gap for subject-date pairs
-      const gap2 = 190;
-      // First column
+      const gap = 160; // Reduced gap for subject-date pairs
+      
+    // First column
       for (let i = 0; i < split; i++) {
         const subj = subjectsForHallTicket[i];
         const y = COORDS.subjCol1[1] + i * COORDS.subjGapY;
