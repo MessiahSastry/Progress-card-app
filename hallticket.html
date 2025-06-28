@@ -377,8 +377,6 @@ function getClassGroupName(className) {
 
   // Generate Hall Ticket Number (customize if needed)
  function genHallTicketNum(cls, exam, year, roll){
-  let clsShort = getClassShortCode(cls);
-  return `SPS${clsShort}${examShort}${yearShort}${rollStr}`;
   let faMatch = (exam+"").match(/formative\s*assessment\s*(\d)/i);
   let saMatch = (exam+"").match(/summative\s*assessment\s*(\d)/i);
   let examShort = "";
@@ -392,9 +390,9 @@ function getClassGroupName(className) {
   let yearShort = (year+"").replace(/[^0-9]/g,"").slice(-2);
   let rollStr = String(roll).padStart(2,'0');
   let clsShort = getClassShortCode(cls);
-  let clsShort = getClassShortCode(cls);
   return `SPS${clsShort}${examShort}${yearShort}${rollStr}`;
 }
+
   // ---- Download PDF logic ----
   document.getElementById('downloadBtn').onclick = async () => {
   let students = await getStudents();
