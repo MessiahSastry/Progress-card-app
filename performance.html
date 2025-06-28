@@ -285,23 +285,24 @@ document.getElementById('downloadBtn').onclick = async function () {
   const tempChart = new Chart(tempCanvas.getContext('2d'), {
     type: 'bar',
     data: chartInstance.data,
-    options: {
+   options: {
   responsive: true,
   plugins: {
     legend: { display: false },
-    title: { display: false }, // Chart title is hidden
+    title: { display: false },
     tooltip: {
       callbacks: {
         label: function(ctx) { return ctx.parsed.y + "%"; }
       }
     }
-  },
+  }, // <--- COMMA HERE
+  animation: false, // <--- animation now correctly inside options
   scales: {
     y: {
       beginAtZero: true,
       max: 100,
-      title: { display: true, text: "Average (%)", color: "#fff" }, // White
-      ticks: { color: "#fff", font: { size: 14, weight: 'bold' } }  // White
+      title: { display: true, text: "Average (%)", color: "#fff" },
+      ticks: { color: "#fff", font: { size: 14, weight: 'bold' } }
     },
     x: {
       grid: { display: false },
@@ -309,8 +310,6 @@ document.getElementById('downloadBtn').onclick = async function () {
     }
   }
 }
-      animation: false
-    },
     plugins: [{
       id: 'subjectLabelPlugin',
       afterDatasetsDraw: function(chart, args, opts) {
