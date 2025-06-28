@@ -118,6 +118,7 @@
     };
 
     function getSubjectShort(name) {
+      if (!name) return '';
       return SUBJECT_SHORT[name] || name.replace(/[^a-zA-Z0-9]/g,'').slice(0, 4);
     }
     function getExamShort(name) {
@@ -199,6 +200,7 @@
           let cols = [];
           if (Array.isArray(exam.subjects)) {
             exam.subjects.forEach(subj => {
+              if (!subj || !subj.name) return; // skip if subject or subject name is missing
               let subjShort = getSubjectShort(subj.name);
               cols.push(`${examShort} ${subjShort}`);
             });
@@ -207,7 +209,7 @@
           headers.push(...cols);
           examColumns.push({
             name: exam.name,
-            subjects: Array.isArray(exam.subjects) ? exam.subjects.map(s => s.name) : [],
+            subjects: Array.isArray(exam.subjects) ? exam.subjects.map(s => s?.name || '') : [],
             id: exam.id
           });
         }
@@ -238,6 +240,7 @@
             let total = 0, maxTotal = 0;
             if (Array.isArray(exam.subjects)) {
               for (let subj of exam.subjects) {
+                if (!subj || !subj.name) continue; // skip if subject or subject name is missing
                 let val = marksObj[subj.name];
                 val = (typeof val === 'number' && !isNaN(val)) ? val : '';
                 subjMarks[subj.name] = val;
@@ -282,6 +285,7 @@
             let ttotal = 0, tmax = 0;
             if (Array.isArray(exam.subjects)) {
               for (let subj of exam.subjects) {
+                if (!subj || !subj.name) continue;
                 let val = mks[subj.name];
                 row.push(val !== undefined ? val : '');
                 if (typeof val === 'number' && !isNaN(val)) {
