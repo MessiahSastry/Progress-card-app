@@ -464,7 +464,7 @@ function getClassGroupName(className) {
       const gap = 160;
       const leftX = COORDS.subjCol1[0];
       const rightX = COORDS.subjCol2[0];
-      const lineX = 370; // vertical line between columns (adjust +5 for best center)
+      const lineX = 390; // vertical line between columns (adjust +5 for best center)
       
       // Find top Y (first subject row) and bottom Y (last row)
       const topY = COORDS.subjCol1[1] - 8;
@@ -481,14 +481,14 @@ function getClassGroupName(className) {
         const subj = subjectsForHallTicket[i];
         const y = COORDS.subjCol1[1] + i * COORDS.subjGapY;
         pdf.text((subj.subject+"").toUpperCase(), COORDS.subjCol1[0], y, { align: "left" });
-        pdf.text(formatDate(subj.date), COORDS.subjCol1[0] + gap, y, { align: "left" });
+        pdf.text("- " + formatDate(subj.date), COORDS.subjCol1[0] + gap, y, { align: "left" });
       }
       // Second column
       for (let i = split; i < totalSubjects; i++) {
         const subj = subjectsForHallTicket[i];
         const y = COORDS.subjCol2[1] + (i - split) * COORDS.subjGapY;
         pdf.text((subj.subject+"").toUpperCase(), COORDS.subjCol2[0], y, { align: "left" });
-        pdf.text(formatDate(subj.date), COORDS.subjCol2[0] + gap, y, { align: "left" });
+        pdf.text("- " + formatDate(subj.date), COORDS.subjCol2[0] + gap, y, { align: "left" });
       }
   }
 
