@@ -53,16 +53,9 @@
       font-size: 1.04em;
       min-height: 25px;
     }
-    .back-link {
-      display: inline-block;
-      margin-top: 18px;
-      color: #0f3d6b;
-      text-decoration: underline;
-      cursor: pointer;
-      font-size: 1em;
-    }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -72,13 +65,13 @@
     <div class="title">St. Patrick's School</div>
     <div class="subtitle" id="classSec"></div>
     <div id="chartContainer">
-      <canvas id="barChart" width="420" height="340"></canvas>
+      <canvas id="barChart" width="400" height="340"></canvas>
     </div>
     <button id="downloadBtn">Download Chart as Image</button>
     <div id="status"></div>
-     </div>
+  </div>
   <script>
-    // --- Config ---
+    // --- Firebase Config ---
     const firebaseConfig = {
       apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
       authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -89,9 +82,8 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    // Utility for getting class group name
+    // Utility for class group name
     const CLASS_GROUP_MAP = {
       'Nursery': 'nursery-lkg-ukg', 'LKG': 'nursery-lkg-ukg', 'UKG': 'nursery-lkg-ukg',
       '1st Class': 'class-1-2', '2nd Class': 'class-1-2',
@@ -103,31 +95,31 @@
       return CLASS_GROUP_MAP[className] || 'default';
     }
 
-    const academicYear = localStorage.getItem('sp_selectedYear') || '';
+    // --- Globals for download chart ---
+    let subjectNames = [];
+    let subjectPercents = [];
+    let className = '', sectionName = '', academicYear = '';
+
+    const academicYearLS = localStorage.getItem('sp_selectedYear') || '';
     const classId = localStorage.getItem('sp_selectedClassId') || '';
-    const className = localStorage.getItem('sp_selectedClassName') || '';
+    className = localStorage.getItem('sp_selectedClassName') || '';
     const sectionId = localStorage.getItem('sp_selectedSectionId') || '';
-    const sectionName = localStorage.getItem('sp_selectedSectionName') || '';
+    sectionName = localStorage.getItem('sp_selectedSectionName') || '';
+    academicYear = academicYearLS;
     document.getElementById('classSec').textContent = `${className} – ${sectionName} (${academicYear})`;
 
     const statusDiv = document.getElementById('status');
     const chartCanvas = document.getElementById('barChart');
     let chartInstance = null;
 
-    // ---- AUTH-GUARDED LOGIC ----
-    auth.onAuthStateChanged(async function(user) {
-      if (!user) {
-        statusDiv.textContent = "Error: Missing or insufficient permissions. (Not logged in)";
-        document.getElementById('downloadBtn').disabled = true;
-        return;
-      }
+    window.onload = async function () {
       if (!academicYear || !classId || !sectionId) {
         statusDiv.textContent = "Error: Class or section not selected.";
         return;
       }
       try {
         statusDiv.textContent = "Loading data...";
-        // 1. Get all students (not deleted)
+        // Get all students
         let stuSnap = await db.collection('years').doc(academicYear)
           .collection('classes').doc(classId)
           .collection('sections').doc(sectionId)
@@ -139,7 +131,7 @@
           return;
         }
 
-        // 2. Get all exams for this class group
+        // Get all exams for this class group
         const classGroup = getClassGroupName(className);
         let examsSnap = await db.collection('years').doc(academicYear)
           .collection('exams').doc('classGroups')
@@ -155,8 +147,8 @@
           return;
         }
 
-        // 3. For each subject in all exams, compute class average percentage
-        let subjectTotals = {}; // subjName: { total: ..., max: ..., count: ... }
+        // Collect marks per subject across all exams
+        let subjectTotals = {};
         for (let exam of exams) {
           if (!Array.isArray(exam.subjects)) continue;
           for (let subj of exam.subjects) {
@@ -189,10 +181,8 @@
             }
           }
         }
-
-        // Prepare chart data
-        let subjectNames = [];
-        let subjectPercents = [];
+        subjectNames = [];
+        subjectPercents = [];
         for (let subj in subjectTotals) {
           subjectNames.push(subj);
           let obj = subjectTotals[subj];
@@ -204,12 +194,12 @@
           return;
         }
 
-        // Chart.js - remove x axis labels, use custom plugin for inside bar text
+        // Vertical (on-page) chart
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(chartCanvas, {
           type: 'bar',
           data: {
-            labels: subjectNames.map(() => ''), // remove x labels
+            labels: subjectNames,
             datasets: [{
               label: 'Average Percentage',
               data: subjectPercents,
@@ -232,6 +222,16 @@
                 color: "#1467b7",
                 font: { size: 20, weight: 'bold' }
               },
+              datalabels: {
+                display: true,
+                anchor: 'center',
+                align: 'center',
+                color: '#fff',
+                font: { weight: 'bold', size: 15 },
+                formatter: function (value, ctx) {
+                  return ctx.chart.data.labels[ctx.dataIndex];
+                }
+              },
               tooltip: {
                 callbacks: {
                   label: function(ctx) { return ctx.parsed.y + "%"; }
@@ -246,55 +246,108 @@
                 ticks: { color: "#1467b7", font: { size: 14 } }
               },
               x: {
-                grid: { display: false },
-                ticks: { display: false } // Hide subject names on X axis
+                ticks: { color: "#1762a7", font: { size: 14 } }
               }
             }
           },
-          plugins: [{
-            id: 'subjectLabelPlugin',
-            afterDatasetsDraw: function(chart, args, opts) {
-              const {ctx, chartArea} = chart;
-              chart.getDatasetMeta(0).data.forEach((bar, i) => {
-                // Draw subject name vertical & centered inside each bar
-                ctx.save();
-                ctx.font = "bold 13px 'Segoe UI', Arial, sans-serif";
-                ctx.fillStyle = "#fff";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.translate(bar.x, bar.y + bar.height / 2);
-                ctx.rotate(-Math.PI / 2);
-                ctx.fillText(subjectNames[i], 0, 0);
-                ctx.restore();
-
-                // Draw percentage on top of bar
-                ctx.save();
-                ctx.font = "bold 16px 'Segoe UI', Arial, sans-serif";
-                ctx.fillStyle = "#1762a7";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "bottom";
-                ctx.fillText(subjectPercents[i] + "%", bar.x, bar.y - 8);
-                ctx.restore();
-              });
-            }
-          }]
+          plugins: [ChartDataLabels]
         });
         statusDiv.textContent = "";
       } catch (err) {
         statusDiv.textContent = "Error: " + err.message;
       }
-    });
+    };
 
-    // Download as PNG
-    document.getElementById('downloadBtn').onclick = function () {
+    // DOWNLOAD AS LANDSCAPE HORIZONTAL CHART
+    document.getElementById('downloadBtn').onclick = async function () {
       if (!chartInstance) return;
-      const url = chartInstance.toBase64Image();
+
+      // Save current canvas size
+      let prevW = chartCanvas.width, prevH = chartCanvas.height;
+      // Resize for horizontal image
+      chartInstance.destroy();
+      chartCanvas.width = 1100;
+      chartCanvas.height = Math.max(60 * subjectNames.length, 400);
+
+      // Draw horizontal chart for download
+      const chartForImage = new Chart(chartCanvas, {
+        type: 'bar',
+        data: {
+          labels: subjectNames,
+          datasets: [{
+            label: 'Average Percentage',
+            data: subjectPercents,
+            backgroundColor: [
+              '#1762a7', '#eb6877', '#5db5e6', '#fdc600', '#24b47e',
+              '#f97d09', '#8661d1', '#b8336a', '#03a87c', '#e14c53',
+              '#3369e7', '#cfb019'
+            ],
+            borderWidth: 2,
+            borderRadius: 10
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: false,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: "St. Patrick's School",
+              color: "#0f3d6b",
+              font: { size: 28, weight: 'bold' },
+              padding: { top: 18, bottom: 3 }
+            },
+            subtitle: {
+              display: true,
+              text: `${className} – ${sectionName} (${academicYear})\nClass Performance by Subject`,
+              color: "#1762a7",
+              font: { size: 20, weight: 'bold' },
+              padding: { top: 0, bottom: 15 }
+            },
+            datalabels: {
+              anchor: 'end',
+              align: 'end',
+              color: '#1762a7',
+              font: { weight: 'bold', size: 24 },
+              formatter: (value, ctx) => value > 0 ? value + '%' : '',
+              offset: -12
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              max: 100,
+              title: { display: true, text: "Average (%)", color: "#0f3d6b", font: { size: 18, weight: 'bold' } },
+              ticks: { color: "#1467b7", font: { size: 16 } }
+            },
+            y: {
+              ticks: {
+                color: "#1762a7",
+                font: { size: 18, weight: 'bold' }
+              }
+            }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+
+      await new Promise(r => setTimeout(r, 350)); // Wait to render
+
+      // Download as image
+      const url = chartForImage.toBase64Image();
       const a = document.createElement('a');
       a.href = url;
       a.download = `Performance_Graph_${className}_${sectionName}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+
+      // Restore original chart
+      chartForImage.destroy();
+      chartCanvas.width = prevW;
+      chartCanvas.height = prevH;
+      window.onload();
     };
   </script>
 </body>
