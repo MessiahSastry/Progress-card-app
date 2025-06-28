@@ -150,6 +150,7 @@
       1. Update subject names and dates each time before download.<br>
       2. <b>Make sure hallticket.png</b> is in the same folder.
     </div>
+    <div class="section" id="studentsListSection" style="margin-top:24px;"></div>
   </div>
 
   <!-- Popup -->
@@ -332,6 +333,7 @@ function getClassGroupName(className) {
     sectionChoices.setChoices(sections.map(s => ({ value: s.id, label: s.name, selected: false })), 'value', 'label', false);
     sectionChoices.setChoiceByValue(sections[0]?.id || '');
     await loadExams();
+    await renderStudentsList();
   }
   async function loadExams() {
   let year = yearSel.value;
@@ -343,6 +345,7 @@ function getClassGroupName(className) {
     examChoices.clearStore();
     examChoices.setChoices([{ value: '', label: 'No choices to choose from', selected: true }], 'value', 'label', false);
     return;
+    await renderStudentsList();
   }
   let snap = await db.collection('years').doc(year)
     .collection('exams').doc('classGroups')
@@ -429,9 +432,9 @@ function getClassGroupName(className) {
       subjGapY: 38          // Gap between subject rows
     };
 
-    pdf.setFont("courier", "normal");
+    pdf.setFont("courier", "bold");
     pdf.setFontSize(20); // Scaled down for this image size
-
+    pdf.setTextColor(0, 0, 0); // pure black
     // Exam Name (centered)
     pdf.setTextColor(30, 45, 170);
     pdf.text(exam, COORDS.exam[0], COORDS.exam[1], { align: "center" });
@@ -444,7 +447,8 @@ function getClassGroupName(className) {
     pdf.text((hallNo+"").toUpperCase(), COORDS.hall[0], COORDS.hall[1], { align: "left" });
 
     // Subjects & Dates (Two columns)
-    pdf.setTextColor(34, 34, 34);
+      pdf.setFont("courier", "bold");
+      pdf.setTextColor(0, 0, 0);  // PURE BLACK
 
     const totalSubjects = subjectsForHallTicket.length;
     const split = Math.ceil(totalSubjects / 2);
@@ -473,6 +477,28 @@ function getClassGroupName(className) {
     let d = new Date(dateStr);
     return d.toLocaleDateString('en-GB').replace(/\//g,'-');
   }
+  async function renderStudentsList() {
+  const studentsDiv = document.getElementById('studentsListSection');
+  studentsDiv.innerHTML = "Loading students...";
+  let students = await getStudents();
+  if (!students.length) {
+    studentsDiv.innerHTML = "<span style='color:#b00;'>No students found for this class/section.</span>";
+    return;
+  }
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:1.1em;">
+    <tr style="background:#e8f0fb;"><th style="padding:7px 0;">Roll</th><th>Name</th><th></th></tr>`;
+  for (let stu of students) {
+    html += `<tr>
+      <td style="text-align:center;padding:6px 0;">${stu.roll}</td>
+      <td>${stu.name}</td>
+      <td style="text-align:center;">
+        <button class="custom-btn" style="padding:7px 15px;font-size:.97em;" onclick="downloadIndividualHallTicket('${stu.roll}')">Download</button>
+      </td>
+    </tr>`;
+  }
+  html += "</table>";
+  studentsDiv.innerHTML = html;
+}
 </script>
 </body>
 </html>
