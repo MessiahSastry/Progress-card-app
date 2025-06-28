@@ -368,11 +368,22 @@ function getClassGroupName(className) {
 });
 
   // Generate Hall Ticket Number (customize if needed)
-  function genHallTicketNum(cls,exam,year,roll){
-    let rollStr = String(roll).padStart(3,'0');
-    return `SPS${cls}${exam}${year}${rollStr}`;
+ function genHallTicketNum(cls, exam, year, roll){
+  let classShort = (cls+"").replace(/\s+/g,'');
+  let faMatch = (exam+"").match(/formative\s*assessment\s*(\d)/i);
+  let saMatch = (exam+"").match(/summative\s*assessment\s*(\d)/i);
+  let examShort = "";
+  if (faMatch) {
+    examShort = `FA${faMatch[1]}`;
+  } else if (saMatch) {
+    examShort = `SA${saMatch[1]}`;
+  } else {
+    examShort = (exam+"").replace(/[^a-zA-Z0-9]/g,"").substring(0,3).toUpperCase();
   }
-
+  let yearShort = (year+"").replace(/[^0-9]/g,"").slice(-2);
+  let rollStr = String(roll).padStart(2,'0');
+  return `SPS${classShort}${examShort}${yearShort}${rollStr}`;
+}
   // ---- Download PDF logic ----
   document.getElementById('downloadBtn').onclick = async () => {
   let students = await getStudents();
@@ -411,7 +422,7 @@ function getClassGroupName(className) {
       exam: [383, 157],     // Centered
       name: [305, 202],     // Left
       father: [305, 230],   // Left
-      class: [175, 270],    // Left
+      class: [175, 250],    // Left
       hall: [410, 270],     // Left
       subjCol1: [110, 306],
       subjCol2: [430, 306],
