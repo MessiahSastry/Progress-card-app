@@ -146,10 +146,6 @@
     <div class="section actions">
       <button class="custom-btn" id="downloadBtn">Download All Hall Tickets (PDF)</button>
     </div>
-    <div class="note" style="color:#666; font-size:1em;">
-      1. Update subject names and dates each time before download.<br>
-      2. <b>Make sure hallticket.png</b> is in the same folder.
-    </div>
     <div class="section" id="studentsListSection" style="margin-top:24px;"></div>
   </div>
 
@@ -381,7 +377,8 @@ function getClassGroupName(className) {
 
   // Generate Hall Ticket Number (customize if needed)
  function genHallTicketNum(cls, exam, year, roll){
-  let classShort = (cls+"").replace(/\s+/g,'');
+  let clsShort = getClassShortCode(cls);
+  return `SPS${clsShort}${examShort}${yearShort}${rollStr}`;
   let faMatch = (exam+"").match(/formative\s*assessment\s*(\d)/i);
   let saMatch = (exam+"").match(/summative\s*assessment\s*(\d)/i);
   let examShort = "";
@@ -395,7 +392,8 @@ function getClassGroupName(className) {
   let yearShort = (year+"").replace(/[^0-9]/g,"").slice(-2);
   let rollStr = String(roll).padStart(2,'0');
   let clsShort = getClassShortCode(cls);
-  return `SPS${classShort}${examShort}${yearShort}${rollStr}`;
+  let clsShort = getClassShortCode(cls);
+  return `SPS${clsShort}${examShort}${yearShort}${rollStr}`;
 }
   // ---- Download PDF logic ----
   document.getElementById('downloadBtn').onclick = async () => {
@@ -436,7 +434,7 @@ function getClassGroupName(className) {
       name: [305, 202],     // Left
       father: [305, 230],   // Left
       class: [164, 253],    // Left
-      hall: [485, 253],     // Left
+      hall: [492, 253],     // Left
       subjCol1: [110, 306],
       subjCol2: [430, 306],
       subjGapY: 38          // Gap between subject rows
@@ -501,9 +499,9 @@ function getClassGroupName(className) {
     html += `<tr>
       <td style="text-align:center;padding:6px 0;">${stu.roll}</td>
       <td>${stu.name}</td>
-      <td style="text-align:center;">
-        <button class="custom-btn" style="padding:7px 15px;font-size:.97em;" onclick="downloadIndividualHallTicket('${stu.roll}')">Download</button>
-      </td>
+      <td style="text-align:right;">
+      <button class="custom-btn" style="padding:7px 15px;font-size:.97em;" onclick="downloadIndividualHallTicket('${stu.roll}')">Download</button>
+    </td>
     </tr>`;
   }
   html += "</table>";
