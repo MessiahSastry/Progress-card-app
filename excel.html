@@ -46,7 +46,8 @@
       margin-top: 28px;
       transition: background .17s;
     }
-    .download-btn:hover { background: #164b7d; }
+    .download-btn:disabled { background: #b8c7da; cursor: not-allowed; }
+    .download-btn:hover:not(:disabled) { background: #164b7d; }
     .status {
       color: #e26c17;
       margin-top: 18px;
@@ -63,6 +64,7 @@
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -70,7 +72,7 @@
   <div class="container">
     <div class="title">Download Class Marks (Excel)</div>
     <div class="desc">Export all students' marks, totals, grades, and ranks for every exam.<br>Format: Roll, Name, Father, [FA1 Subjects... Total, Grade, Rank], [FA2...], etc.</div>
-    <button class="download-btn" id="downloadBtn">Download Excel</button>
+    <button class="download-btn" id="downloadBtn" disabled>Download Excel</button>
     <div class="status" id="status"></div>
     <div>
       <span class="back-link" onclick="window.location.href='students.html'">&larr; Back to Students</span>
@@ -88,6 +90,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
     // ---- Class group map -----
     const CLASS_GROUP_MAP = {
@@ -101,7 +104,7 @@
       return CLASS_GROUP_MAP[className] || 'default';
     }
 
-    // ---------- Grade logic as per your screenshot ----------
+    // ---------- Grade logic ----------
     function getGrade(percent) {
       if (percent >= 95) return 'A+';
       if (percent >= 90) return 'A';
@@ -114,9 +117,23 @@
       return 'F';
     }
 
+    // --- Auth check and button logic ---
+    const statusDiv = document.getElementById('status');
+    const downloadBtn = document.getElementById('downloadBtn');
+    downloadBtn.disabled = true; // default
+
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        statusDiv.textContent = "You must be logged in to download marks.";
+        downloadBtn.disabled = true;
+      } else {
+        statusDiv.textContent = "";
+        downloadBtn.disabled = false;
+      }
+    });
+
     // ---------- Download Excel Button ----------
-    document.getElementById('downloadBtn').onclick = async function () {
-      const statusDiv = document.getElementById('status');
+    downloadBtn.onclick = async function () {
       statusDiv.textContent = "Preparing data. Please wait...";
 
       // Get academic year, class, section from localStorage
@@ -288,7 +305,7 @@
         XLSX.writeFile(wb, fname);
         statusDiv.textContent = "Excel downloaded!";
       } catch (err) {
-        document.getElementById('status').textContent = "Error: " + err.message;
+        statusDiv.textContent = "Error: " + err.message;
       }
     };
   </script>
