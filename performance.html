@@ -21,18 +21,18 @@
       text-align: center;
     }
     .title {
-  color: #fff;        /* white */
-  font-size: 2.2em;   /* (or keep your size) */
-  font-weight: bold;
-  margin-bottom: 2px;
-  letter-spacing: 1.5px;
-}
-.subtitle {
-  color: #fff;        /* white */
-  font-size: 1.2em;   /* (or keep your size) */
-  margin-bottom: 12px;
-  font-weight: 500;
-}
+      color: #0f3d6b;
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-bottom: 4px;
+      letter-spacing: 1.5px;
+    }
+    .subtitle {
+      color: #1467b7;
+      font-size: 1.07em;
+      margin-bottom: 14px;
+      font-weight: 500;
+    }
     #chartContainer { margin: 36px 0 12px 0; }
     #downloadBtn {
       background: #0f3d6b;
@@ -177,11 +177,11 @@
           }
         }
 
-        subjectNames.length = 0;
-        subjectPercents.length = 0;
-        for (let subj in subjectTotals) {
-          subjectNames.push(subj);
-           let obj = subjectTotals[subj];
+       subjectNames.length = 0;
+      subjectPercents.length = 0;
+      for (let subj in subjectTotals) {
+        subjectNames.push(subj);
+   let obj = subjectTotals[subj];
           let percent = obj.max > 0 ? (obj.total / obj.max) * 100 : 0;
           subjectPercents.push(Math.round(percent * 10) / 10);
         }
@@ -214,8 +214,8 @@
             plugins: {
               legend: { display: false },
               title: {
-                display: false
-              },
+              display: false
+            },
               tooltip: {
                 callbacks: {
                   label: function(ctx) { return ctx.parsed.y + "%"; }
@@ -270,7 +270,7 @@
       }
     };
 
-  // Download as PNG in true landscape (wide) format, chart vertical bars, big space!
+ // Download as PNG in true landscape (wide) format, chart vertical bars, big space!
 document.getElementById('downloadBtn').onclick = async function () {
   if (!chartInstance) return;
   const canvasW = 1800;  // Always wide for mobile landscape PNG
@@ -286,33 +286,32 @@ document.getElementById('downloadBtn').onclick = async function () {
     type: 'bar',
     data: chartInstance.data,
     options: {
-      responsive: true,
+      responsive: false,
       plugins: {
         legend: { display: false },
-        title: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) { return ctx.parsed.y + "%"; }
-          }
+        title: {
+          display: true,
+          text: "Class Performance by Subject",
+          color: "#1467b7",
+          font: { size: 56, weight: 'bold' },
+          padding: { top: 90, bottom: 40 }
         },
-        // <-- Plugins go here!
-        subjectLabelPlugin: {
-          // This plugin will be registered below
-        }
+        tooltip: { enabled: false }
       },
-      animation: false,
+      layout: { padding: { top: 180, left: 70, right: 60, bottom: 60 } },
       scales: {
         y: {
           beginAtZero: true,
           max: 100,
-          title: { display: true, text: "Average (%)", color: "#fff" },
-          ticks: { color: "#fff", font: { size: 14, weight: 'bold' } }
+          title: { display: true, text: "Average (%)", color: "#0f3d6b", font: { size: 38 } },
+          ticks: { color: "#1467b7", font: { size: 32 } }
         },
         x: {
           grid: { display: false },
           ticks: { display: false }
         }
-      }
+      },
+      animation: false
     },
     plugins: [{
       id: 'subjectLabelPlugin',
@@ -343,8 +342,20 @@ document.getElementById('downloadBtn').onclick = async function () {
       }
     }]
   });
-  // Download
+  // Draw school/class/section on top
+  const ctx = tempCanvas.getContext('2d');
+  ctx.save();
+  ctx.font = "bold 80px 'Segoe UI', Arial, sans-serif";
+  ctx.fillStyle = "#0f3d6b";
+  ctx.textAlign = "center";
+  ctx.fillText("St. Patrick's School", canvasW / 2, 80);
+  ctx.font = "bold 54px 'Segoe UI', Arial, sans-serif";
+  ctx.fillStyle = "#1762a7";
+  ctx.fillText(`${className} – ${sectionName} (${academicYear})`, canvasW / 2, 150);
+  ctx.restore();
+  // Wait a moment for Chart.js to render (important for big graphs)
   await new Promise(r => setTimeout(r, 300));
+  // Download
   const url = tempCanvas.toDataURL("image/png");
   const a = document.createElement('a');
   a.href = url;
@@ -356,6 +367,7 @@ document.getElementById('downloadBtn').onclick = async function () {
   tempChart.destroy();
   tempCanvas.remove();
 };
+
   </script>
 </body>
 </html>
