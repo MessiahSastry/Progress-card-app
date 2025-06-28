@@ -522,6 +522,95 @@ function getClassGroupName(className) {
   html += "</table>";
   studentsDiv.innerHTML = html;
 }
+  window.downloadIndividualHallTicket = async function(roll) {
+  let students = await getStudents();
+  let stu = students.find(s => (s.roll + '') === (roll + ''));
+  if (!stu) { alert("Student not found!"); return; }
+
+  let cls = classSel.options[classSel.selectedIndex]?.textContent || '';
+  let sec = sectionSel.options[sectionSel.selectedIndex]?.textContent || '';
+  let exam = examSel.options[examSel.selectedIndex]?.textContent || '';
+  let year = yearSel.options[yearSel.selectedIndex]?.textContent || '';
+
+  if (!hallticketImgData) await loadHallticketImg();
+
+  if (!subjectsForHallTicket.length) {
+    alert("Set subjects and dates first!");
+    return;
+  }
+
+  // Use your PNG's actual size!
+  const PAGE_WIDTH = 768;
+  const PAGE_HEIGHT = 1086;
+
+  let pdf = new window.jspdf.jsPDF({ orientation: "portrait", unit: "px", format: [PAGE_WIDTH, PAGE_HEIGHT] });
+
+  pdf.addImage(hallticketImgData, "PNG", 0, 0, PAGE_WIDTH, PAGE_HEIGHT);
+
+  let hallNo = genHallTicketNum(cls, exam, year, stu.roll);
+
+  // ------- These coordinates are scaled for 768x1086 ------
+  const COORDS = {
+    exam: [383, 157],     // Centered
+    name: [305, 202],     // Left
+    father: [305, 230],   // Left
+    class: [164, 253],    // Left
+    hall: [492, 253],     // Left
+    subjCol1: [90, 306],
+    subjCol2: [410, 306],
+    subjGapY: 30
+  };
+
+  pdf.setFont("courier", "bold");
+  pdf.setFontSize(25);
+  pdf.setTextColor(0, 0, 0);
+  // Exam Name (centered)
+  pdf.setTextColor(30, 45, 170);
+  pdf.text(exam, COORDS.exam[0], COORDS.exam[1], { align: "center" });
+
+  // Student Details
+  pdf.setTextColor(30, 70, 70);
+  pdf.text((stu.name+"").toUpperCase(), COORDS.name[0], COORDS.name[1], { align: "left" });
+  pdf.text((stu.father+"").toUpperCase(), COORDS.father[0], COORDS.father[1], { align: "left" });
+  pdf.text((cls+"").toUpperCase(), COORDS.class[0], COORDS.class[1], { align: "left" });
+  pdf.text((hallNo+"").toUpperCase(), COORDS.hall[0], COORDS.hall[1], { align: "left" });
+
+  // --- SUBJECTS AND DATES with vertical line and gap ---
+  pdf.setFont("courier", "bold");
+  pdf.setTextColor(0, 0, 0);
+
+  const totalSubjects = subjectsForHallTicket.length;
+  const split = Math.ceil(totalSubjects / 2);
+
+  const gap = 160;
+  const lineX = 400; // Same as bulk download
+
+  const topY = COORDS.subjCol1[1] - 8;
+  const maxRows = Math.max(split, totalSubjects - split);
+  const bottomY = COORDS.subjCol1[1] + (maxRows - 1) * COORDS.subjGapY + 15;
+
+  // Draw vertical line between columns
+  pdf.setDrawColor(0,0,0);
+  pdf.setLineWidth(1.1);
+  pdf.line(lineX, topY, lineX, bottomY);
+
+  // First column
+  for (let i = 0; i < split; i++) {
+    const subj = subjectsForHallTicket[i];
+    const y = COORDS.subjCol1[1] + i * COORDS.subjGapY;
+    pdf.text((subj.subject+"").toUpperCase(), COORDS.subjCol1[0], y, { align: "left" });
+    pdf.text("- " + formatDate(subj.date), COORDS.subjCol1[0] + gap, y, { align: "left" });
+  }
+  // Second column
+  for (let i = split; i < totalSubjects; i++) {
+    const subj = subjectsForHallTicket[i];
+    const y = COORDS.subjCol2[1] + (i - split) * COORDS.subjGapY;
+    pdf.text((subj.subject+"").toUpperCase(), COORDS.subjCol2[0], y, { align: "left" });
+    pdf.text("- " + formatDate(subj.date), COORDS.subjCol2[0] + gap, y, { align: "left" });
+  }
+
+  pdf.save(`HallTicket_${cls}_${sec}_${exam}_Roll${stu.roll}.pdf`);
+};
 </script>
 </body>
 </html>
