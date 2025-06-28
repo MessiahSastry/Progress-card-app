@@ -46,8 +46,7 @@
       margin-top: 28px;
       transition: background .17s;
     }
-    .download-btn:disabled { background: #b8c7da; cursor: not-allowed; }
-    .download-btn:hover:not(:disabled) { background: #164b7d; }
+    .download-btn:hover { background: #164b7d; }
     .status {
       color: #e26c17;
       margin-top: 18px;
@@ -64,15 +63,14 @@
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="container">
     <div class="title">Download Class Marks (Excel)</div>
-    <div class="desc">Export all students' marks, totals, grades, and ranks for every exam.<br>Format: Roll, Name, Father, [FA1 Subjects... Total, Grade, Rank], [FA2...], etc.</div>
-    <button class="download-btn" id="downloadBtn" disabled>Download Excel</button>
+    <div class="desc">Export all students' marks, totals, grades, and ranks for every exam.<br>Format: Roll, Name, Father, [FA1 Tel, FA1 Eng1, ..., Total, Grade, Rank], [FA2...], etc.</div>
+    <button class="download-btn" id="downloadBtn">Download Excel</button>
     <div class="status" id="status"></div>
     <div>
       <span class="back-link" onclick="window.location.href='students.html'">&larr; Back to Students</span>
@@ -90,7 +88,6 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
     // ---- Class group map -----
     const CLASS_GROUP_MAP = {
@@ -102,6 +99,33 @@
     };
     function getClassGroupName(className) {
       return CLASS_GROUP_MAP[className] || 'default';
+    }
+
+    // Subject Short Names Map
+    const SUBJECT_SHORT = {
+      "Telugu": "Tel",
+      "English 1": "Eng1",
+      "English 2": "Eng2",
+      "Mathematics": "Math",
+      "Maths": "Math",
+      "Science": "Sci",
+      "Physical Science": "Phy",
+      "Biology": "Bio",
+      "Social": "Soc",
+      "Hindi": "Hin",
+      "GK": "GK"
+      // Add more as per your subjects
+    };
+
+    function getSubjectShort(name) {
+      return SUBJECT_SHORT[name] || name.replace(/[^a-zA-Z0-9]/g,'').slice(0, 4);
+    }
+    function getExamShort(name) {
+      let m = name.match(/FA[0-9]+|SA[0-9]+/i);
+      if (m) return m[0].toUpperCase();
+      if (name.toLowerCase().includes("formative")) return "FA" + (name.match(/\d+/)?.[0] || "");
+      if (name.toLowerCase().includes("summative")) return "SA" + (name.match(/\d+/)?.[0] || "");
+      return name.slice(0, 4).toUpperCase();
     }
 
     // ---------- Grade logic ----------
@@ -117,23 +141,9 @@
       return 'F';
     }
 
-    // --- Auth check and button logic ---
-    const statusDiv = document.getElementById('status');
-    const downloadBtn = document.getElementById('downloadBtn');
-    downloadBtn.disabled = true; // default
-
-    auth.onAuthStateChanged(function(user) {
-      if (!user) {
-        statusDiv.textContent = "You must be logged in to download marks.";
-        downloadBtn.disabled = true;
-      } else {
-        statusDiv.textContent = "";
-        downloadBtn.disabled = false;
-      }
-    });
-
     // ---------- Download Excel Button ----------
-    downloadBtn.onclick = async function () {
+    document.getElementById('downloadBtn').onclick = async function () {
+      const statusDiv = document.getElementById('status');
       statusDiv.textContent = "Preparing data. Please wait...";
 
       // Get academic year, class, section from localStorage
@@ -185,11 +195,15 @@
         let headers = ['Roll', 'Name', 'Father'];
         let examColumns = []; // For each exam: [{ examName, subjects: [..], total, grade, rank }]
         for (let exam of exams) {
+          let examShort = getExamShort(exam.name);
           let cols = [];
           if (Array.isArray(exam.subjects)) {
-            exam.subjects.forEach(subj => cols.push(`${exam.name} ${subj.name}`));
+            exam.subjects.forEach(subj => {
+              let subjShort = getSubjectShort(subj.name);
+              cols.push(`${examShort} ${subjShort}`);
+            });
           }
-          cols.push(`${exam.name} Total`, `${exam.name} Grade`, `${exam.name} Rank`);
+          cols.push(`${examShort} Total`, `${examShort} Grade`, `${examShort} Rank`);
           headers.push(...cols);
           examColumns.push({
             name: exam.name,
@@ -305,7 +319,7 @@
         XLSX.writeFile(wb, fname);
         statusDiv.textContent = "Excel downloaded!";
       } catch (err) {
-        statusDiv.textContent = "Error: " + err.message;
+        document.getElementById('status').textContent = "Error: " + err.message;
       }
     };
   </script>
