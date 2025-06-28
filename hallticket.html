@@ -453,26 +453,45 @@ function getClassGroupName(className) {
     pdf.text((hallNo+"").toUpperCase(), COORDS.hall[0], COORDS.hall[1], { align: "left" });
 
     // Subjects & Dates (Two columns)
+      // Subjects & Dates (Two columns)
       pdf.setFont("courier", "bold");
       pdf.setTextColor(0, 0, 0);  // PURE BLACK
-
-    const totalSubjects = subjectsForHallTicket.length;
-    const split = Math.ceil(totalSubjects / 2);
-
-    // First column
-    for (let i = 0; i < split; i++) {
-      const subj = subjectsForHallTicket[i];
-      const y = COORDS.subjCol1[1] + i * COORDS.subjGapY;
-      pdf.text((subj.subject+"").toUpperCase(), COORDS.subjCol1[0], y, { align: "left" });
-      pdf.text(formatDate(subj.date), COORDS.subjCol1[0] + 120, y, { align: "left" });
-    }
-    // Second column
-    for (let i = split; i < totalSubjects; i++) {
-      const subj = subjectsForHallTicket[i];
-      const y = COORDS.subjCol2[1] + (i - split) * COORDS.subjGapY;
-      pdf.text((subj.subject+"").toUpperCase(), COORDS.subjCol2[0], y, { align: "left" });
-      pdf.text(formatDate(subj.date), COORDS.subjCol2[0] + 120, y, { align: "left" });
-    }
+      
+      const totalSubjects = subjectsForHallTicket.length;
+      const split = Math.ceil(totalSubjects / 2);
+      
+      // --- NEW: Calculate line positions --- //
+      const leftX = COORDS.subjCol1[0];
+      const rightX = COORDS.subjCol2[0];
+      const lineX = (leftX + rightX) / 2 + 5; // vertical line between columns (adjust +5 for best center)
+      
+      // Find top Y (first subject row) and bottom Y (last row)
+      const topY = COORDS.subjCol1[1] - 8;
+      const maxRows = Math.max(split, totalSubjects - split);
+      const bottomY = COORDS.subjCol1[1] + (maxRows - 1) * COORDS.subjGapY + 15;
+      
+      // --- DRAW VERTICAL LINE ---
+      pdf.setDrawColor(0,0,0); // blue line, use (0,0,0) for black
+      pdf.setLineWidth(1.1);
+      pdf.line(lineX, topY, lineX, bottomY);
+      
+      // --- SUBJECTS (slightly reduced gap) ---
+      const gap = 105; // Reduced gap for subject-date pairs
+      
+      // First column
+      for (let i = 0; i < split; i++) {
+        const subj = subjectsForHallTicket[i];
+        const y = COORDS.subjCol1[1] + i * COORDS.subjGapY;
+        pdf.text((subj.subject+"").toUpperCase(), COORDS.subjCol1[0], y, { align: "left" });
+        pdf.text(formatDate(subj.date), COORDS.subjCol1[0] + gap, y, { align: "left" });
+      }
+      // Second column
+      for (let i = split; i < totalSubjects; i++) {
+        const subj = subjectsForHallTicket[i];
+        const y = COORDS.subjCol2[1] + (i - split) * COORDS.subjGapY;
+        pdf.text((subj.subject+"").toUpperCase(), COORDS.subjCol2[0], y, { align: "left" });
+        pdf.text(formatDate(subj.date), COORDS.subjCol2[0] + gap, y, { align: "left" });
+      }
   }
 
   pdf.save(`HallTickets_${cls}_${sec}_${exam}.pdf`);
