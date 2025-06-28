@@ -9,8 +9,7 @@
     body {
       background: #f4f8fc;
       font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0; padding: 0;
-      min-height: 100vh;
+      margin: 0; padding: 0; min-height: 100vh;
     }
     .container {
       max-width: 560px;
@@ -34,9 +33,7 @@
       margin-bottom: 14px;
       font-weight: 500;
     }
-    #chartContainer {
-      margin: 36px 0 12px 0;
-    }
+    #chartContainer { margin: 36px 0 12px 0; }
     #downloadBtn {
       background: #0f3d6b;
       color: #fff;
@@ -65,7 +62,10 @@
       font-size: 1em;
     }
   </style>
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js datalabels plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -95,7 +95,6 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
     // ---- Utility for getting class group name ----
     const CLASS_GROUP_MAP = {
@@ -121,13 +120,7 @@
     const chartCanvas = document.getElementById('barChart');
     let chartInstance = null;
 
-    // ---- AUTH-GUARDED LOGIC ----
-    auth.onAuthStateChanged(async function(user) {
-      if (!user) {
-        statusDiv.textContent = "Error: Missing or insufficient permissions. (Not logged in)";
-        document.getElementById('downloadBtn').disabled = true;
-        return;
-      }
+    window.onload = async function () {
       if (!academicYear || !classId || !sectionId) {
         statusDiv.textContent = "Error: Class or section not selected.";
         return;
@@ -215,7 +208,7 @@
           return;
         }
 
-        // 5. Draw chart
+        // 5. Draw chart with subject name in bar, percentage above
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(chartCanvas, {
           type: 'bar',
@@ -243,11 +236,28 @@
                 color: "#1467b7",
                 font: { size: 20, weight: 'bold' }
               },
-              tooltip: {
-                callbacks: {
-                  label: function(ctx) { return ctx.parsed.y + "%"; }
+              datalabels: [
+                {
+                  // Percent above the bar
+                  anchor: 'end',
+                  align: 'end',
+                  font: { weight: 'bold', size: 15 },
+                  color: '#1762a7',
+                  formatter: (value) => value + '%',
+                  offset: 4
+                },
+                {
+                  // Subject name inside the bar
+                  anchor: 'center',
+                  align: 'center',
+                  color: '#fff',
+                  font: { weight: 'bold', size: 15 },
+                  formatter: function (value, ctx) {
+                    // Get label from labels array
+                    return ctx.chart.data.labels[ctx.dataIndex];
+                  }
                 }
-              }
+              ]
             },
             scales: {
               y: {
@@ -260,13 +270,14 @@
                 ticks: { color: "#1762a7", font: { size: 14 } }
               }
             }
-          }
+          },
+          plugins: [ChartDataLabels]
         });
         statusDiv.textContent = "";
       } catch (err) {
         statusDiv.textContent = "Error: " + err.message;
       }
-    });
+    };
 
     // Download as PNG
     document.getElementById('downloadBtn').onclick = function () {
