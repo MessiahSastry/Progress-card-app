@@ -392,9 +392,9 @@ function getClassGroupName(className) {
     return;
   }
 
-  // Set PDF and image dimensions to match PNG exactly
-  const PAGE_WIDTH = 1414;
-  const PAGE_HEIGHT = 2000;
+  // Use your PNG's actual size!
+  const PAGE_WIDTH = 768;
+  const PAGE_HEIGHT = 1086;
 
   let pdf = new window.jspdf.jsPDF({ orientation: "portrait", unit: "px", format: [PAGE_WIDTH, PAGE_HEIGHT] });
 
@@ -405,27 +405,27 @@ function getClassGroupName(className) {
     let stu = students[idx];
     let hallNo = genHallTicketNum(cls, exam, year, stu.roll);
 
-    // Field coordinates
+    // ------- These coordinates are scaled for 768x1086 ------
+    // (Adjust as needed for your small image!)
     const COORDS = {
-      exam: [706, 289],      // Center
-      name: [555, 372],      // Left
-      father: [555, 418],    // Left
-      class: [604, 463],     // Left
-      hall: [907, 463],      // Left
-      subjCol1: [224, 547],
-      subjCol2: [827, 547],
-      subjGapY: 75           // Gap between subject rows
+      exam: [383, 157],     // Centered
+      name: [305, 202],     // Left
+      father: [305, 230],   // Left
+      class: [330, 258],    // Left
+      hall: [495, 258],     // Left
+      subjCol1: [110, 306],
+      subjCol2: [430, 306],
+      subjGapY: 38          // Gap between subject rows
     };
 
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(60);
+    pdf.setFontSize(28); // Scaled down for this image size
 
     // Exam Name (centered)
     pdf.setTextColor(30, 45, 170);
     pdf.text(exam, COORDS.exam[0], COORDS.exam[1], { align: "center" });
 
     // Student Details
-    pdf.setFontSize(60);
     pdf.setTextColor(30, 70, 70);
     pdf.text(stu.name, COORDS.name[0], COORDS.name[1], { align: "left" });
     pdf.text(stu.father, COORDS.father[0], COORDS.father[1], { align: "left" });
@@ -433,7 +433,6 @@ function getClassGroupName(className) {
     pdf.text(hallNo, COORDS.hall[0], COORDS.hall[1], { align: "left" });
 
     // Subjects & Dates (Two columns)
-    pdf.setFontSize(60);
     pdf.setTextColor(34, 34, 34);
 
     const totalSubjects = subjectsForHallTicket.length;
@@ -444,19 +443,20 @@ function getClassGroupName(className) {
       const subj = subjectsForHallTicket[i];
       const y = COORDS.subjCol1[1] + i * COORDS.subjGapY;
       pdf.text(subj.subject, COORDS.subjCol1[0], y, { align: "left" });
-      pdf.text(formatDate(subj.date), COORDS.subjCol1[0] + 340, y, { align: "left" }); // adjust +340 for date
+      pdf.text(formatDate(subj.date), COORDS.subjCol1[0] + 120, y, { align: "left" });
     }
     // Second column
     for (let i = split; i < totalSubjects; i++) {
       const subj = subjectsForHallTicket[i];
       const y = COORDS.subjCol2[1] + (i - split) * COORDS.subjGapY;
       pdf.text(subj.subject, COORDS.subjCol2[0], y, { align: "left" });
-      pdf.text(formatDate(subj.date), COORDS.subjCol2[0] + 340, y, { align: "left" }); // adjust +340 for date
+      pdf.text(formatDate(subj.date), COORDS.subjCol2[0] + 120, y, { align: "left" });
     }
   }
 
   pdf.save(`HallTickets_${cls}_${sec}_${exam}.pdf`);
 };
+
   function formatDate(dateStr){
     if(!dateStr) return '';
     let d = new Date(dateStr);
