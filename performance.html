@@ -21,18 +21,18 @@
       text-align: center;
     }
     .title {
-      color: #0f3d6b;
-      font-size: 1.5em;
-      font-weight: bold;
-      margin-bottom: 4px;
-      letter-spacing: 1.5px;
-    }
-    .subtitle {
-      color: #1467b7;
-      font-size: 1.07em;
-      margin-bottom: 14px;
-      font-weight: 500;
-    }
+  color: #fff;        /* white */
+  font-size: 2.2em;   /* (or keep your size) */
+  font-weight: bold;
+  margin-bottom: 2px;
+  letter-spacing: 1.5px;
+}
+.subtitle {
+  color: #fff;        /* white */
+  font-size: 1.2em;   /* (or keep your size) */
+  margin-bottom: 12px;
+  font-weight: 500;
+}
     #chartContainer { margin: 36px 0 12px 0; }
     #downloadBtn {
       background: #0f3d6b;
@@ -214,10 +214,7 @@
             plugins: {
               legend: { display: false },
               title: {
-                display: true,
-                text: "Class Performance by Subject",
-                color: "#1467b7",
-                font: { size: 26, weight: 'bold' }
+                display: false
               },
               tooltip: {
                 callbacks: {
@@ -289,31 +286,29 @@ document.getElementById('downloadBtn').onclick = async function () {
     type: 'bar',
     data: chartInstance.data,
     options: {
-      responsive: false,
-      plugins: {
-        legend: { display: false },
-        title: {
-          display: true,
-          text: "Class Performance by Subject",
-          color: "#1467b7",
-          font: { size: 56, weight: 'bold' },
-          padding: { top: 90, bottom: 40 }
-        },
-        tooltip: { enabled: false }
-      },
-      layout: { padding: { top: 180, left: 70, right: 60, bottom: 60 } },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          title: { display: true, text: "Average (%)", color: "#0f3d6b", font: { size: 38 } },
-          ticks: { color: "#1467b7", font: { size: 32 } }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { display: false }
-        }
-      },
+  responsive: true,
+  plugins: {
+    legend: { display: false },
+    title: { display: false }, // Chart title is hidden
+    tooltip: {
+      callbacks: {
+        label: function(ctx) { return ctx.parsed.y + "%"; }
+      }
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      max: 100,
+      title: { display: true, text: "Average (%)", color: "#fff" }, // White
+      ticks: { color: "#fff", font: { size: 14, weight: 'bold' } }  // White
+    },
+    x: {
+      grid: { display: false },
+      ticks: { display: false }
+    }
+  }
+}
       animation: false
     },
     plugins: [{
@@ -349,7 +344,7 @@ document.getElementById('downloadBtn').onclick = async function () {
   const ctx = tempCanvas.getContext('2d');
   ctx.save();
   ctx.font = "bold 80px 'Segoe UI', Arial, sans-serif";
-  ctx.fillStyle = "#0f3d6b";
+  ctx.fillStyle = "#fff";
   ctx.textAlign = "center";
   ctx.fillText("St. Patrick's School", canvasW / 2, 80);
   ctx.font = "bold 54px 'Segoe UI', Arial, sans-serif";
