@@ -46,7 +46,8 @@
       margin-top: 28px;
       transition: background .17s;
     }
-    .download-btn:hover { background: #164b7d; }
+    .download-btn:disabled { background: #b8c7da; cursor: not-allowed; }
+    .download-btn:hover:not(:disabled) { background: #164b7d; }
     .status {
       color: #e26c17;
       margin-top: 18px;
@@ -63,14 +64,18 @@
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="container">
     <div class="title">Download Class Marks (Excel)</div>
-    <div class="desc">Export all students' marks, totals, grades, and ranks for every exam.<br>Format: Roll, Name, Father, [FA1 Tel, FA1 Eng1, ..., Total, Grade, Rank], [FA2...], etc.</div>
-    <button class="download-btn" id="downloadBtn">Download Excel</button>
+    <div class="desc">
+      Export all students' marks, totals, grades, and ranks for every exam.<br>
+      Format: Roll, Name, Father, [FA1 Tel, FA1 Eng1, ..., Total, Grade, Rank], [FA2...], etc.
+    </div>
+    <button class="download-btn" id="downloadBtn" disabled>Download Excel</button>
     <div class="status" id="status"></div>
     <div>
       <span class="back-link" onclick="window.location.href='students.html'">&larr; Back to Students</span>
@@ -88,6 +93,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
     // ---- Class group map -----
     const CLASS_GROUP_MAP = {
@@ -142,9 +148,23 @@
       return 'F';
     }
 
+    // --- Auth check and button logic ---
+    const statusDiv = document.getElementById('status');
+    const downloadBtn = document.getElementById('downloadBtn');
+    downloadBtn.disabled = true; // default
+
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        statusDiv.textContent = "You must be logged in to download marks.";
+        downloadBtn.disabled = true;
+      } else {
+        statusDiv.textContent = "";
+        downloadBtn.disabled = false;
+      }
+    });
+
     // ---------- Download Excel Button ----------
-    document.getElementById('downloadBtn').onclick = async function () {
-      const statusDiv = document.getElementById('status');
+    downloadBtn.onclick = async function () {
       statusDiv.textContent = "Preparing data. Please wait...";
 
       // Get academic year, class, section from localStorage
@@ -194,13 +214,13 @@
 
         // 3. Prepare columns: Roll, Name, Father, [exam1 subject1, subject2,...Total, Grade, Rank]...
         let headers = ['Roll', 'Name', 'Father'];
-        let examColumns = []; // For each exam: [{ examName, subjects: [..], total, grade, rank }]
+        let examColumns = [];
         for (let exam of exams) {
           let examShort = getExamShort(exam.name);
           let cols = [];
           if (Array.isArray(exam.subjects)) {
             exam.subjects.forEach(subj => {
-              if (!subj || !subj.name) return; // skip if subject or subject name is missing
+              if (!subj || !subj.name) return;
               let subjShort = getSubjectShort(subj.name);
               cols.push(`${examShort} ${subjShort}`);
             });
@@ -216,7 +236,6 @@
 
         // 4. Fetch marks for each student for each exam
         statusDiv.textContent = "Loading marks for all students...";
-        // Build: studentsWithMarks[id] = { ...studentData, marks: { examName: { subj: marks, ... }, ... } }
         let studentsWithMarks = {};
         for (let stu of students) {
           studentsWithMarks[stu.id] = { ...stu, marks: {} };
@@ -226,21 +245,18 @@
         let examTotals = {};
         for (let exam of exams) {
           examTotals[exam.name] = [];
-          // For all students: fetch their marks for this exam
           for (let stu of students) {
-            // Fetch marks for this exam
             let markDoc = await db.collection('years').doc(academicYear)
               .collection('classes').doc(classId)
               .collection('sections').doc(sectionId)
               .collection('students').doc(stu.id)
               .collection('marks').doc(exam.id).get();
             let marksObj = (markDoc.exists ? markDoc.data() : {});
-            // Prepare data for all subjects of this exam
             let subjMarks = {};
             let total = 0, maxTotal = 0;
             if (Array.isArray(exam.subjects)) {
               for (let subj of exam.subjects) {
-                if (!subj || !subj.name) continue; // skip if subject or subject name is missing
+                if (!subj || !subj.name) continue;
                 let val = marksObj[subj.name];
                 val = (typeof val === 'number' && !isNaN(val)) ? val : '';
                 subjMarks[subj.name] = val;
@@ -252,7 +268,6 @@
                 }
               }
             }
-            // Store in structure
             studentsWithMarks[stu.id].marks[exam.name] = {
               ...subjMarks, _total: total, _max: maxTotal
             };
@@ -264,7 +279,6 @@
         let examRanks = {};
         for (let exam of exams) {
           let scores = examTotals[exam.name].map(x => x.total);
-          // Get sorted unique descending totals
           let sortedTotals = Array.from(new Set(scores)).sort((a, b) => b - a);
           examRanks[exam.name] = {};
           examTotals[exam.name].forEach(({ stuId, total }) => {
@@ -280,7 +294,6 @@
         for (let stu of students) {
           let row = [stu.roll, stu.name, stu.father];
           for (let exam of exams) {
-            // For each subject in this exam
             let mks = (studentsWithMarks[stu.id].marks[exam.name] || {});
             let ttotal = 0, tmax = 0;
             if (Array.isArray(exam.subjects)) {
@@ -298,7 +311,6 @@
             }
             ttotal = mks._total !== undefined ? mks._total : ttotal;
             tmax = mks._max !== undefined ? mks._max : tmax;
-            // Total, Grade, Rank
             let percent = (tmax > 0) ? Math.round((ttotal / tmax) * 100) : 0;
             let grade = getGrade(percent);
             let rank = examRanks[exam.name][stu.id] || '';
@@ -309,7 +321,6 @@
 
         // 7. Export to Excel using SheetJS
         let ws = XLSX.utils.aoa_to_sheet(data);
-        // Set column widths: first columns wider, others auto
         let colWidths = [ { wch: 6 }, { wch: 18 }, { wch: 18 } ];
         for (let i = 3; i < headers.length; ++i) colWidths.push({ wch: 11 });
         ws['!cols'] = colWidths;
@@ -323,7 +334,7 @@
         XLSX.writeFile(wb, fname);
         statusDiv.textContent = "Excel downloaded!";
       } catch (err) {
-        document.getElementById('status').textContent = "Error: " + err.message;
+        statusDiv.textContent = "Error: " + err.message;
       }
     };
   </script>
