@@ -1,3 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>St. Patrick's Progress Card App</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f8fc;
+      min-height: 100vh;
+      min-width: 100vw;
+      overflow-x: hidden;
+    }
+    #splash {
+      position: fixed;
+      z-index: 9999;
+      left: 0; top: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #eaf1fa;
+      transition: opacity 0.5s ease-out;
+      opacity: 1;
+    }
+    #splash.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .splash-title {
+      font-size: 2.1em;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #0f3d6b;
+    }
+    .splash-subtitle {
+      font-size: 1.15em;
+      color: #1467b7;
+    }
+    .school-title {
+      font-size: 1.6em;
+      font-weight: bold;
+      text-align: center;
+      color: #0f3d6b;
+      letter-spacing: 1.5px;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 1.05em;
+      color: #1762a7;
+      font-weight: 500;
+      margin-bottom: 0.6em;
+    }
+    #login-root {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-box {
+      width: 96vw;
+      max-width: 350px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 24px #0f3d6b14;
+      padding: 26px 18px 20px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+    .login-box input {
+      padding: 10px 12px;
+      font-size: 1.08em;
+      margin-bottom: 7px;
+      border-radius: 6px;
+      border: 1.3px solid #bcd6ef;
+      background: #f7fafd;
+      transition: border-color .2s;
+    }
+    .login-box input:focus { outline: none; border-color: #0f3d6b; }
+    .btn-email {
+      font-size: 1em;
+      border: none;
+      padding: 12px 0;
+      border-radius: 8px;
+      margin-top: 6px;
+      font-weight: bold;
+      background: #1762a7;
+      color: #fff;
+      cursor: pointer;
+      margin-bottom: 3px;
+      transition: background 0.17s;
+    }
+    ::-webkit-scrollbar { width: 0; background: transparent; }
+  </style>
+</head>
 <body>
   <div class="splash" id="splash">
     <img src="logo.png" alt="School Logo" style="width:150px; margin-bottom:18px;">
@@ -5,15 +110,12 @@
     <div class="splash-subtitle">IIT & NEET FOUNDATION</div>
   </div>
   <div id="login-root" style="display:none"></div>
-
-  <!-- Firebase and logic -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
   <script>
     if (typeof firebase === "undefined") alert("Firebase not loaded!");
-
     const firebaseConfig = {
       apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
       authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -69,3 +171,4 @@
     });
   </script>
 </body>
+</html>
