@@ -439,6 +439,7 @@ function getClassGroupName(className) {
     <div class="popup-title">Section Tools</div>
     <div style="display:flex;flex-direction:column;gap:13px;">
       <button class="popup-action-btn" id="uploadStudentsBtn">Upload Students (Excel)</button>
+      <button class="popup-action-btn" id="yearPlanBtn">Year Plan</button>
       <button class="popup-action-btn" id="examSettingsBtn">Exam Settings</button>
       <button class="popup-action-btn" id="enterMarksBtn">Enter Marks</button>
       <button class="popup-action-btn" id="attendanceBtn">Take Attendance (WhatsApp)</button>
@@ -469,6 +470,8 @@ function getClassGroupName(className) {
   window.location.href = "performance.html";
 };
   document.getElementById('showDeletedBtn').onclick = showDeletedStudentsPopup;
+    document.getElementById('yearPlanBtn').onclick = function() {
+    window.location.href = "year-plan.html";
 }
 // ========== EXAM SETTINGS ===========
 function showExamSettingsPopup() {
