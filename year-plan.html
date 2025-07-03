@@ -2,112 +2,247 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Year Plan Entry | St. Patrick's School</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Year Plan & Syllabus PDF | St. Patrick's School</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
-    body { margin: 0; background: #f4f8fc; font-family: 'Segoe UI', Arial, sans-serif; }
-    .header {
-      background: #0f3d6b; color: #fff; border-bottom-left-radius: 18px; border-bottom-right-radius: 18px;
-      text-align: center; padding: 26px 0 16px 0; box-shadow: 0 2px 12px #0f3d6b22;
+    body {
+      margin: 0; padding: 0;
+      background: #f4f8fc;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
     }
-    .header .school-title { font-size: 1.45em; font-weight: bold; letter-spacing: 1.2px; }
-    .header .subtitle { font-size: 1.08em; color: #d6eaff; }
-    .main-box {
-      background: #fff; border-radius: 18px; box-shadow: 0 4px 18px #0f3d6b19;
-      max-width: 440px; margin: 32px auto 28px auto; padding: 30px 24px 32px 24px;
+    .header-bar {
+      background: #0f3d6b;
+      color: #fff;
+      padding: 18px 0 12px 0;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      text-align: center;
+      font-size: 1.28em;
+      font-weight: 700;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 12px #0f3d6b22;
     }
-    .main-box label { font-weight: 600; color: #195084; font-size: 1em; }
-    .row { display: flex; gap: 12px; margin-bottom: 16px; }
-    .row select, .row input { flex: 1; padding: 9px 11px; border-radius: 8px; border: 1.3px solid #bcd6ef; background: #f7fafd; font-size: 1.04em; }
+    .section-container {
+      max-width: 480px;
+      margin: 24px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 20px #0f3d6b18;
+      padding: 22px 16px 28px 16px;
+    }
+    h2 {
+      margin: 0 0 14px 0;
+      color: #155394;
+      font-size: 1.18em;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .fa-calendar, .fa-download {
+      color: #1762a7;
+    }
+    label {
+      font-weight: 600;
+      color: #19599e;
+      margin-bottom: 7px;
+      display: block;
+      font-size: 0.97em;
+      letter-spacing: 0.1px;
+    }
+    .custom-dropdown {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .selected-option {
+      padding: 11px 13px;
+      color: #12416c;
+      background: #f7fafd;
+      border-radius: 8px;
+      border: 1.6px solid #bcd6ef;
+      cursor: pointer;
+      font-size: 1.05em;
+      transition: border-color 0.18s;
+      min-height: 21px;
+      user-select: none;
+    }
+    .selected-option:after {
+      content: "\f078";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      float: right;
+      color: #1461a9b8;
+      margin-left: 8px;
+      font-size: 0.92em;
+      pointer-events: none;
+    }
+    .dropdown-options {
+      display: none;
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: #fff;
+      border: 1.6px solid #bcd6ef;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 7px 18px #0f3d6b11;
+      z-index: 1000;
+      max-height: 220px;
+      overflow-y: auto;
+      animation: dropdownIn 0.15s;
+    }
+    @keyframes dropdownIn {
+      from { opacity: 0; transform: translateY(-7px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    .custom-dropdown.open .dropdown-options {
+      display: block;
+    }
+    .dropdown-options div[data-value] {
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 1.04em;
+      color: #1159a8;
+      background: #fff;
+      transition: background 0.13s;
+    }
+    .dropdown-options div[data-value]:hover,
+    .dropdown-options div[data-value].selected {
+      background: #e0eaff;
+    }
     textarea {
-      width: 100%; min-height: 100px; padding: 11px; border-radius: 9px; border: 1.5px solid #bcd6ef;
-      font-size: 1.09em; background: #f7fafd; margin-top: 5px;
-      resize: vertical; box-sizing: border-box;
+      width: 100%;
+      min-height: 68px;
+      font-size: 1.04em;
+      border-radius: 8px;
+      border: 1.5px solid #bcd6ef;
+      padding: 10px 13px;
+      background: #f7fafd;
+      margin-bottom: 18px;
+      resize: vertical;
+      color: #12416c;
+      text-transform: uppercase;
     }
-    .save-btn {
-      background: #0f3d6b; color: #fff; font-weight: 700; font-size: 1.09em;
-      border: none; border-radius: 8px; padding: 13px 0; margin-top: 16px; width: 100%; cursor: pointer; transition: background .13s;
-      box-shadow: 0 3px 10px #0f3d6b22;
+    .main-btn {
+      width: 100%;
+      padding: 13px 0;
+      font-size: 1.09em;
+      background: #0f3d6b;
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-weight: bold;
+      margin-bottom: 7px;
+      cursor: pointer;
+      transition: background 0.13s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      box-shadow: 0 2px 10px #0f3d6b16;
     }
-    .save-btn:active { background: #1a4c8a; }
-    .divider { margin: 38px 0 14px 0; border: none; border-top: 1.5px solid #f3f3f3; }
-    .download-row { display: flex; gap: 12px; margin-bottom: 15px; }
-    .download-btn {
-      background: #197e4a; color: #fff; font-weight: 700; font-size: 1.07em;
-      border: none; border-radius: 7px; padding: 11px 0; margin-top: 2px; width: 100%; cursor: pointer;
-      box-shadow: 0 2px 8px #1ba25817;
+    .main-btn.green {
+      background: #16aa47;
     }
-    .download-btn:active { background: #146a3d; }
-    .box-title {
-      font-size: 1.22em; font-weight: bold; color: #1467b7; margin-bottom: 24px;
-      display: flex; align-items: center; gap: 8px;
+    .main-btn:active {
+      background: #0d3153;
     }
-    .box-title i { color: #0f3d6b; }
+    .main-btn.green:active {
+      background: #108a35;
+    }
+    hr {
+      border: none;
+      border-top: 1.2px solid #e4eaf3;
+      margin: 30px 0 23px 0;
+    }
+    @media (max-width: 560px) {
+      .section-container { margin: 12px 3px; }
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="school-title">St. Patrick's School</div>
-    <div class="subtitle">IIT & NEET FOUNDATION</div>
-    <div style="margin-top:5px;font-size:.99em;color:#fdc600;font-weight:600;">Year Plan Entry</div>
+  <div class="header-bar">Year Plan Entry</div>
+  <div class="section-container">
+    <h2><i class="fa-solid fa-calendar"></i> Year Plan Entry</h2>
+    <!-- Academic Year -->
+    <label>Academic Year</label>
+    <div id="year-dropdown" class="custom-dropdown">
+      <input type="hidden" id="year-value" value="">
+      <div class="selected-option">Loading...</div>
+      <div class="dropdown-options"></div>
+    </div>
+    <!-- Class -->
+    <label>Class</label>
+    <div id="class-dropdown" class="custom-dropdown">
+      <input type="hidden" id="class-value" value="3rd Class">
+      <div class="selected-option"></div>
+      <div class="dropdown-options"></div>
+    </div>
+    <!-- Exam Name -->
+    <label>Exam Name</label>
+    <div id="exam-dropdown" class="custom-dropdown">
+      <input type="hidden" id="exam-value" value="Formative Assessment 1">
+      <div class="selected-option">Formative Assessment 1</div>
+      <div class="dropdown-options"></div>
+    </div>
+    <!-- Subject -->
+    <label>Subject</label>
+    <div id="subject-dropdown" class="custom-dropdown">
+      <input type="hidden" id="subject-value" value="">
+      <div class="selected-option">Select Subject</div>
+      <div class="dropdown-options"></div>
+    </div>
+    <!-- Syllabus / Portions -->
+    <label>Syllabus/Portions for Exam</label>
+    <textarea id="syllabus" placeholder="ENTER SYLLABUS OR PORTIONS FOR THIS EXAM..." style="text-transform:uppercase"></textarea>
+    <button class="main-btn" id="save-btn"><i class="fa-solid fa-floppy-disk"></i>Save Year Plan</button>
   </div>
-  <div class="main-box">
-    <div class="box-title"><i class="fa fa-calendar-days"></i> Year Plan Entry</div>
-    <form id="yearPlanForm">
-      <div class="row">
-        <div style="flex:1">
-          <label>Academic Year</label>
-          <select id="yearSel" required></select>
-        </div>
-        <div style="flex:1">
-          <label>Class</label>
-          <select id="classSel" required></select>
-        </div>
-      </div>
-      <div class="row">
-        <div style="flex:1">
-          <label>Exam Name</label>
-          <select id="examSel" required></select>
-        </div>
-        <div style="flex:1">
-          <label>Subject</label>
-          <select id="subjectSel" required></select>
-        </div>
-      </div>
-      <label>Syllabus/Portions for Exam</label>
-      <textarea id="syllabusInput" placeholder="Enter syllabus or portions for this exam..." required></textarea>
-      <button type="submit" class="save-btn"><i class="fa fa-floppy-disk"></i> Save Year Plan</button>
-    </form>
-    <hr class="divider" />
-    <div class="box-title" style="margin-top:5px;"><i class="fa fa-download"></i> Download Exam Syllabus PDF</div>
-    <div class="download-row">
-      <div style="flex:1">
-        <label>Academic Year</label>
-        <select id="pdfYearSel"></select>
-      </div>
-      <div style="flex:1">
-        <label>Class</label>
-        <select id="pdfClassSel"></select>
-      </div>
+  <hr>
+  <div class="section-container">
+    <h2><i class="fa-solid fa-download"></i> Download Exam Syllabus PDF</h2>
+    <!-- Academic Year -->
+    <label>Academic Year</label>
+    <div id="pdf-year-dropdown" class="custom-dropdown">
+      <input type="hidden" id="pdf-year-value" value="">
+      <div class="selected-option">Loading...</div>
+      <div class="dropdown-options"></div>
     </div>
-    <div class="row">
-      <div style="flex:1">
-        <label>Exam Name</label>
-        <select id="pdfExamSel"></select>
-      </div>
+    <!-- Class -->
+    <label>Class</label>
+    <div id="pdf-class-dropdown" class="custom-dropdown">
+      <input type="hidden" id="pdf-class-value" value="3rd Class">
+      <div class="selected-option">3rd Class</div>
+      <div class="dropdown-options"></div>
     </div>
-    <button class="download-btn" id="downloadPdfBtn"><i class="fa fa-file-pdf"></i> Download Exam Syllabus PDF</button>
+    <!-- Exam Name -->
+    <label>Exam Name</label>
+    <div id="pdf-exam-dropdown" class="custom-dropdown">
+      <input type="hidden" id="pdf-exam-value" value="Formative Assessment 1">
+      <div class="selected-option">Formative Assessment 1</div>
+      <div class="dropdown-options"></div>
+    </div>
+    <!-- Subject -->
+    <label>Subject</label>
+    <div id="pdf-subject-dropdown" class="custom-dropdown">
+      <input type="hidden" id="pdf-subject-value" value="">
+      <div class="selected-option">Select Subject</div>
+      <div class="dropdown-options"></div>
+    </div>
+    <button class="main-btn green" id="download-btn">
+      <i class="fa-solid fa-file-pdf"></i> Download Exam Syllabus PDF
+    </button>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Firebase (v9 compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    // ========== YOUR CLASS/SUBJECT/EXAM CONFIG ==========
+    // ====== Your Data Mapping ======
     const aiGeneratorConfig = {
-      classes: ["3rd Class", "4th Class", "5th Class", "6th Class", "7th Class", "8th Class", "9th Class", "10th Class"],
+      classes: [
+        "3rd Class", "4th Class", "5th Class", "6th Class", "7th Class", "8th Class", "9th Class", "10th Class"
+      ],
       subjectMappings: {
         "3rd Class": ["Telugu", "Hindi", "English", "Math", "Science", "Social"],
         "4th Class": ["Telugu", "Hindi", "English", "Math", "Science", "Social"],
@@ -119,145 +254,107 @@
         "10th Class": ["Telugu", "Hindi", "English 1", "English 2", "Math 1", "Math 1 IIT", "Math 2", "Math 2 IIT", "Physics", "Physics IIT & NEET", "Chemistry", "Chemistry IIT & NEET", "Biology", "Biology NEET", "Social"]
       },
       exams: [
-        "Formative Assessment 1",
-        "Formative Assessment 2",
-        "Summative Assessment 1",
-        "Formative Assessment 3",
-        "Formative Assessment 4",
-        "Revision Test 1",
-        "Revision Test 2",
-        "Revision Test 3"
+        "Formative Assessment 1", "Formative Assessment 2", "Summative Assessment 1", "Formative Assessment 3", "Formative Assessment 4", "Revision Test 1", "Revision Test 2", "Revision Test 3"
       ]
     };
 
-    // ========== FILL YEAR/CLASS/EXAM/SUBJECT DROPDOWNS ==========
-    function getAcademicYearOptions() {
-      // Academic year (example: 2025–26, 2026–27, ... show 3 years for selection)
-      const current = (new Date()).getFullYear();
-      let thisYear = current;
-      let start = thisYear, end = (thisYear + 1).toString().slice(-2);
-      let years = [];
-      for (let i = -1; i <= 1; i++) {
-        let y1 = thisYear + i, y2 = (thisYear + i + 1).toString().slice(-2);
-        years.push(`${y1}-${y2}`);
-      }
-      return years;
-    }
-    function fillDropdown(sel, arr, currentVal) {
-      sel.innerHTML = "";
-      arr.forEach(opt => {
-        let o = document.createElement('option');
-        o.value = opt; o.textContent = opt;
-        if (currentVal && opt == currentVal) o.selected = true;
-        sel.appendChild(o);
-      });
-    }
-    // ---------- FILL FORM SELECTS ----------
-    const yearSel = document.getElementById('yearSel');
-    const classSel = document.getElementById('classSel');
-    const examSel = document.getElementById('examSel');
-    const subjectSel = document.getElementById('subjectSel');
-
-    // Academic Year (prefer localStorage)
-    let yearOpt = getAcademicYearOptions();
-    let localYear = localStorage.getItem('sp_selectedYear');
-    fillDropdown(yearSel, yearOpt, localYear && yearOpt.includes(localYear) ? localYear : yearOpt[1]);
-    // Classes
-    fillDropdown(classSel, aiGeneratorConfig.classes, aiGeneratorConfig.classes[0]);
-    // Exams
-    fillDropdown(examSel, aiGeneratorConfig.exams, aiGeneratorConfig.exams[0]);
-    // Subjects for default class
-    function fillSubjectsForClass(cls) {
-      fillDropdown(subjectSel, aiGeneratorConfig.subjectMappings[cls], aiGeneratorConfig.subjectMappings[cls][0]);
-    }
-    fillSubjectsForClass(classSel.value);
-    classSel.onchange = () => fillSubjectsForClass(classSel.value);
-
-    // Download area selects
-    fillDropdown(document.getElementById('pdfYearSel'), yearOpt, yearSel.value);
-    fillDropdown(document.getElementById('pdfClassSel'), aiGeneratorConfig.classes, classSel.value);
-    fillDropdown(document.getElementById('pdfExamSel'), aiGeneratorConfig.exams, examSel.value);
-
-    // Update subject dropdown for download area on class change (optional)
-    document.getElementById('pdfClassSel').onchange = function() {
-      // can update available subjects for download here if needed
-    };
-
-    // ========== FIREBASE INIT ==========
+    // ====== Firebase Config ======
     const firebaseConfig = {
-      apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
-      authDomain: "stpatricksprogresscard.firebaseapp.com",
-      projectId: "stpatricksprogresscard",
-      storageBucket: "stpatricksprogresscard.appspot.com",
-      messagingSenderId: "671416933178",
-      appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
+      apiKey: "AIzaSyAszVhWXUUOYLQ7VimKmPKf1yEu_CI9RCE",
+      authDomain: "stpatricks-questionbank.firebaseapp.com",
+      projectId: "stpatricks-questionbank",
+      storageBucket: "stpatricks-questionbank.appspot.com",
+      messagingSenderId: "917615322861",
+      appId: "1:917615322861:web:c6c890aa2184dd395b8ee4"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    // ========== SAVE YEAR PLAN =============
-    document.getElementById('yearPlanForm').onsubmit = async function(e) {
-      e.preventDefault();
-      // Get all values
-      const year = yearSel.value;
-      const cls = classSel.value;
-      const exam = examSel.value;
-      const subject = subjectSel.value;
-      const syllabus = document.getElementById('syllabusInput').value.trim();
-      if (!year || !cls || !exam || !subject || !syllabus) { alert("Please fill all fields!"); return; }
-      // Get teacher info
-      const user = auth.currentUser;
-      let teacherEmail = user ? user.email : "unknown";
-      let ref = db.collection('yearPlan')
-        .doc(`${year}_${cls}_${exam}_${subject}`.replace(/[^a-zA-Z0-9_]/g, "_"));
-      await ref.set({
-        year, class: cls, exam, subject, syllabus,
-        teacher: teacherEmail,
-        updated: firebase.firestore.FieldValue.serverTimestamp()
+    // ====== Helper: Setup Custom Dropdown ======
+    function setupDropdown(containerId, options, initialValue, onChange) {
+      const dropdown = document.getElementById(containerId);
+      const selected = dropdown.querySelector('.selected-option');
+      const input = dropdown.querySelector('input[type=hidden]');
+      const optionsBox = dropdown.querySelector('.dropdown-options');
+      optionsBox.innerHTML = '';
+      options.forEach(opt => {
+        const d = document.createElement('div');
+        d.setAttribute('data-value', opt);
+        d.innerText = opt;
+        if (opt === initialValue) d.classList.add('selected');
+        optionsBox.appendChild(d);
       });
-      alert("Year plan saved!");
-      document.getElementById('syllabusInput').value = "";
-    };
-
-    // ========== DOWNLOAD EXAM SYLLABUS PDF ==========
-    document.getElementById('downloadPdfBtn').onclick = async function() {
-      const year = document.getElementById('pdfYearSel').value;
-      const cls = document.getElementById('pdfClassSel').value;
-      const exam = document.getElementById('pdfExamSel').value;
-      // Load all year plans for this combination
-      const ref = db.collection('yearPlan').where('year', '==', year).where('class', '==', cls).where('exam', '==', exam);
-      let plans = await ref.get();
-      if (plans.empty) { alert("No year plan found for this combination!"); return; }
-      let doc = new window.jspdf.jsPDF();
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(15);
-      doc.text("St. Patrick's School", 105, 16, {align: "center"});
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10.5);
-      doc.text("IIT & NEET FOUNDATION", 105, 25, {align: "center"});
-      doc.setFontSize(11);
-      doc.text(`Academic Year: ${year}`, 14, 39);
-      doc.text(`Class: ${cls}`, 84, 39);
-      doc.text(`Exam: ${exam}`, 14, 49);
-      let y = 58;
-      plans.forEach(plan => {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.text(`Subject: ${plan.data().subject}`, 14, y);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(11);
-        let syllabus = plan.data().syllabus || '';
-        let lines = doc.splitTextToSize(syllabus, 175);
-        doc.text(lines, 22, y+8);
-        y += lines.length * 7 + 19;
+      // Set initial value
+      input.value = initialValue;
+      selected.innerText = initialValue;
+      // Click logic
+      selected.onclick = e => {
+        e.stopPropagation();
+        document.querySelectorAll('.custom-dropdown.open').forEach(dd => { if (dd!==dropdown) dd.classList.remove('open'); });
+        dropdown.classList.toggle('open');
+      };
+      optionsBox.querySelectorAll('div[data-value]').forEach(optDiv => {
+        optDiv.onclick = () => {
+          input.value = optDiv.getAttribute('data-value');
+          selected.innerText = optDiv.innerText;
+          optionsBox.querySelectorAll('div[data-value]').forEach(div=>div.classList.remove('selected'));
+          optDiv.classList.add('selected');
+          dropdown.classList.remove('open');
+          if (onChange) onChange(optDiv.getAttribute('data-value'));
+        };
       });
-      doc.save(`YearPlan_${year}_${cls}_${exam}.pdf`);
-    };
+    }
+    // Close dropdown on click outside
+    document.addEventListener('click', function(event) {
+      document.querySelectorAll('.custom-dropdown.open').forEach(dropdown => {
+        if (!dropdown.contains(event.target)) dropdown.classList.remove('open');
+      });
+    });
 
-    // ========== LOGIN REQUIRED ==========
-    auth.onAuthStateChanged(user => {
-      if (!user) window.location.replace("index.html");
+    // ====== Syllabus Textarea to UPPERCASE ======
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('syllabus').addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+      });
+    });
+
+    // ====== Init Page (after Firestore loads) ======
+    async function initPage() {
+      // Load academic years from Firestore
+      let years = [];
+      try {
+        const snap = await db.collection('academic_years').orderBy('name', 'desc').get();
+        years = snap.docs.map(doc => doc.data().name);
+      } catch (e) {
+        years = ["2025-26", "2024-25", "2023-24"]; // fallback
+      }
+
+      // --- YEAR PLAN SECTION ---
+      setupDropdown('year-dropdown', years, years[0]);
+      setupDropdown('class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0], onYearPlanClassChange);
+      setupDropdown('exam-dropdown', aiGeneratorConfig.exams, aiGeneratorConfig.exams[0]);
+      // subject
+      function onYearPlanClassChange(selClass) {
+        const subjects = aiGeneratorConfig.subjectMappings[selClass];
+        setupDropdown('subject-dropdown', subjects, subjects[0]);
+      }
+      onYearPlanClassChange(aiGeneratorConfig.classes[0]);
+
+      // --- PDF DOWNLOAD SECTION ---
+      setupDropdown('pdf-year-dropdown', years, years[0]);
+      setupDropdown('pdf-class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0], onPdfClassChange);
+      setupDropdown('pdf-exam-dropdown', aiGeneratorConfig.exams, aiGeneratorConfig.exams[0]);
+      // subject
+      function onPdfClassChange(selClass) {
+        const subjects = aiGeneratorConfig.subjectMappings[selClass];
+        setupDropdown('pdf-subject-dropdown', subjects, subjects[0]);
+      }
+      onPdfClassChange(aiGeneratorConfig.classes[0]);
+    }
+
+    // ====== DOMContentLoaded Startup ======
+    document.addEventListener('DOMContentLoaded', function() {
+      initPage();
     });
   </script>
 </body>
