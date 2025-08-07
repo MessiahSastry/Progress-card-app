@@ -70,24 +70,32 @@
       border-width: 3.2px;
       box-shadow: 0 4px 22px #1467b71a;
     }
-    .fab, .settings-btn {
-      position: fixed;
-      right: 22px;
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      background: #0f3d6b;
-      box-shadow: 0 4px 18px #0f3d6b30;
-      display: flex; align-items: center; justify-content: center;
-      z-index: 104; border: none; cursor: pointer;
-      transition: background 0.18s, box-shadow 0.18s;
-      color: #fff;
-      font-size: 1.75em;
-    }
-    .fab { bottom: 30px; }
-    .fab:active, .settings-btn:active { background: #195084; box-shadow: 0 2px 8px #0f3d6b44; }
-    .fab::before { content: "+"; display: block; font-size: 1.1em; font-weight: bold; color: #fff; line-height: 1; text-align: center; }
-    .settings-btn { bottom: 86px; }
-    .settings-btn i { color: #fff !important; font-size: 0.95em; pointer-events: none; margin: 0; padding: 0; }
+    .fab, .settings-btn, #add-teacher-fab {
+  position: fixed;
+  right: 22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #0f3d6b;
+  box-shadow: 0 4px 18px #0f3d6b30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 104;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 1.75em;
+  transition: background 0.18s, box-shadow 0.18s;
+}
+/* Individual bottom positions so they don't overlap */
+.fab { bottom: 30px; }
+#add-teacher-fab { bottom: 86px; }
+.settings-btn { bottom: 142px; }
+
+.fab:active, .settings-btn:active, #add-teacher-fab:active { background: #195084; box-shadow: 0 2px 8px #0f3d6b44; }
+.fab::before { content: "+"; display: block; font-size: 1.1em; font-weight: bold; color: #fff; line-height: 1; text-align: center; }
+.settings-btn i, #add-teacher-fab i { color: #fff !important; font-size: 0.95em; pointer-events: none; margin: 0; padding: 0; }
     /* Popup Styles */
     #popup-bg {
       position: fixed;
@@ -551,4 +559,5 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
