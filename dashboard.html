@@ -153,6 +153,27 @@
       transition: background .14s;
     }
     .popup-action-btn:hover { background: #195084; }
+    .add-teacher-btn {
+  position: fixed;
+  right: 22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1467b7;
+  box-shadow: 0 4px 18px #0f3d6b30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 105; /* Higher than .fab */
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 1.68em;
+  bottom: 86px;
+  transition: background 0.18s, box-shadow 0.18s;
+}
+.add-teacher-btn:active { background: #195084; }
+.add-teacher-btn i { color: #fff !important; }
   </style>
 </head>
 <body class="dashboard">
@@ -164,7 +185,7 @@
   <div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
 <!-- Add this line below your existing FAB -->
-<button class="fab" id="add-teacher-fab" style="bottom:86px;display:none;" title="Add Teacher">
+<button class="add-teacher-btn" id="add-teacher-fab" style="bottom:86px;display:none;" title="Add Teacher">
   <i class="fa fa-user-plus"></i>
 </button>
   <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
@@ -530,3 +551,4 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
