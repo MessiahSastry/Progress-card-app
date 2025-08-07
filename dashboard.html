@@ -397,7 +397,7 @@
   // Show popup to add teacher when admin clicks
 document.getElementById('add-teacher-fab').onclick = function() {
   showPopup(`
-    <div class="popup-title">Add Teachers</div>
+    <div class="popup-title" style="text-align:center;">Add Teachers</div>
     <button id="show-individual-teacher" style="margin-bottom:10px;width:100%;" class="popup-action-btn">Add Single Teacher</button>
     <button id="show-bulk-upload" style="margin-bottom:10px;width:100%;" class="popup-action-btn">Bulk Upload from Excel</button>
     <div id="teacher-popup-content"></div>
@@ -406,15 +406,15 @@ document.getElementById('add-teacher-fab').onclick = function() {
   // Add event listeners for both buttons:
   document.getElementById('show-individual-teacher').onclick = function() {
     document.getElementById('teacher-popup-content').innerHTML = `
-      <form id="addTeacherForm">
-      <label>Teacher Name</label>
-      <input name="teacherName" maxlength="30" required placeholder="Full Name">
-      <label>Email</label>
-      <input name="teacherEmail" type="email" required placeholder="Email">
-      <label>Password</label>
-      <input name="teacherPassword" type="text" required placeholder="Set Password">
-      <label>Phone</label>
-      <input name="teacherPhone" maxlength="15" placeholder="Phone (optional)">
+      <form id="addTeacherForm" style="display: flex; flex-direction: column; gap: 10px;">
+      <label for="teacherName" style="font-weight:600; color:#195084;">Teacher Name</label>
+      <input id="teacherName" name="teacherName" maxlength="30" required placeholder="Full Name" style="width:100%;">
+      <label for="teacherEmail" style="font-weight:600; color:#195084;">Email</label>
+      <input id="teacherEmail" name="teacherEmail" type="email" required placeholder="Email" style="width:100%;">
+      <label for="teacherPassword" style="font-weight:600; color:#195084;">Password</label>
+      <input id="teacherPassword" name="teacherPassword" type="text" required placeholder="Set Password" style="width:100%;">
+      <label for="teacherPhone" style="font-weight:600; color:#195084;">Phone <span style="font-weight:400;font-size:.92em;color:#888;">(optional)</span></label>
+      <input id="teacherPhone" name="teacherPhone" maxlength="15" placeholder="Phone (optional)" style="width:100%;">
       <div class="popup-btn-row">
         <button type="button" class="popup-cancel-btn">Cancel</button>
         <button type="submit" class="popup-action-btn">Add</button>
@@ -559,5 +559,6 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
