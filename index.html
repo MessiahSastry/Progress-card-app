@@ -8,41 +8,23 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
     html, body {
+      height: 100vh;
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Arial, sans-serif;
       background: #f4f8fc;
-      min-height: 100vh;
       min-width: 100vw;
       overflow-x: hidden;
     }
-    #splash {
+    #login-root {
       position: fixed;
-      z-index: 9999;
-      left: 0; top: 0; right: 0; bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      background: #eaf1fa;
-      transition: opacity 0.5s ease-out;
-      opacity: 1;
-    }
-    #splash.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .splash-title {
-      font-size: 2.1em;
-      font-weight: bold;
-      margin-bottom: 6px;
-      color: #0f3d6b;
-      text-align: center;
-    }
-    .splash-subtitle {
-      font-size: 1.15em;
-      color: #1467b7;
-      text-align: center;
+      justify-content: center;
+      z-index: 1000;
+      background: #f4f8fc;
     }
     .login-box {
       width: 96vw;
@@ -84,12 +66,7 @@
   </style>
 </head>
 <body>
-  <div class="splash" id="splash">
-    <img src="logo.png" alt="School Logo" style="width:120px; margin-bottom:18px;">
-    <div class="splash-title">Multi School App</div>
-    <div class="splash-subtitle">Progress Card & Exam Platform</div>
-  </div>
-  <div id="login-root" style="display:none"></div>
+  <div id="login-root"></div>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -110,7 +87,6 @@
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const db = firebase.firestore();
 
-    const splash = document.getElementById('splash');
     const loginRoot = document.getElementById('login-root');
 
     function showLoginUI() {
@@ -161,7 +137,6 @@
     };
 
     auth.onAuthStateChanged(function (user) {
-      if (splash) splash.classList.add('hidden');
       if (user) {
         // If already logged in, check localStorage and redirect
         const userData = localStorage.getItem("userData");
