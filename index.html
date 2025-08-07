@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>St. Patrick's Progress Card App</title>
+  <title>Multi School Progress Card App</title>
   <link rel="manifest" href="manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -37,32 +37,12 @@
       font-weight: bold;
       margin-bottom: 6px;
       color: #0f3d6b;
+      text-align: center;
     }
     .splash-subtitle {
       font-size: 1.15em;
       color: #1467b7;
-    }
-    .school-title {
-      font-size: 1.6em;
-      font-weight: bold;
       text-align: center;
-      color: #0f3d6b;
-      letter-spacing: 1.5px;
-      margin-bottom: 4px;
-    }
-    .subtitle {
-      text-align: center;
-      font-size: 1.05em;
-      color: #1762a7;
-      font-weight: 500;
-      margin-bottom: 0.6em;
-    }
-    #login-root {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
     }
     .login-box {
       width: 96vw;
@@ -105,9 +85,9 @@
 </head>
 <body>
   <div class="splash" id="splash">
-    <img src="logo.png" alt="School Logo" style="width:150px; margin-bottom:18px;">
-    <div class="splash-title">St. Patrick’s School</div>
-    <div class="splash-subtitle">IIT & NEET FOUNDATION</div>
+    <img src="logo.png" alt="School Logo" style="width:120px; margin-bottom:18px;">
+    <div class="splash-title">Multi School App</div>
+    <div class="splash-subtitle">Progress Card & Exam Platform</div>
   </div>
   <div id="login-root" style="display:none"></div>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -128,6 +108,7 @@
 
     const auth = firebase.auth();
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    const db = firebase.firestore();
 
     const splash = document.getElementById('splash');
     const loginRoot = document.getElementById('login-root');
@@ -136,9 +117,10 @@
       if (!loginRoot) return;
       loginRoot.innerHTML = `
         <div class="login-box">
-          <div class="school-title">St. Patrick’s School</div>
-          <div class="subtitle">IIT & NEET FOUNDATION</div>
-          <input type="email" id="email" placeholder="Teacher Email" autocomplete="username">
+          <div style="font-weight:bold; color:#0f3d6b; font-size:1.3em; text-align:center; margin-bottom:6px;">
+            Login to Your School Account
+          </div>
+          <input type="email" id="email" placeholder="Email" autocomplete="username">
           <input type="password" id="password" placeholder="Password" autocomplete="current-password">
           <button class="btn-email" onclick="emailSignIn()">Sign in</button>
         </div>
@@ -151,20 +133,60 @@
       const password = document.getElementById('password').value.trim();
       if (!email || !password) return alert('Enter email and password!');
       auth.signInWithEmailAndPassword(email, password)
-        .then(() => window.location.href = "dashboard.html")
+        .then(userCred => {
+          const uid = userCred.user.uid;
+          // 1. Fetch user profile from Firestore
+          return db.collection('users').doc(uid).get();
+        })
+        .then(doc => {
+          if (!doc.exists) throw new Error("User profile not found in Firestore.");
+          const userData = doc.data();
+          localStorage.setItem("userData", JSON.stringify(userData));
+          // 2. Fetch school info from Firestore
+          return db.collection('schools').doc(userData.schoolId).get();
+        })
+        .then(schoolDoc => {
+          if (!schoolDoc.exists) throw new Error("School info not found!");
+          const schoolData = schoolDoc.data();
+          localStorage.setItem("schoolData", JSON.stringify(schoolData));
+          // 3. Go to dashboard
+          window.location.href = "dashboard.html";
+        })
         .catch(err => {
           let msg = err.message;
-          if (msg.includes('no user')) msg = "No such teacher account.";
+          if (msg.includes('no user')) msg = "No such account.";
           if (msg.includes('password is invalid')) msg = "Incorrect password.";
           alert(msg);
         });
     };
 
-    // Auth state listener for index.html
     auth.onAuthStateChanged(function (user) {
       if (splash) splash.classList.add('hidden');
       if (user) {
-        window.location.replace("dashboard.html");
+        // If already logged in, check localStorage and redirect
+        const userData = localStorage.getItem("userData");
+        const schoolData = localStorage.getItem("schoolData");
+        if (userData && schoolData) {
+          window.location.replace("dashboard.html");
+        } else {
+          // Fetch info if not in localStorage (refresh/login)
+          db.collection('users').doc(user.uid).get()
+            .then(doc => {
+              if (!doc.exists) throw new Error("User profile not found in Firestore.");
+              const userData = doc.data();
+              localStorage.setItem("userData", JSON.stringify(userData));
+              return db.collection('schools').doc(userData.schoolId).get();
+            })
+            .then(schoolDoc => {
+              if (!schoolDoc.exists) throw new Error("School info not found!");
+              const schoolData = schoolDoc.data();
+              localStorage.setItem("schoolData", JSON.stringify(schoolData));
+              window.location.replace("dashboard.html");
+            })
+            .catch(() => {
+              showLoginUI();
+            });
+        }
       } else {
         showLoginUI();
       }
