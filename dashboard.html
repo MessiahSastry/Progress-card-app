@@ -157,12 +157,16 @@
 </head>
 <body class="dashboard">
   <div class="fixed-header" id="header">
-    <div class="school-title" id="school-title">St. Patrick's School</div>
-    <div class="subtitle" id="header-subtitle">IIT & NEET FOUNDATION</div>
+    <div class="school-title" id="school-title"></div>
+    <div class="subtitle" id="header-subtitle"></div>
     <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
   </div>
   <div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
+<!-- Add this line below your existing FAB -->
+<button class="fab" id="add-teacher-fab" style="bottom:86px;display:none;" title="Add Teacher">
+  <i class="fa fa-user-plus"></i>
+</button>
   <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
   <!-- Popup Modal -->
   <div id="popup-bg">
@@ -172,9 +176,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
-        // Firebase config
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
       authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -188,10 +193,29 @@
     const db = firebase.firestore();
     // Require login before showing anything
     auth.onAuthStateChanged(function(user) {
-      if (!user) {
-        window.location.replace("index.html");
+  if (!user) {
+    window.location.replace("index.html");
+  } else {
+    // show school title and subtitle from localStorage
+    let schoolData = {};
+    try {
+      schoolData = JSON.parse(localStorage.getItem("schoolData") || '{}');
+    } catch { schoolData = {}; }
+    document.getElementById('school-title').textContent = schoolData.name || "School Name";
+    document.getElementById('header-subtitle').textContent = schoolData.subtitle || "";
+
+    // NEW: Show add-teacher button for admin only
+    db.collection("users").doc(user.uid).get().then(doc => {
+      if (!doc.exists) return;
+      const userData = doc.data();
+      if (userData.role && userData.role === "admin") {
+        document.getElementById('add-teacher-fab').style.display = 'flex';
+      } else {
+        document.getElementById('add-teacher-fab').style.display = 'none';
       }
     });
+  }
+});
     // Academic Year logic
     let academicYear = localStorage.getItem('sp_selectedYear') || '2024-25';
     document.getElementById('header-exam').textContent = academicYear;
@@ -341,6 +365,168 @@
       observer.observe(document.body, { childList: true, subtree: true });
     document.getElementById('fab').onclick = showAddClassPopup;
     document.getElementById('settings-btn').onclick = showSettingsPopup;
+  // Show popup to add teacher when admin clicks
+document.getElementById('add-teacher-fab').onclick = function() {
+  showPopup(`
+    <div class="popup-title">Add Teachers</div>
+    <button id="show-individual-teacher" style="margin-bottom:10px;width:100%;" class="popup-action-btn">Add Single Teacher</button>
+    <button id="show-bulk-upload" style="margin-bottom:10px;width:100%;" class="popup-action-btn">Bulk Upload from Excel</button>
+    <div id="teacher-popup-content"></div>
+  `);
+
+  // Add event listeners for both buttons:
+  document.getElementById('show-individual-teacher').onclick = function() {
+    document.getElementById('teacher-popup-content').innerHTML = `
+      <form id="addTeacherForm">
+      <label>Teacher Name</label>
+      <input name="teacherName" maxlength="30" required placeholder="Full Name">
+      <label>Email</label>
+      <input name="teacherEmail" type="email" required placeholder="Email">
+      <label>Password</label>
+      <input name="teacherPassword" type="text" required placeholder="Set Password">
+      <label>Phone</label>
+      <input name="teacherPhone" maxlength="15" placeholder="Phone (optional)">
+      <div class="popup-btn-row">
+        <button type="button" class="popup-cancel-btn">Cancel</button>
+        <button type="submit" class="popup-action-btn">Add</button>
+      </div>
+    </form>
+    `;
+    document.getElementById('addTeacherForm').addEventListener('submit', addTeacherHandler);
+    popupContent.querySelectorAll('.popup-cancel-btn').forEach(btn => {
+      btn.onclick = function(e) { e.preventDefault(); closePopup(); };
+    });
+  };
+
+  document.getElementById('show-bulk-upload').onclick = function() {
+    document.getElementById('teacher-popup-content').innerHTML = `
+      <label style="margin-top:10px;">Upload Excel File (.xlsx, .xls)</label>
+      <input type="file" id="teacher-excel-input" accept=".xlsx,.xls" style="margin-bottom:12px;">
+      <div style="font-size:0.97em; color:#555;">Excel columns: <b>Name</b>, <b>Email</b>, <b>Password</b>, <b>Phone</b></div>
+      <div class="popup-btn-row">
+        <button type="button" class="popup-cancel-btn">Cancel</button>
+        <button type="button" class="popup-action-btn" id="upload-excel-btn">Upload</button>
+      </div>
+    `;
+    popupContent.querySelectorAll('.popup-cancel-btn').forEach(btn => {
+      btn.onclick = function(e) { e.preventDefault(); closePopup(); };
+    });
+    document.getElementById('upload-excel-btn').onclick = handleBulkTeacherUpload;
+  };
+};
+
+// Handler to add teacher (admin only)
+function addTeacherHandler(e) {
+  e.preventDefault();
+  const form = e.target;
+  const name = form.teacherName.value.trim();
+const email = form.teacherEmail.value.trim();
+const password = form.teacherPassword.value.trim();
+const phone = form.teacherPhone.value.trim();
+
+
+  if (!name || !email || !password) {
+    alert('All fields are required!');
+    return;
+  }
+
+  // Create teacher user in Firebase Auth
+  firebase.auth().createUserWithEmailAndPassword(email, password)
+    .then(userCred => {
+      const uid = userCred.user.uid;
+      // Get current schoolId from localStorage
+      let schoolData = {};
+      try { schoolData = JSON.parse(localStorage.getItem("schoolData") || '{}'); } catch { schoolData = {}; }
+      // Add teacher profile to Firestore
+     return db.collection('users').doc(uid).set({
+      name,
+      email,
+      phone,
+      role: 'teacher',
+      schoolId: schoolData.schoolId || '', // make sure you save schoolId in schoolData!
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    })
+    .then(() => {
+      alert("Teacher added successfully!");
+      closePopup();
+    })
+    .catch(err => {
+      alert("Error adding teacher: " + err.message);
+    });
+}
+    // Handler for bulk teacher upload
+function handleBulkTeacherUpload() {
+  const fileInput = document.getElementById('teacher-excel-input');
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) return alert('Please select an Excel file!');
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const workbook = XLSX.read(e.target.result, { type: 'binary' });
+      const sheetName = workbook.SheetNames[0];
+      const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      // Expect columns: Name, Email, Password
+      if (!data.length) return alert('Excel file is empty!');
+      bulkAddTeachers(data);
+    } catch (err) {
+      alert("Invalid Excel file: " + err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+    function bulkAddTeachers(data) {
+  if (!Array.isArray(data) || !data.length) {
+    alert("No teachers found in Excel!");
+    return;
+  }
+  let schoolData = {};
+  try { schoolData = JSON.parse(localStorage.getItem("schoolData") || '{}'); } catch { schoolData = {}; }
+
+  let added = 0, failed = 0, failDetails = [];
+
+  function addNext(i) {
+    if (i >= data.length) {
+      alert(`${added} teachers added!\n${failed ? failed + " failed: " + failDetails.join("; ") : ""}`);
+      closePopup();
+      return;
+    }
+    const row = data[i];
+    const name = row.Name?.toString().trim();
+    const email = row.Email?.toString().trim();
+    const password = row.Password?.toString().trim();
+    const phone = row.Phone?.toString().trim() || "";
+
+    if (!name || !email || !password) {
+      failed++;
+      failDetails.push(name || email || "(row " + (i+2) + " missing data)");
+      return addNext(i + 1);
+    }
+
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then(userCred => {
+        const uid = userCred.user.uid;
+        return db.collection('users').doc(uid).set({
+          name,
+          email,
+          phone,
+          role: 'teacher',
+          schoolId: schoolData.schoolId || '',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      })
+      .then(() => {
+        added++;
+        addNext(i + 1);
+      })
+      .catch(err => {
+        failed++;
+        failDetails.push(`${email}: ${err.message}`);
+        addNext(i + 1);
+      });
+  }
+  addNext(0);
+}
   </script>
 </body>
 </html>
