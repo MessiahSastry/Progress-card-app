@@ -226,13 +226,48 @@
     window.location.replace("index.html");
   } else {
     // show school title and subtitle from localStorage
+    // Always fetch user's school from Firestore on login!
+db.collection("users").doc(user.uid).get().then(doc => {
+  if (!doc.exists) return;
+  const userData = doc.data();
+  // If user's schoolId exists, fetch the school data:
+  if (userData.schoolId) {
+    db.collection("schools").doc(userData.schoolId).get().then(schoolDoc => {
+      let schoolData = {};
+      if (schoolDoc.exists) {
+        schoolData = schoolDoc.data();
+        // Show on dashboard:
+        document.getElementById('school-title').textContent = schoolData.name || "School Name";
+        document.getElementById('header-subtitle').textContent = schoolData.subtitle || "";
+        // Save to localStorage (optional):
+        localStorage.setItem("schoolData", JSON.stringify({
+          name: schoolData.name,
+          subtitle: schoolData.subtitle,
+          schoolId: userData.schoolId
+        }));
+      } else {
+        // fallback to "unknown"
+        document.getElementById('school-title').textContent = "School Name";
+        document.getElementById('header-subtitle').textContent = "";
+      }
+    });
+  } else {
+    // fallback: try localStorage (rarely used now)
     let schoolData = {};
     try {
       schoolData = JSON.parse(localStorage.getItem("schoolData") || '{}');
     } catch { schoolData = {}; }
     document.getElementById('school-title').textContent = schoolData.name || "School Name";
     document.getElementById('header-subtitle').textContent = schoolData.subtitle || "";
+  }
 
+  // Admin check for add-teacher button
+  if (userData.role && userData.role === "admin") {
+    document.getElementById('add-teacher-fab').style.display = 'flex';
+  } else {
+    document.getElementById('add-teacher-fab').style.display = 'none';
+  }
+});
     // NEW: Show add-teacher button for admin only
     db.collection("users").doc(user.uid).get().then(doc => {
       if (!doc.exists) return;
@@ -565,6 +600,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
