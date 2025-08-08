@@ -516,7 +516,7 @@ function showManageTeachersPopup() {
         teachers.forEach(t => {
           html += `
             <li style="margin-bottom:13px;padding-bottom:7px;border-bottom:1px solid #eee;">
-              <b>${t.name || "(No Name)"}</b><br>
+              <b>${t.name || "(No Name)"}${t.plainPassword ? ' (' + t.plainPassword + ')' : ''}</b><br>
               <span style="font-size:0.99em;color:#333;">${t.email || ""}</span>
               <button data-uid="${t.uid}" class="delete-teacher-btn" style="float:right;background:#e74c3c;color:#fff;border:none;padding:5px 14px;border-radius:7px;cursor:pointer;">Delete</button>
             </li>`;
@@ -571,14 +571,15 @@ function addTeacherHandler(e) {
   firebase.auth().createUserWithEmailAndPassword(email, password)
     .then(userCred => {
       const uid = userCred.user.uid;
-      return db.collection('users').doc(uid).set({
-        name,
-        email,
-        phone,
-        role: 'teacher',
-        schoolId: schoolData.schoolId,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+     return db.collection('users').doc(uid).set({
+      name,
+      email,
+      phone,
+      role: 'teacher',
+      schoolId: schoolData.schoolId,
+      plainPassword: password,  
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
     })
     .then(() => {
       alert("Teacher added!");
@@ -665,3 +666,4 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
