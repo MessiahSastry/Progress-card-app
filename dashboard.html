@@ -345,15 +345,21 @@
       <form id="yearForm">
         <div class="popup-title">Academic Year</div>
         <label>Select Academic Year</label>
-        <select name="yearSel" required style="padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;margin-bottom:12px;">
-          ${years.map(y=>`<option value="${y}" ${y===academicYear?"selected":""}>${y}</option>`).join('')}
-        </select>
-        <label>Add New Academic Year</label>
-        <input name="yearName" maxlength="10" placeholder="e.g., 2024-25" />
-        <div class="popup-btn-row">
-          <button type="button" class="popup-cancel-btn">Cancel</button>
-          <button type="submit" class="popup-action-btn">Save</button>
-        </div>
+      <select name="yearSel" required 
+        style="width:96%;box-sizing:border-box;padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;margin-bottom:6px;">
+        ${years.map(y=>`<option value="${y}" ${y===academicYear?"selected":""}>${y}</option>`).join('')}
+      </select>
+      <div style="text-align:right; margin-bottom:10px;">
+        <span style="color:#1561b8; cursor:pointer; font-weight:600;" 
+              onclick="document.querySelector('[name=yearName]').focus()">Add New</span>
+      </div>
+      <label>Add New Academic Year</label>
+      <input name="yearName" maxlength="10" placeholder="e.g., 2024-25" 
+        style="width:96%;box-sizing:border-box;margin-bottom:14px;">
+      <div class="popup-btn-row">
+        <button type="button" class="popup-cancel-btn">Cancel</button>
+        <button type="submit" class="popup-action-btn">Save</button>
+      </div>
       </form>
       <button id="logout-btn" style="margin:16px auto 0 auto;display:block;padding:11px 0;width:100%;background:#e74c3c;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Logout</button>
       `;
@@ -559,6 +565,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
