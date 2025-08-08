@@ -544,6 +544,54 @@ function showManageTeachersPopup() {
       });
     });
 }
+    // SINGLE TEACHER ADD HANDLER
+function addTeacherHandler(e) {
+  e.preventDefault();
+
+  // Get field values
+  const name = e.target.teacherName.value.trim();
+  const email = e.target.teacherEmail.value.trim();
+  const password = e.target.teacherPassword.value.trim();
+  const phone = e.target.teacherPhone.value.trim();
+
+  // Basic validation
+  if (!name || !email || !password) {
+    alert("Please fill all required fields!");
+    return;
+  }
+
+  let schoolData = {};
+  try { schoolData = JSON.parse(localStorage.getItem("schoolData") || '{}'); } catch { schoolData = {}; }
+  if (!schoolData.schoolId) {
+    alert("No school assigned. Cannot add teacher.");
+    return;
+  }
+
+  // Start adding teacher
+  popupContent.querySelector(".popup-action-btn").disabled = true;
+
+  firebase.auth().createUserWithEmailAndPassword(email, password)
+    .then(userCred => {
+      const uid = userCred.user.uid;
+      return db.collection('users').doc(uid).set({
+        name,
+        email,
+        phone,
+        role: 'teacher',
+        schoolId: schoolData.schoolId,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    })
+    .then(() => {
+      alert("Teacher added!");
+      closePopup();
+      // Optionally refresh manage teachers popup here
+    })
+    .catch(err => {
+      alert("Error adding teacher: " + err.message);
+      popupContent.querySelector(".popup-action-btn").disabled = false;
+    });
+}
       // Handler for bulk teacher upload
 function handleBulkTeacherUpload() {
   const fileInput = document.getElementById('teacher-excel-input');
@@ -619,6 +667,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
