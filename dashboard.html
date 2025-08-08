@@ -228,7 +228,7 @@
     db.collection("users").doc(user.uid).get().then(doc => {
       if (!doc.exists) return;
       const userData = doc.data();
-
+     window.__IS_ADMIN__ = (userData.role === "admin");
       // Fetch school info for header
       if (userData.schoolId) {
         db.collection("schools").doc(userData.schoolId).get().then(schoolDoc => {
@@ -358,9 +358,7 @@
 
     // Settings: Academic year selection/add
     function showSettingsPopup() {
-      let userData = {};
-  try { userData = JSON.parse(localStorage.getItem("userData") || '{}'); } catch { userData = {}; }
-  let isAdmin = (userData.role === "admin");
+      
       // Load years for dropdown
       db.collection('years').orderBy('name','desc').get().then(snap=>{
         let years = [];
@@ -373,7 +371,7 @@
     style="width:96%;box-sizing:border-box;padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;margin-bottom:6px;">
     ${years.map(y=>`<option value="${y}" ${y===academicYear?"selected":""}>${y}</option>`).join('')}
   </select>
-  ${isAdmin ? `
+  ${window.__IS_ADMIN__ ? `
   <div style="text-align:right; margin-bottom:10px;">
     <span style="color:#1561b8; cursor:pointer; font-weight:600;" 
           onclick="document.querySelector('[name=yearName]').focus()">Add New</span>
@@ -387,7 +385,7 @@
     <button type="submit" class="popup-action-btn">Save</button>
   </div>
 </form>
-${isAdmin ? `<button id="manage-teachers-btn" style="margin:10px 0 0 0;display:block;padding:11px 0;width:100%;background:#195084;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Manage Teachers</button>` : ""}
+${window.__IS_ADMIN__ ? `<button id="manage-teachers-btn" style="margin:10px 0 0 0;display:block;padding:11px 0;width:100%;background:#195084;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Manage Teachers</button>` : ""}
 <button id="logout-btn" style="margin:16px auto 0 auto;display:block;padding:11px 0;width:100%;background:#e74c3c;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Logout</button>
 `;
        showPopup(html,'yearForm',function(e){
@@ -667,14 +665,3 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
