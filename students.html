@@ -7,11 +7,30 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
     html, body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fc; min-height: 100vh; min-width: 100vw; overflow-x: hidden; }
-    .fixed-header { background: #0f3d6b; color: #fff; text-align: center; padding: 18px 0 8px 0; border-bottom-left-radius: 14px; border-bottom-right-radius: 14px; position: sticky; top: 0; z-index: 10; }
+    .fixed-header {
+  background: #0f3d6b; 
+  color: #fff; 
+  text-align: center; 
+  padding: 18px 0 8px 0; 
+  border-bottom-left-radius: 14px; 
+  border-bottom-right-radius: 14px; 
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  width: 100%;
+}
     .fixed-header .school-title { color: #fff; font-size: 1.5em; margin: 0; }
     .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
     .fixed-header #header-exam { font-size: 1.13em; font-weight: bold; color: #fdc600; margin: 6px 0 0 0; }
-    .main-content { padding: 18px 10px 80px 10px; max-width: 510px; margin: 0 auto; min-height: 60vh; }
+    .main-content { 
+      padding: 18px 10px 80px 10px; 
+      max-width: 510px; 
+      margin: 0 auto; 
+      min-height: 60vh; 
+      margin-top: 88px;  /* <-- adjust to your header height (try 70px, 80px, 90px as needed) */
+    }
     .screen-title { font-size: 1.4em; font-weight: bold; text-align: left; color: #0f3d6b; margin-bottom: 12px; margin-top: 18px; letter-spacing: 0.5px; }
     .student-list { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
     .student-row { background: #fff; border-radius: 12px; padding: 10px 16px; margin-bottom: 0px; box-shadow: 0 1px 5px #0f3d6b15; font-size: 1.09em; font-weight: 500; display: flex; align-items: center; justify-content: flex-start; cursor: pointer; transition: box-shadow .13s; }
@@ -172,6 +191,11 @@
   text-align: right;
   margin-left: 10px;
 }
+    .call-icon:hover {
+  color: #218c53 !important;
+  text-decoration: none !important;
+}
+   
   </style>
 </head>
 <body>
@@ -188,8 +212,12 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
   <script>
-    // ======================= CONFIG ==============================
+    function normalizeExamName(name) {
+   return name.replace(/[\s\.\-]/g, '').toUpperCase();
+}
+   // ======================= CONFIG ==============================
     const firebaseConfig = {
         apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
         authDomain: "stpatricksprogresscard.firebaseapp.com",
@@ -241,17 +269,19 @@ function getClassGroupName(className) {
       let currentSectionName = localStorage.getItem('sp_selectedSectionName') || '';
       
       // --- Only render UI after authentication ---
-      auth.onAuthStateChanged(function(user) {
-        if (user) {
-          fab.onclick = showAddStudentPopup;
-          fab.style.display = "flex";
-          settingsBtn.onclick = showSettingsPopup;
-          settingsBtn.style.display = "flex";
-          renderStudentList();
-        } else {
-          window.location.replace("index.html"); // redirect to login if not authenticated
-        }
-      });
+      let isAdmin = false;
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        isAdmin = (user.email === "messiah.sastry@stpatricksschool.com");
+        fab.onclick = showAddStudentPopup;
+        fab.style.display = "flex";
+        settingsBtn.onclick = showSettingsPopup;
+        settingsBtn.style.display = "flex";
+        renderStudentList();
+      } else {
+        window.location.replace("index.html"); // redirect to login if not authenticated
+      }
+    });
 
     // ======================= MAIN LIST ===========================
     function renderStudentList() {
@@ -275,12 +305,20 @@ function getClassGroupName(className) {
         <div class="student-list">`;
       if (students.length === 0) html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
       students.filter(stu => !stu.isDeleted).forEach(stu => {
-        html += `<div class="student-row"
-          data-student-id="${stu.id}">
-          <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span>
-          <span style="color:#1467b7; font-weight:600;">${stu.name}</span>
-        </div>`;
-      });
+  html += `<div class="student-row"
+    data-student-id="${stu.id}">
+    <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span>
+    <span style="color:#1467b7; font-weight:600;">${stu.name}</span>
+    <span style="flex:1"></span>
+    ${
+      stu.parentPhone
+        ? `<a href="tel:${stu.parentPhone.replace(/\D/g, '')}" class="call-icon" title="Call Parent" style="margin-left:14px;color:#27ae60; font-size:1.17em;display:flex;align-items:center;justify-content:center;">
+              <i class="fa fa-phone"></i>
+          </a>`
+        : `<i class="fa fa-phone" style="margin-left:14px;color:#bcbcbc;opacity:0.6; font-size:1.13em;" title="No phone number"></i>`
+    }
+  </div>`;
+});
       html += "</div>";
       mainArea.innerHTML = html;
 
@@ -441,12 +479,14 @@ function getClassGroupName(className) {
       <button class="popup-action-btn" id="uploadStudentsBtn">Upload Students (Excel)</button>
       <button class="popup-action-btn" id="yearPlanBtn">Year Plan</button>
       <button class="popup-action-btn" id="examSettingsBtn">Exam Settings</button>
+      <button class="popup-action-btn" id="uploadMarksBtn">Upload Marks (Excel)</button>
       <button class="popup-action-btn" id="enterMarksBtn">Enter Marks</button>
       <button class="popup-action-btn" id="attendanceBtn">Take Attendance (WhatsApp)</button>
       <button class="popup-action-btn" id="viewAttendanceBtn">View Attendance</button>
+      <button class="popup-action-btn" id="absenteesPDFBtn">Absentees Report (PDF)</button>
       <button class="popup-action-btn" id="downloadMemosBtn">Download Class Marks Memos (PDF)</button>
       <button class="popup-action-btn" id="downloadHallTicketsBtn">Download Hall Tickets</button>
-      <button class="popup-action-btn" id="downloadExcelBtn">Download Class Marks (Excel)</button>
+      <button class="popup-action-btn" id="downloadExcelBtn">Download Class Marks (Excel/Pdf)</button>
       <button class="popup-action-btn" id="performanceGraphBtn">Performance Graph</button>
       <button class="popup-action-btn" id="showDeletedBtn">Show Deleted Students</button>
       <button class="popup-cancel-btn">Close</button>
@@ -454,6 +494,7 @@ function getClassGroupName(className) {
   `);
   document.getElementById('uploadStudentsBtn').onclick = showBulkStudentUploadPopup;
   document.getElementById('examSettingsBtn').onclick = showExamSettingsPopup;
+  document.getElementById('uploadMarksBtn').onclick = showBulkMarksUploadPopup;
   document.getElementById('enterMarksBtn').onclick = showEnterMarksPopup;
   document.getElementById('attendanceBtn').onclick = showAttendancePopup;
   document.getElementById('viewAttendanceBtn').onclick = showAttendanceHistoryPopup;
@@ -473,11 +514,14 @@ function getClassGroupName(className) {
     document.getElementById('yearPlanBtn').onclick = function() {
     window.location.href = "year-plan.html";
 };
+  document.getElementById('absenteesPDFBtn').onclick = function() {
+  openAbsenteesModal();
+};
 }
 // ========== EXAM SETTINGS ===========
 function showExamSettingsPopup() {
   const classGroup = getClassGroupName(currentClassName);
-  // First: fetch all exams for this group
+  // Fetch all exams for this group
   db.collection('years').doc(academicYear)
     .collection('exams').doc('classGroups')
     .collection(classGroup)
@@ -488,40 +532,49 @@ function showExamSettingsPopup() {
       let html = `
         <div class="popup-title">Exam Settings</div>
         <div id="examListArea" style="max-height:240px;overflow-y:auto;margin-bottom:12px;">
-          ${exams.length === 0 ? '<div style="color:#888;font-style:italic;">No exams found.</div>' : exams.map((exam, idx) => `
-            <div style="border-bottom:1px solid #f1f1f1;margin-bottom:7px;padding-bottom:7px;">
-              <strong>${exam.name}</strong>
-              <button type="button" class="popup-action-btn" data-edit="${exam.id}" style="margin-left:10px;padding:2px 8px;font-size:0.9em;">Edit</button>
-              <div style="margin-top:6px;margin-left:8px;font-size:0.99em;">
-                ${Array.isArray(exam.subjects) && exam.subjects.length > 0
-                  ? exam.subjects.map(subj => `${subj.name} <span style="color:#888;">(Max: ${subj.max})</span>`).join(', ')
-                  : '<span style="color:#aaa;">No subjects</span>'
-                }
-              </div>
-            </div>
-          `).join('')}
+          ${exams.length === 0 
+            ? '<div style="color:#888;font-style:italic;">No exams found.</div>' 
+            : exams.map((exam, idx) => `
+                <div style="border-bottom:1px solid #f1f1f1;margin-bottom:7px;padding-bottom:7px;">
+                  <strong>${exam.name}</strong>
+                  ${isAdmin ? `<button type="button" class="popup-action-btn" data-edit="${exam.id}" style="margin-left:10px;padding:2px 8px;font-size:0.9em;">Edit</button>` : ''}
+                  <div style="margin-top:6px;margin-left:8px;font-size:0.99em;">
+                    ${Array.isArray(exam.subjects) && exam.subjects.length > 0
+                      ? exam.subjects.map(subj => `${subj.name} <span style="color:#888;">(Max: ${subj.max})</span>`).join(', ')
+                      : '<span style="color:#aaa;">No subjects</span>'
+                    }
+                  </div>
+                </div>
+              `).join('')}
         </div>
-        <form id="addExamForm" style="display:flex; flex-direction:column; max-height:58vh;">
-          <div style="flex:1; overflow-y:auto; padding-right:4px;">
-            <label>Exam Name</label>
-            <input name="examName" maxlength="30" required placeholder="e.g., FA1">
-            <label>Subjects</label>
-            <div id="subjectsContainer"></div>
-            <button type="button" id="addSubjectBtn"
-              style="margin:6px 0 14px 0; background:#1762a7;color:#fff;
-                     padding:7px 13px;border:none;border-radius:7px;font-weight:600;">
-              + Add Subject
-            </button>
-          </div>
-          <div class="popup-btn-row" style="margin-top:10px;">
-            <button type="button" class="popup-cancel-btn">Close</button>
-            <button type="submit" class="popup-action-btn">Add Exam</button>
-          </div>
-        </form>
+        ${isAdmin ? `
+      <form id="addExamForm" style="display:flex; flex-direction:column; max-height:58vh;">
+        <div style="flex:1; overflow-y:auto; padding-right:4px;">
+          <label>Exam Name</label>
+          <input name="examName" maxlength="30" required placeholder="e.g., FA1">
+          <label>Subjects</label>
+          <div id="subjectsContainer"></div>
+          <button type="button" id="addSubjectBtn"
+            style="margin:6px 0 14px 0; background:#1762a7;color:#fff;
+                   padding:7px 13px;border:none;border-radius:7px;font-weight:600;">
+            + Add Subject
+          </button>
+        </div>
+        <div class="popup-btn-row" style="margin-top:10px;">
+          <button type="button" class="popup-cancel-btn">Close</button>
+          <button type="submit" class="popup-action-btn">Add Exam</button>
+        </div>
+      </form>
+      ` : `
+      <div class="popup-btn-row" style="margin-top:10px;">
+        <button type="button" class="popup-cancel-btn">Close</button>
+      </div>
+      `}
       `;
       showPopup(html, 'addExamForm', function (e) {
         e.preventDefault();
         const name = e.target.examName.value.trim();
+        const nameKey = normalizeExamName(name); // Normalize for comparison
         let subjects = [];
         const container = popupContent.querySelector('#subjectsContainer');
         if (container) {
@@ -540,11 +593,24 @@ function showExamSettingsPopup() {
           alert("Please enter exam name and at least one subject!");
           return;
         }
+        // Check for duplicates before adding
         db.collection('years').doc(academicYear)
           .collection('exams').doc('classGroups')
           .collection(classGroup)
-          .add({ name, subjects })
-          .then(() => { closePopup(); showExamSettingsPopup(); });
+          .where('nameKey', '==', nameKey)
+          .get()
+          .then(dupSnap => {
+            if (!dupSnap.empty) {
+              alert("Exam with this (or very similar) name already exists!");
+              return;
+            }
+            // If not duplicate, add
+            db.collection('years').doc(academicYear)
+              .collection('exams').doc('classGroups')
+              .collection(classGroup)
+              .add({ name, nameKey, subjects })
+              .then(() => { closePopup(); showExamSettingsPopup(); });
+          });
       });
 
       // --- Subject Fields Logic ---
@@ -558,7 +624,7 @@ function showExamSettingsPopup() {
         div.innerHTML = `
          <input type="text" name="subjectName_${idx}" placeholder="Subject Name" value="${name}" required style="width:80%; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd; margin-right:7px;" />
          <input type="number" name="maxMarks_${idx}" placeholder="Max Marks" min="1" max="200" value="${max}" required style="width:25%; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd;" />
-         <button type="button" class="option-btn" style="width: 70px; padding: 5px;" onclick="this.parentNode.remove()">Remove</button>
+         ${isAdmin ? `<button type="button" class="option-btn" style="width: 70px; padding: 5px;" onclick="this.parentNode.remove()">Remove</button>` : ''}
         `;
         subjectsContainer.appendChild(div);
       }
@@ -577,6 +643,8 @@ function showExamSettingsPopup() {
       }, 200);
     });
 }
+
+// ----------- EDIT EXAM -------------
 function showEditExamPopup(examId) {
   const classGroup = getClassGroupName(currentClassName);
   db.collection('years').doc(academicYear)
@@ -607,6 +675,7 @@ function showEditExamPopup(examId) {
       `, 'editExamForm', function (e) {
         e.preventDefault();
         const name = e.target.examName.value.trim();
+        const nameKey = normalizeExamName(name);
         let subjects = [];
         const container = popupContent.querySelector('#editSubjectsContainer');
         if (container) {
@@ -625,11 +694,33 @@ function showEditExamPopup(examId) {
           alert("Please enter exam name and at least one subject!");
           return;
         }
+        // Check for duplicates (but exclude this examId itself)
         db.collection('years').doc(academicYear)
           .collection('exams').doc('classGroups')
-          .collection(classGroup).doc(examId)
-          .update({ name, subjects })
-          .then(() => { closePopup(); showExamSettingsPopup(); });
+          .collection(classGroup)
+          .where('nameKey', '==', nameKey)
+          .get()
+          .then(dupSnap => {
+            let isDuplicate = false;
+            if (!dupSnap.empty) {
+              dupSnap.forEach(doc => {
+                if (doc.id !== examId) isDuplicate = true;
+              });
+              if (isDuplicate) {
+                alert("Another exam with this (or very similar) name already exists!");
+                return;
+              }
+            }
+            // If not duplicate, update
+            db.collection('years').doc(academicYear)
+              .collection('exams').doc('classGroups')
+              .collection(classGroup).doc(examId)
+              .update({ name, nameKey, subjects })
+              .then(() => { 
+                closePopup(); 
+                showExamSettingsPopup(); 
+              });
+          });
       });
 
       // --- Subject Fields Logic for Edit ---
@@ -643,7 +734,7 @@ function showEditExamPopup(examId) {
         div.innerHTML = `
          <input type="text" name="subjectName_${idx}" placeholder="Subject Name" value="${name}" required style="width:80%; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd; margin-right:7px;" />
          <input type="number" name="maxMarks_${idx}" placeholder="Max Marks" min="1" max="200" value="${max}" required style="width:25%; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd;" />
-         <button type="button" class="option-btn" style="width: 70px; padding: 5px;" onclick="this.parentNode.remove()">Remove</button>
+         ${isAdmin ? `<button type="button" class="option-btn" style="width: 70px; padding: 5px;" onclick="this.parentNode.remove()">Remove</button>` : ''}
         `;
         subjectsContainer.appendChild(div);
       }
@@ -701,7 +792,12 @@ db.collection('years').doc(academicYear)
           .collection('sections').doc(currentSectionId)
           .collection('students').orderBy('roll').get().then(stuSnap => {
             let students = [];
-            stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+            stuSnap.forEach(doc => {
+              const data = doc.data();
+              if (!data.isDeleted && data.isDeleted !== "true" && data.isDeleted !== 1) {
+                students.push({ id: doc.id, ...data });
+              }
+            });
             const exam = exams.find(ex => ex.id === examId);
             const subj = (exam && exam.subjects) ? exam.subjects.find(s => s.name === subjectName) : null;
             const max = subj ? subj.max : 100;
@@ -752,17 +848,21 @@ db.collection('years').doc(academicYear)
                 let formData = new FormData(ev.target);
                 let batch = db.batch();
                 students.forEach(stu => {
-                  let marksStr = formData.get('marks_' + stu.id);
-                  let marks = (marksStr === "" || marksStr == null) ? null : parseFloat(marksStr);
-                  if (marks != null) {
-                    let markRef = db.collection('years').doc(academicYear)
-                      .collection('classes').doc(currentClassId)
-                      .collection('sections').doc(currentSectionId)
-                      .collection('students').doc(stu.id).collection('marks').doc(examId);
-                    batch.set(markRef, { [subjectName]: marks }, { merge: true });
-                  }
-                });
-                batch.commit().then(() => {
+  let marksStr = formData.get('marks_' + stu.id);
+  let markRef = db.collection('years').doc(academicYear)
+    .collection('classes').doc(currentClassId)
+    .collection('sections').doc(currentSectionId)
+    .collection('students').doc(stu.id).collection('marks').doc(examId);
+
+  if (marksStr === "" || marksStr == null) {
+    // Remove the field from Firestore
+    batch.set(markRef, { [subjectName]: firebase.firestore.FieldValue.delete() }, { merge: true });
+  } else {
+    let marks = parseFloat(marksStr);
+    batch.set(markRef, { [subjectName]: marks }, { merge: true });
+  }
+});
+                 batch.commit().then(() => {
                   alert("Marks saved successfully!");
                   closePopup();
                 }).catch(error => alert("Error saving marks: " + error.message));
@@ -889,34 +989,35 @@ db.collection('years').doc(academicYear)
           let html = `
           <form id="attendanceForm">
             <div class="popup-title">Take Attendance - ${date}</div>
-            <div style="max-height:270px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
-             ${students.map(stu => {
-              let mChecked = attData[stu.id]?.M === 'absent' ? 'checked' : '';
-              let aChecked = attData[stu.id]?.A === 'absent' ? 'checked' : '';
-              return `
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f3f3f3;">
-                <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
-                  <span style="width:32px; font-weight:600; color:#1762a7; text-align:right;">
-                  ${stu.roll ? stu.roll + '.' : ''}
-                </span>
-                <span style="color:#1762a7; font-weight:600; font-size:1.07em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                  ${stu.name}
-                </span>
-                </div>
-                <div style="display:flex;align-items:center;gap:14px;">
-                  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
-                    <div style="display:flex;gap:14px;">
-                      <span style="font-size:0.96em;font-weight:600;">M</span>
-                      <span style="font-size:0.96em;font-weight:600;">A</span>
-                    </div>
-                    <div style="display:flex;gap:14px;">
-                      <input type="checkbox" name="absentM_${stu.id}" style="width:22px;height:22px;accent-color:#0f3d6b;" ${mChecked}>
-                      <input type="checkbox" name="absentA_${stu.id}" style="width:22px;height:22px;accent-color:#0f3d6b;" ${aChecked}>
-                    </div>
+            <div style="max-height:270px;overflow-y:auto;">
+               ${students.map(stu => {
+                let mChecked = attData[stu.id]?.M === 'absent' ? 'checked' : '';
+                let aChecked = attData[stu.id]?.A === 'absent' ? 'checked' : '';
+                return `
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f3f3f3;">
+                  <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+                    <span style="width:32px; font-weight:600; color:#1762a7; text-align:right;">
+                      ${stu.roll ? stu.roll + '.' : ''}
+                    </span>
+                    <span style="color:#1762a7; font-weight:600; font-size:1.07em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                      ${stu.name}
+                    </span>
                   </div>
-                  ${
-                    stu.parentPhone
-                      ? `<button type="button" class="wa-btn" data-ph="${stu.parentPhone}" data-name="${stu.name}" style="background:#25D366; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:none; padding:0;">
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <!-- Attendance M/A boxes, right aligned, label above each box -->
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                      <div style="display:flex;gap:16px;margin-bottom:2px;">
+                        <span style="font-size:0.97em;font-weight:600;text-align:center;width:26px;">M</span>
+                        <span style="font-size:0.97em;font-weight:600;text-align:center;width:26px;">A</span>
+                      </div>
+                      <div style="display:flex;gap:16px;">
+                        <span class="att-box" data-type="M" data-stu="${stu.id}" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1.7px solid #0f3d6b;border-radius:6px;cursor:pointer;font-size:1.18em;background:#fff;color:#0f3d6b;"></span>
+                        <span class="att-box" data-type="A" data-stu="${stu.id}" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1.7px solid #0f3d6b;border-radius:6px;cursor:pointer;font-size:1.18em;background:#fff;color:#0f3d6b;"></span>
+                      </div>
+                    </div>
+                    ${
+                      stu.parentPhone
+                      ? `<button type="button" class="wa-btn" data-ph="${stu.parentPhone}" data-name="${stu.name}" data-stuid="${stu.id}" style="background:#25D366; width:34px; height:34px; display:none; align-items:center; justify-content:center; border-radius:50%; border:none; padding:0;">
                             <svg viewBox="0 0 32 32" width="21" height="21">
                               <circle cx="16" cy="16" r="16" fill="#25D366"/>
                               <path fill="#fff" d="M21.6,17.9c-0.3-0.2-1.9-0.9-2.2-1c-0.3-0.1-0.5-0.2-0.7,0.2c-0.2,0.3-0.7,1-0.8,1.2
@@ -927,13 +1028,13 @@ db.collection('years').doc(academicYear)
                               <path fill="#fff" d="M16,6C10,6,5,11,5,17c0,2.1,0.6,4.1,1.7,5.8L5,27l4.3-1.4C11.9,26.4,13.9,27,16,27c6,0,11-5,11-11S22,6,16,6z
                                 M16,25c-1.8,0-3.5-0.4-5.1-1.2l-0.4-0.2l-2.6,0.9l0.9-2.6l-0.2-0.4C7.4,19.5,7,18.3,7,17c0-5,4-9,9-9s9,4,9,9S21,25,16,25z"/>
                             </svg>
-                      </button>`
+                        </button>`
                       : ''
-                  }
+                    }
+                  </div>
                 </div>
-              </div>
-              `;
-            }).join('')}
+                `;
+              }).join('')}
             </div>
             <div class="popup-btn-row" style="margin-top:16px;">
               <button type="button" class="popup-cancel-btn">Cancel</button>
@@ -944,40 +1045,191 @@ db.collection('years').doc(academicYear)
             Tick M for Morning Absentees, A for Afternoon. WhatsApp will message parent.
           </div>
           `;
-          showPopup(html, 'attendanceForm', function(e){
-            e.preventDefault();
-            let form = e.target;
-            // Build attendance object per student: { [stu.id]: {M: 'present'|'absent', A: 'present'|'absent'} }
-            let attObj = {};
-            students.forEach(stu => {
-              let m = form[`absentM_${stu.id}`] && form[`absentM_${stu.id}`].checked ? 'absent' : 'present';
-              let a = form[`absentA_${stu.id}`] && form[`absentA_${stu.id}`].checked ? 'absent' : 'present';
-              attObj[stu.id] = { M: m, A: a };
-            });
+         showPopup(html, 'attendanceForm', function(e){
+          e.preventDefault();
+          let form = e.target;
+          let attObj = {};
+          let absentees = [];
+          students.forEach(stu => {
+            let mBox = popupContent.querySelector(`.att-box[data-stu="${stu.id}"][data-type="M"]`);
+            let aBox = popupContent.querySelector(`.att-box[data-stu="${stu.id}"][data-type="A"]`);
+            let m = (mBox && mBox.textContent === 'a') ? 'absent' : 'present';
+            let a = (aBox && aBox.textContent === 'a') ? 'absent' : 'present';
+            attObj[stu.id] = { M: m, A: a };
+            if (m === 'absent' || a === 'absent') {
+              absentees.push({
+                roll: stu.roll,
+                name: stu.name,
+                absentM: m === 'absent',
+                absentA: a === 'absent'
+              });
+            }
+          });
+        
+          // If any absentees, show confirmation
+          if (absentees.length > 0) {
+            let absentHtml = `
+              <div class="popup-title">Confirm Absentees</div>
+              <div style="max-height:240px;overflow-y:auto;">
+                <table style="width:100%;border-collapse:collapse;">
+                  <tr style="font-weight:bold;">
+                    <td style="border-bottom:1px solid #eee;">Roll</td>
+                    <td style="border-bottom:1px solid #eee;">Name</td>
+                    <td style="border-bottom:1px solid #eee;">Session</td>
+                  </tr>
+                  ${
+                    absentees.map(stu =>
+                      `<tr>
+                        <td>${stu.roll || ''}</td>
+                        <td>${stu.name}</td>
+                        <td>
+                          ${stu.absentM ? 'M' : ''}${(stu.absentM && stu.absentA) ? '/' : ''}${stu.absentA ? 'A' : ''}
+                        </td>
+                      </tr>`
+                    ).join('')
+                  }
+                </table>
+                <div style="margin:16px 0;color:#d43f3a;">Are you sure you want to mark these students as absent?</div>
+              </div>
+              <div class="popup-btn-row">
+                <button type="button" class="popup-cancel-btn">No, Go Back</button>
+                <button type="button" class="popup-action-btn" id="confirmSaveAttendanceBtn">Yes, Save</button>
+              </div>
+            `;
+           showPopup(absentHtml);
+          setTimeout(() => {
+            let btn = popupContent.querySelector('#confirmSaveAttendanceBtn');
+            if (btn) btn.onclick = function() {
+              let attDoc = db.collection('years').doc(academicYear)
+                .collection('classes').doc(currentClassId)
+                .collection('sections').doc(currentSectionId)
+                .collection('attendance').doc(date);
+              attDoc.set(attObj).then(() => {
+                alert("Attendance saved!");
+                closePopup();
+              });
+            }
+            // Replace default cancel handler to "go back" to marking
+            let cancelBtn = popupContent.querySelector('.popup-cancel-btn');
+            if (cancelBtn) cancelBtn.onclick = function() {
+              showAttendanceEntryForDate(date, students); // Go back to marking popup!
+            }
+          }, 120);
+          } else {
+            // No absentees, just save
             let attDoc = db.collection('years').doc(academicYear)
               .collection('classes').doc(currentClassId)
               .collection('sections').doc(currentSectionId)
-              .collection('attendance').doc(today);
+              .collection('attendance').doc(date);
             attDoc.set(attObj).then(() => {
               alert("Attendance saved!");
               closePopup();
             });
-          });
-          // WhatsApp button event (unchanged)
+          }
+        });
+    
+    // --- Clickable attendance boxes ("a" toggle) and WhatsApp logic ---
+    setTimeout(() => {
+      // Make each .att-box clickable
+      popupContent.querySelectorAll('.att-box').forEach(box => {
+        box.onclick = function() {
+          // Toggle "a" when clicked
+          if (box.textContent === 'a') {
+            box.textContent = '';
+            box.style.color = '#0f3d6b';
+          } else {
+            box.textContent = 'a';
+            box.style.color = '#d43f3a';
+            box.style.fontWeight = 'bold';
+          }
+    
+          // Show/hide WhatsApp button for this row
+          let row = box.closest('div[style*="display: flex"]');
+          if (!row) return;
+          let mBox = row.querySelector('.att-box[data-type="M"]');
+          let aBox = row.querySelector('.att-box[data-type="A"]');
+          let waBtn = row.querySelector('.wa-btn');
+          if (waBtn) {
+            if ((mBox && mBox.textContent === 'a') || (aBox && aBox.textContent === 'a')) {
+              waBtn.style.display = 'flex';
+            } else {
+              waBtn.style.display = 'none';
+            }
+          }
+        };
+      });
+    
+      // Set "a" initially if the student is absent
+      popupContent.querySelectorAll('.att-box').forEach(box => {
+        let stuId = box.dataset.stu, type = box.dataset.type;
+        if (attData[stuId]?.[type] === 'absent') {
+          box.textContent = 'a';
+          box.style.color = '#d43f3a';
+          box.style.fontWeight = 'bold';
+        } else {
+          box.textContent = '';
+          box.style.color = '#0f3d6b';
+          box.style.fontWeight = 'bold';
+        }
+      });
+    
+      // Show/hide WhatsApp icon initially
+      students.forEach(stu => {
+        let row = popupContent.querySelector(`.att-box[data-stu="${stu.id}"]`)?.closest('div[style*="display: flex"]');
+        if (!row) return;
+        let mBox = row.querySelector('.att-box[data-type="M"]');
+        let aBox = row.querySelector('.att-box[data-type="A"]');
+        let waBtn = row.querySelector('.wa-btn');
+        if (waBtn) {
+          if ((mBox && mBox.textContent === 'a') || (aBox && aBox.textContent === 'a')) {
+            waBtn.style.display = 'flex';
+          } else {
+            waBtn.style.display = 'none';
+          }
+        }
+      });
+    }, 250);
+
+ // WhatsApp button event (unchanged)
           setTimeout(() => {
             popupContent.querySelectorAll('.wa-btn').forEach(btn => {
-              btn.onclick = function() {
-                let ph = btn.dataset.ph.replace(/^0+/, '');
-                let name = btn.dataset.name;
-                let msg = encodeURIComponent(
-                  `*Dear Parent,*\n\n` +
-                  `your child *${name}* is absent today at school. Kindly send reason for absence.\n\n` +
-                  `*${name}* ఈ రోజు స్కూల్‌కు హాజరు కాలేదు. హాజరు కాకపోవడానికి గల కారణం తెలియజేయగలరు.\n\n` +
-                  `Thank you\n` +
-                  `*St. Patrick's School*`
-                );
-                window.open(`https://wa.me/91${ph}?text=${msg}`,'_blank');
-              }
+              btn.onclick = async function() {
+  let ph = btn.dataset.ph.replace(/^0+/, '');
+  let name = btn.dataset.name;
+  let stuid = btn.dataset.stuid;
+
+  // Fetch all attendance records for this section to count absents
+  let attSnap = await db.collection('years').doc(academicYear)
+    .collection('classes').doc(currentClassId)
+    .collection('sections').doc(currentSectionId)
+    .collection('attendance').get();
+
+  let daysAbsent = 0;
+  attSnap.forEach(doc => {
+    let data = doc.data()[stuid];
+    if (data) {
+      let absentM = data.M === 'absent';
+      let absentA = data.A === 'absent';
+      if (absentM && absentA) {
+        daysAbsent += 1;      // full day
+      } else if (absentM || absentA) {
+        daysAbsent += 0.5;    // half day
+      }
+    }
+  });
+
+  let daysAbsentStr = (Math.round(daysAbsent * 10) / 10).toString();
+
+  let msg = encodeURIComponent(
+  `*Dear Parent,*\n\n` +
+  `Your child *${name}* is absent today at school. Kindly send reason for absence. *${name}* has been absent for ${daysAbsentStr} day(s) so far this academic year.\n\n` + 
+  `*${name}* ఈ రోజు స్కూల్‌కు హాజరు కాలేదు. హాజరు కాకపోవడానికి గల కారణం తెలియజేయగలరు. ఇప్పటి వరకు మొత్తం ${daysAbsentStr} రోజులు అబ్సెంట్ అయ్యారు.\n\n` +
+  `Thank you\n` +
+  `*St. Patrick's School*`
+);
+  window.open(`https://wa.me/91${ph}?text=${msg}`,'_blank');
+}
+
             });
           }, 400);
     });
@@ -1050,9 +1302,13 @@ db.collection('years').doc(academicYear)
             ? `<div style="color:#888;padding:14px 0;text-align:center;">No attendance found for this month.</div>`
             : filteredDates.map(date => `<button class="popup-action-btn" data-date="${date}" style="padding:8px 12px;font-size:1em;">${formatDate(date)}</button>`).join('');
           popupContent.querySelector('#datesList').innerHTML = listHtml;
-        }
         
-        // Initial HTML
+          // --- ADD THIS: attach click event for new date buttons ---
+          popupContent.querySelectorAll('.popup-action-btn[data-date]').forEach(btn => {
+            btn.onclick = () => showAttendanceForDate(btn.dataset.date);
+          });
+        }
+         // Initial HTML
         let html = `
           <div class="popup-title">Attendance Dates</div>
           ${buildMonthYearDropdown(selectedMonth, selectedYear)}
@@ -1066,9 +1322,14 @@ db.collection('years').doc(academicYear)
           if (!excelBtn) return;
           excelBtn.onclick = async function () {
             // Get month & year from selectors
-            const month = popupContent.querySelector('#monthSelect').value;
-            const year = popupContent.querySelector('#yearSelect').value;
-          
+            const month = (() => {
+            const m = popupContent.querySelector('#monthSelected');
+            return m && m.textContent ? months.find(mm => monthName(mm) === m.textContent) : '';
+          })();
+          const year = (() => {
+            const y = popupContent.querySelector('#yearSelected');
+            return y && y.textContent ? y.textContent : '';
+          })();
             // Get all students
             let stuSnap = await db.collection('years').doc(academicYear)
               .collection('classes').doc(currentClassId)
@@ -1132,21 +1393,55 @@ db.collection('years').doc(academicYear)
         // Initial render
         showFilteredDates(selectedMonth, selectedYear);
         
-        // Add change listeners
-        setTimeout(() => {
-          popupContent.querySelector('#monthSelect').onchange = function() {
-            selectedMonth = this.value;
-            showFilteredDates(selectedMonth, selectedYear);
-          };
-          popupContent.querySelector('#yearSelect').onchange = function() {
-            selectedYear = this.value;
-            showFilteredDates(selectedMonth, selectedYear);
-          };
-          // Button click to show that day's attendance
-          popupContent.querySelectorAll('.popup-action-btn[data-date]').forEach(btn => {
-            btn.onclick = () => showAttendanceForDate(btn.dataset.date);
-          });
-        }, 200);
+        // Add change listeners for custom dropdowns
+setTimeout(() => {
+  // MONTH DROPDOWN
+  const monthDropdown = popupContent.querySelector('#monthDropdown');
+  const monthSelected = popupContent.querySelector('#monthSelected');
+  const monthList = popupContent.querySelector('#monthList');
+  if (monthDropdown && monthSelected && monthList) {
+    monthSelected.onclick = function () {
+      monthList.style.display = monthList.style.display === 'block' ? 'none' : 'block';
+    };
+    monthList.querySelectorAll('.dropdown-option').forEach(opt => {
+      opt.onclick = function () {
+        monthSelected.textContent = this.textContent;
+        selectedMonth = this.dataset.value;
+        monthList.style.display = 'none';
+        showFilteredDates(selectedMonth, selectedYear);
+      }
+    });
+    document.addEventListener('click', function handler(e){
+      if (!monthDropdown.contains(e.target)) monthList.style.display = 'none';
+    });
+  }
+
+  // YEAR DROPDOWN
+  const yearDropdown = popupContent.querySelector('#yearDropdown');
+  const yearSelected = popupContent.querySelector('#yearSelected');
+  const yearList = popupContent.querySelector('#yearList');
+  if (yearDropdown && yearSelected && yearList) {
+    yearSelected.onclick = function () {
+      yearList.style.display = yearList.style.display === 'block' ? 'none' : 'block';
+    };
+    yearList.querySelectorAll('.dropdown-option').forEach(opt => {
+      opt.onclick = function () {
+        yearSelected.textContent = this.textContent;
+        selectedYear = this.dataset.value;
+        yearList.style.display = 'none';
+        showFilteredDates(selectedMonth, selectedYear);
+      }
+    });
+    document.addEventListener('click', function handler(e){
+      if (!yearDropdown.contains(e.target)) yearList.style.display = 'none';
+    });
+  }
+
+  // Button click to show that day's attendance
+  popupContent.querySelectorAll('.popup-action-btn[data-date]').forEach(btn => {
+    btn.onclick = () => showAttendanceForDate(btn.dataset.date);
+  });
+}, 200);
         
         // Utility
         function formatDate(dateStr) {
@@ -1167,12 +1462,18 @@ db.collection('years').doc(academicYear)
 function showDeletedStudentsPopup() {
   db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
     .collection('sections').doc(currentSectionId)
-    .collection('students').where('isDeleted', '==', true).orderBy('roll').get()
+    .collection('students').orderBy('roll').get()
     .then(snap => {
       let students = [];
-      snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-      let html = `
-        <div class="popup-title">Deleted Students</div>
+snap.forEach(doc => {
+  let data = doc.data();
+  // Accepts true, "true", or 1 as deleted (for safety)
+  if (data.isDeleted === true || data.isDeleted === "true" || data.isDeleted === 1) {
+    students.push({ id: doc.id, ...data });
+  }
+});
+let html = `
+  <div class="popup-title">Deleted Students</div>
         <div style="max-height:350px;overflow-y:auto;">
           ${
             students.length === 0
@@ -1415,6 +1716,206 @@ function formatDate(dateStr) {
     reader.readAsArrayBuffer(file);
   }
 }
+    // ---- Absentees Modal Open/Close ----
+function openAbsenteesModal() {
+  document.getElementById('absenteesModalBg').style.display = 'flex';
+  document.getElementById('absenteesIframe').src = 'absentees-report.html';
+}
+
+function closeAbsenteesModal() {
+  document.getElementById('absenteesModalBg').style.display = 'none';
+  document.getElementById('absenteesIframe').src = '';
+}
+
   </script>
+  <!-- Absentees Report Modal -->
+<div id="absenteesModalBg" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;background:#0007;z-index:2003;align-items:center;justify-content:center;">
+  <div id="absenteesModalContent" style="background:#fff;border-radius:16px;box-shadow:0 8px 30px #0f3d6b22;padding:0;min-width:320px;max-width:97vw;width:780px;display:flex;flex-direction:column;gap:0;align-items:stretch;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 10px 18px;">
+      <span style="font-size:1.23em;font-weight:700;color:#0f3d6b;">Absentees Report</span>
+      <button id="closeAbsenteesModal" style="background:none;border:none;font-size:1.55em;color:#0f3d6b;cursor:pointer;padding:0 8px;">&times;</button>
+    </div>
+    <iframe id="absenteesIframe" src="" style="border:none;width:100%;height:75vh;border-radius:0 0 16px 16px;"></iframe>
+  </div>
+</div>
+  <script>
+  document.getElementById('closeAbsenteesModal').onclick = closeAbsenteesModal;
+  document.getElementById('absenteesModalBg').onclick = function(e) {
+    if (e.target === this) closeAbsenteesModal();
+  };
+    function showBulkMarksUploadPopup() {
+  db.collection('years').doc(academicYear)
+    .collection('exams').doc('classGroups')
+    .collection(getClassGroupName(currentClassName)).orderBy('name').get()
+    .then(examSnap => {
+      let exams = [];
+      examSnap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
+      if (exams.length === 0) {
+        showPopup(`<div class="popup-title">Upload Marks</div>
+          <div style="margin:16px 0;">No exams found! Please add exams first.</div>
+          <div class="popup-btn-row"><button class="popup-cancel-btn">Close</button></div>
+        `);
+        return;
+      }
+      let html = `
+        <div class="popup-title">Upload Marks (Excel)</div>
+        <label>Select Exam</label>
+        <div class="custom-dropdown" id="examDropdown" tabindex="0">
+          <div class="dropdown-selected" id="examSelected" data-value="">--Select--</div>
+          <div class="dropdown-list" id="examList" style="display:none;"></div>
+        </div>
+        <input type="file" id="marksFileInput" accept=".xls,.xlsx" style="margin:12px 0 15px 0;" />
+        <div style="font-size:0.97em; color:#555; margin-bottom:10px;">
+          Please upload the Evalbee Excel file.<br>
+          Only <b>Roll number</b> is matched; subject marks will be updated for this exam only.
+        </div>
+        <div class="popup-btn-row">
+          <button type="button" class="popup-cancel-btn">Cancel</button>
+          <button type="button" class="popup-action-btn" id="doBulkMarksUploadBtn">Upload</button>
+        </div>
+      `;
+      showPopup(html);
+
+      // Populate exam dropdown
+      const examDropdown = popupContent.querySelector('#examDropdown');
+      const examSelected = popupContent.querySelector('#examSelected');
+      const examList = popupContent.querySelector('#examList');
+      examList.innerHTML = exams.map(e => `
+        <div class="dropdown-option" data-id="${e.id}" style="padding:10px 12px;cursor:pointer;">
+          ${e.name}
+        </div>
+      `).join('');
+      examSelected.onclick = function () {
+        examList.style.display = (examList.style.display === 'none' || examList.style.display === '') ? 'block' : 'none';
+      };
+      document.addEventListener('click', function handler(e) {
+        if (!examDropdown.contains(e.target)) {
+          examList.style.display = 'none';
+          document.removeEventListener('click', handler);
+        }
+      });
+      let selectedExam = null;
+      examList.querySelectorAll('.dropdown-option').forEach(opt => {
+        opt.onclick = function () {
+          examSelected.textContent = this.textContent;
+          examSelected.dataset.value = this.dataset.id;
+          examList.style.display = 'none';
+          selectedExam = exams.find(e => e.id === this.dataset.id);
+        };
+      });
+
+      document.getElementById('doBulkMarksUploadBtn').onclick = async function() {
+        const fileInput = document.getElementById('marksFileInput');
+        if (!fileInput.files.length) return alert('Please select a file!');
+        if (!selectedExam) return alert('Please select an exam!');
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          let data = new Uint8Array(e.target.result);
+          let workbook = XLSX.read(data, {type: 'array'});
+          let sheet = workbook.Sheets[workbook.SheetNames[0]];
+          let rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval: ''});
+
+          // Map Excel columns
+          let headers = rows[0].map(x => x.toString().trim().toLowerCase());
+          let rollIdx = 2; // Usually column C (index 2)
+          // let rollIdx = headers.findIndex(h => h === 'roll' || h.startsWith('roll'));
+          let colIndexes = {};
+          let missingSubjects = [];
+          selectedExam.subjects.forEach(subj => {
+            let idx = headers.findIndex(h => h.includes(subj.name.toLowerCase()));
+            if (idx === -1) {
+              // Fallback mapping
+              if (subj.name.toLowerCase() === 'math') idx = 10;
+              if (subj.name.toLowerCase() === 'physics') idx = 11;
+              if (subj.name.toLowerCase() === 'chemistry') idx = 12;
+              if (subj.name.toLowerCase() === 'biology') idx = 13;
+            }
+            colIndexes[subj.name] = idx;
+            if (idx === -1) missingSubjects.push(subj.name);
+          });
+
+          // Get all students for this section
+          let stuSnap = await db.collection('years').doc(academicYear)
+            .collection('classes').doc(currentClassId)
+            .collection('sections').doc(currentSectionId)
+            .collection('students').orderBy('roll').get();
+          let students = [];
+          stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+
+          let batch = db.batch();
+          let updates = 0;
+          let matchedRolls = [];
+          let notFoundRolls = [];
+          let foundRollSet = new Set(students.map(s => parseInt(s.roll)));
+
+          for (let i = 1; i < rows.length; i++) {
+            let row = rows[i];
+            let roll = parseInt(row[rollIdx]);
+            if (isNaN(roll)) continue;
+            let stu = students.find(s => parseInt(s.roll) === roll);
+            if (!stu) {
+              notFoundRolls.push(roll);
+              continue;
+            }
+            matchedRolls.push(roll);
+
+            // Build marks object for this exam's subjects
+            let marksObj = {};
+            selectedExam.subjects.forEach(subj => {
+              let idx = colIndexes[subj.name];
+              if (typeof idx === "number" && idx >= 0) {
+                let val = row[idx];
+                marksObj[subj.name] = isNaN(val) ? 0 : Number(val);
+              }
+            });
+
+            // Save under students/{id}/marks/{examId}
+            let markRef = db.collection('years').doc(academicYear)
+              .collection('classes').doc(currentClassId)
+              .collection('sections').doc(currentSectionId)
+              .collection('students').doc(stu.id)
+              .collection('marks').doc(selectedExam.id);
+
+            batch.set(markRef, marksObj, { merge: true });
+            updates++;
+          }
+          if (updates === 0) {
+            alert('No matching students found by roll number!');
+            return;
+          }
+          await batch.commit();
+
+          // --- Build the Summary Message ---
+          let summary = `<div class="popup-title">Upload Summary</div>
+            <div style="font-size:1.1em;margin-bottom:7px;"><b>${updates}</b> students updated!</div>`;
+
+          if (matchedRolls.length > 0) {
+            summary += `<div><b>Matched Roll Numbers:</b><br>
+              <span style="font-size:.97em;">${matchedRolls.sort((a,b)=>a-b).join(', ')}</span></div>`;
+          }
+          if (notFoundRolls.length > 0) {
+            summary += `<div style="margin-top:9px;"><b>Roll Numbers NOT found:</b><br>
+              <span style="color:#d43f3a;">${notFoundRolls.sort((a,b)=>a-b).join(', ')}</span></div>`;
+          }
+          if (missingSubjects.length > 0) {
+            summary += `<div style="margin-top:10px;"><b>Subjects in Exam <span style="color:#0f3d6b;">not found in Excel header</span>:</b><br>
+              <span style="color:#d43f3a;">${missingSubjects.join(', ')}</span>
+              <br><span style="font-size:.97em;color:#999;">Check spelling or header row in Excel.</span>
+              </div>`;
+          }
+          summary += `<div class="popup-btn-row" style="margin-top:18px;"><button class="popup-action-btn">Close</button></div>`;
+
+          showPopup(summary);
+          setTimeout(() => {
+          let closeBtn = popupContent.querySelector('.popup-action-btn');
+          if (closeBtn) closeBtn.onclick = closePopup;
+        }, 100);
+        };
+        reader.readAsArrayBuffer(file);
+      }
+    });
+}
+</script>
 </body>
 </html>
