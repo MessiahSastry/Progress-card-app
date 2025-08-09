@@ -29,10 +29,14 @@
     .fixed-header #header-exam {
       font-size: 1.13em; font-weight: bold; color: #fdc600; margin: 6px 0 0 0;
     }
-        .main-content {
+        /* pushes everything (including the name) below the fixed header */
+#header-spacer { height: 120px; }
+
+/* main area no longer needs a huge top margin */
+.main-content {
   padding: 18px 10px 80px 10px;
   max-width: 510px;
-  margin: 120px auto 0 auto; /* push below fixed header */
+  margin: 8px auto 0 auto;
   min-height: 60vh;
 }
     .screen-title {
@@ -207,6 +211,7 @@
     <div class="subtitle" id="header-subtitle"></div>
     <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
   </div> <!-- closes .fixed-header -->
+  <div id="header-spacer"></div>
 <div id="user-name-display"></div>
 <div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
@@ -826,6 +831,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
