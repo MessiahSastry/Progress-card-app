@@ -29,10 +29,10 @@
     .fixed-header #header-exam {
       font-size: 1.13em; font-weight: bold; color: #fdc600; margin: 6px 0 0 0;
     }
-    .main-content {
+        .main-content {
       padding: 18px 10px 80px 10px;
       max-width: 510px;
-      margin: 100px auto 0 auto; /* push content below fixed header */
+      margin: 8px auto 0 auto; /* name div already created the top offset */
       min-height: 60vh;
     }
     .screen-title {
@@ -189,10 +189,10 @@
   font-size: 1.05em;
   font-weight: 600;
   color: #0f3d6b;
-  margin: 10px 0 0 12px;
+  margin: 92px 0 8px 12px; /* push below fixed header */
   text-align: left;
+  cursor: pointer;
 }
-
 @media (max-width: 480px) {
   #user-name-display {
     font-size: 0.95em;
@@ -815,6 +815,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
