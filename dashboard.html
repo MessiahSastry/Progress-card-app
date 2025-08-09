@@ -244,84 +244,91 @@
     auth.onAuthStateChanged(function(user) {
   if (!user) {
     window.location.replace("index.html");
-  } else {
-   db.collection("users").doc(user.uid).get().then(doc => {
-  const userData = doc.exists ? doc.data() : {};
-  const nameEl = document.getElementById('user-name-display');
-  const nameToShow =
-    (userData.name && userData.name.trim()) ||
-    (user.displayName && user.displayName.trim()) ||
-    (user.email || '').trim();
-
-  if (nameEl) {
-    nameEl.textContent = nameToShow ? `Welcome, ${nameToShow}` : 'Welcome';
-    nameEl.onclick = function() {
-      showPopup(`
-        <form id="editNameForm">
-          <div class="popup-title">Change Name</div>
-          <label>New Name</label>
-          <input name="editName" value="${userData.name || ''}" maxlength="30" required>
-          <div class="popup-btn-row">
-            <button type="button" class="popup-cancel-btn">Cancel</button>
-            <button type="submit" class="popup-action-btn">Save</button>
-          </div>
-        </form>
-      `, 'editNameForm', function(e) {
-        e.preventDefault();
-        const newName = e.target.editName.value.trim();
-        if (!newName) {
-          alert("Name cannot be empty.");
-          return;
-        }
-    
-        const uid = user.uid;
-        db.collection('users').doc(uid).update({
-          name: newName
-        }).then(() => {
-          document.getElementById('user-name-display').textContent = `Welcome, ${newName}`;
-          alert("Name updated successfully.");
-          closePopup();
-        }).catch(err => {
-          alert("Error updating name: " + err.message);
-        });
-      });
-    };
-     window.__IS_ADMIN__ = (userData.role === "admin");
-      // Fetch school info for header
-      if (userData.schoolId) {
-        db.collection("schools").doc(userData.schoolId).get().then(schoolDoc => {
-          let schoolData = {};
-          if (schoolDoc.exists) {
-            schoolData = schoolDoc.data();
-            document.getElementById('school-title').textContent = schoolData.name || "School Name";
-            document.getElementById('header-subtitle').textContent = schoolData.subtitle || "";
-            localStorage.setItem("schoolData", JSON.stringify({
-              name: schoolData.name,
-              subtitle: schoolData.subtitle,
-              schoolId: userData.schoolId
-            }));
-          } else {
-            document.getElementById('school-title').textContent = "School Name";
-            document.getElementById('header-subtitle').textContent = "";
-          }
-        });
-      } else {
-        let schoolData = {};
-        try {
-          schoolData = JSON.parse(localStorage.getItem("schoolData") || '{}');
-        } catch { schoolData = {}; }
-        document.getElementById('school-title').textContent = schoolData.name || "School Name";
-        document.getElementById('header-subtitle').textContent = schoolData.subtitle || "";
-      }
-
-      // Admin button show/hide
-      if (userData.role && userData.role === "admin") {
-        document.getElementById('add-teacher-fab').style.display = 'flex';
-      } else {
-        document.getElementById('add-teacher-fab').style.display = 'none';
-      }
-    });
+    return;
   }
+
+  db.collection("users").doc(user.uid).get().then(doc => {
+    const userData = doc.exists ? doc.data() : {};
+    const nameEl = document.getElementById('user-name-display');
+
+    // Determine display name
+    const nameToShow =
+      (userData.name && userData.name.trim()) ||
+      (user.displayName && user.displayName.trim()) ||
+      (user.email || '').trim();
+
+    if (nameEl) {
+      nameEl.textContent = nameToShow ? `Welcome, ${nameToShow}` : 'Welcome';
+
+      // Click to change name
+      nameEl.onclick = function() {
+        showPopup(`
+          <form id="editNameForm">
+            <div class="popup-title">Change Name</div>
+            <label>New Name</label>
+            <input name="editName" value="${userData.name || ''}" maxlength="30" required>
+            <div class="popup-btn-row">
+              <button type="button" class="popup-cancel-btn">Cancel</button>
+              <button type="submit" class="popup-action-btn">Save</button>
+            </div>
+          </form>
+        `, 'editNameForm', function(e) {
+          e.preventDefault();
+          const newName = e.target.editName.value.trim();
+          if (!newName) {
+            alert("Name cannot be empty.");
+            return;
+          }
+
+          db.collection('users').doc(user.uid).update({
+            name: newName
+          }).then(() => {
+            nameEl.textContent = `Welcome, ${newName}`;
+            alert("Name updated successfully.");
+            closePopup();
+          }).catch(err => {
+            alert("Error updating name: " + err.message);
+          });
+        });
+      };
+    }
+
+    // Set admin flag
+    window.__IS_ADMIN__ = (userData.role === "admin");
+
+    // Fetch school info for header
+    if (userData.schoolId) {
+      db.collection("schools").doc(userData.schoolId).get().then(schoolDoc => {
+        let schoolData = {};
+        if (schoolDoc.exists) {
+          schoolData = schoolDoc.data();
+          document.getElementById('school-title').textContent = schoolData.name || "School Name";
+          document.getElementById('header-subtitle').textContent = schoolData.subtitle || "";
+          localStorage.setItem("schoolData", JSON.stringify({
+            name: schoolData.name,
+            subtitle: schoolData.subtitle,
+            schoolId: userData.schoolId
+          }));
+        } else {
+          document.getElementById('school-title').textContent = "School Name";
+          document.getElementById('header-subtitle').textContent = "";
+        }
+      });
+    } else {
+      let schoolData = {};
+      try {
+        schoolData = JSON.parse(localStorage.getItem("schoolData") || '{}');
+      } catch {
+        schoolData = {};
+      }
+      document.getElementById('school-title').textContent = schoolData.name || "School Name";
+      document.getElementById('header-subtitle').textContent = schoolData.subtitle || "";
+    }
+
+    // Show/Hide admin FAB
+    document.getElementById('add-teacher-fab').style.display =
+      (userData.role === "admin") ? 'flex' : 'none';
+  });
 });
 
     // Academic Year logic
@@ -689,7 +696,6 @@ try {
   toggleField('toggleCurrent', 'currentPw');
   toggleField('toggleNew', 'newPw');
   toggleField('toggleConfirm', 'confirmPw');
-}
     // SINGLE TEACHER ADD HANDLER
 function addTeacherHandler(e) {
   e.preventDefault();
@@ -819,3 +825,4 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
