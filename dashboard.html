@@ -19,7 +19,10 @@
       padding: 18px 0 8px 0;
       border-bottom-left-radius: 14px;
       border-bottom-right-radius: 14px;
-      position: sticky; top: 0; z-index: 10;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
     }
     .fixed-header .school-title { color: #fff; font-size: 1.5em; margin: 0; }
     .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
@@ -29,7 +32,7 @@
     .main-content {
       padding: 18px 10px 80px 10px;
       max-width: 510px;
-      margin: 0 auto;
+      margin: 100px auto 0 auto; /* push content below fixed header */
       min-height: 60vh;
     }
     .screen-title {
@@ -813,6 +816,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
