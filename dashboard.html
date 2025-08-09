@@ -32,7 +32,7 @@
         .main-content {
   padding: 18px 10px 80px 10px;
   max-width: 510px;
-  margin: 8px auto 0 auto;  /* small, spacer handles the push-down */
+  margin: 120px auto 0 auto; /* push below fixed header */
   min-height: 60vh;
 }
     .screen-title {
@@ -194,11 +194,6 @@
   cursor: pointer;
 }
 
-/* spacer below fixed header */
-#header-spacer {
-  height: var(--header-h, 120px); /* fallback 120px */
-}
-
 @media (max-width: 480px) {
   #user-name-display { font-size: 0.95em; margin-left: 8px; }
 }
@@ -332,17 +327,6 @@
     // Academic Year logic
     let academicYear = localStorage.getItem('sp_selectedYear') || '2024-25';
     document.getElementById('header-exam').textContent = academicYear;
-
-function setHeaderSpacer() {
-  const header = document.getElementById('header');
-  const spacer = document.getElementById('header-spacer');
-  if (!header || !spacer) return;
-  const h = header.offsetHeight;              // actual rendered height
-  document.documentElement.style.setProperty('--header-h', (h) + 'px');
-  spacer.style.height = h + 'px';
-}
-window.addEventListener('load', setHeaderSpacer);
-window.addEventListener('resize', setHeaderSpacer);
 
     const classLabels = [
       "Nursery", "LKG", "UKG",
@@ -835,15 +819,3 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
