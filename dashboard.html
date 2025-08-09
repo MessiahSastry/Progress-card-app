@@ -222,11 +222,7 @@
     const db = firebase.firestore();
     const secondaryApp = firebase.initializeApp(firebaseConfig, 'secondary');
     const secondaryAuth = secondaryApp.auth();
-    function getSchoolId() {
-      try { return JSON.parse(localStorage.getItem("schoolData") || "{}").schoolId || ""; }
-      catch { return ""; }
-    }
-    // Require login before showing anything
+        // Require login before showing anything
     auth.onAuthStateChanged(function(user) {
   if (!user) {
     window.location.replace("index.html");
@@ -354,7 +350,7 @@
         "6th Class", "7th Class", "8th Class", "9th Class", "10th Class"
       ];
       const order = orderArr.indexOf(name);
-      db.collection('schools').doc(getSchoolId()).collection('years').doc(academicYear).collection('classes').add({ name, order })
+      db.collection('years').doc(academicYear).collection('classes').add({ name, order })
         .then(() => {
           closePopup();
           renderClassList();
@@ -366,7 +362,7 @@
     function showSettingsPopup() {
       
       // Load years for dropdown
-      db.collection('schools').doc(getSchoolId()).collection('years').orderBy('name','desc').get().then(snap=>{
+      db.collection('years').orderBy('name','desc').get().then(snap=>{
         let years = [];
         snap.forEach(doc=>years.push(doc.id));
         let html = `
@@ -399,7 +395,7 @@ ${window.__IS_ADMIN__ ? `<button id="manage-teachers-btn" style="margin:10px 0 0
           const sel = e.target.yearSel.value;
           const newYear = e.target.yearName.value.trim();
           if(newYear){
-            db.collection('schools').doc(getSchoolId()).collection('years').doc(newYear).set({name:newYear}).then(()=>{
+            db.collection('years').doc(newYear).set({name:newYear}).then(()=>{
               localStorage.setItem('sp_selectedYear', newYear);
               academicYear = newYear;
               document.getElementById('header-exam').textContent = academicYear;
@@ -677,6 +673,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
