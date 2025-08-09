@@ -222,6 +222,10 @@
     const db = firebase.firestore();
     const secondaryApp = firebase.initializeApp(firebaseConfig, 'secondary');
     const secondaryAuth = secondaryApp.auth();
+    function getSchoolId() {
+      try { return JSON.parse(localStorage.getItem("schoolData") || "{}").schoolId || ""; }
+      catch { return ""; }
+    }
     // Require login before showing anything
     auth.onAuthStateChanged(function(user) {
   if (!user) {
@@ -350,7 +354,7 @@
         "6th Class", "7th Class", "8th Class", "9th Class", "10th Class"
       ];
       const order = orderArr.indexOf(name);
-      db.collection('years').doc(academicYear).collection('classes').add({ name, order })
+      db.collection('schools').doc(getSchoolId()).collection('years').doc(academicYear).collection('classes').add({ name, order })
         .then(() => {
           closePopup();
           renderClassList();
@@ -362,7 +366,7 @@
     function showSettingsPopup() {
       
       // Load years for dropdown
-      db.collection('years').orderBy('name','desc').get().then(snap=>{
+      db.collection('schools').doc(getSchoolId()).collection('years').orderBy('name','desc').get().then(snap=>{
         let years = [];
         snap.forEach(doc=>years.push(doc.id));
         let html = `
@@ -395,7 +399,7 @@ ${window.__IS_ADMIN__ ? `<button id="manage-teachers-btn" style="margin:10px 0 0
           const sel = e.target.yearSel.value;
           const newYear = e.target.yearName.value.trim();
           if(newYear){
-            db.collection('years').doc(newYear).set({name:newYear}).then(()=>{
+            db.collection('schools').doc(getSchoolId()).collection('years').doc(newYear).set({name:newYear}).then(()=>{
               localStorage.setItem('sp_selectedYear', newYear);
               academicYear = newYear;
               document.getElementById('header-exam').textContent = academicYear;
@@ -518,7 +522,7 @@ function showManageTeachersPopup() {
         teachers.forEach(t => {
           html += `
             <li style="margin-bottom:13px;padding-bottom:7px;border-bottom:1px solid #eee;">
-              <b>${t.name || "(No Name)"}${t.plainPassword ? ' (' + t.plainPassword + ')' : ''}</b><br>
+              <b>${t.name || "(No Name)"}${t.tempPassword ? ' (' + t.tempPassword + ')' : ''}</b><br>
               <span style="font-size:0.99em;color:#333;">${t.email || ""}</span>
               <button data-uid="${t.uid}" class="delete-teacher-btn" style="float:right;background:#e74c3c;color:#fff;border:none;padding:5px 14px;border-radius:7px;cursor:pointer;">Delete</button>
             </li>`;
@@ -579,7 +583,8 @@ function addTeacherHandler(e) {
       phone,
       role: 'teacher',
       schoolId: schoolData.schoolId,
-      plainPassword: password,  
+      tempPassword: password,
+      mustReset: true, 
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     })
@@ -651,6 +656,8 @@ function handleBulkTeacherUpload() {
           phone,
           role: 'teacher',
           schoolId: schoolData.schoolId || '',
+          tempPassword: password,
+          mustReset: true,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
       })
@@ -670,5 +677,6 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
