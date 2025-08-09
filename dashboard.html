@@ -251,12 +251,17 @@
   if (!user) {
     window.location.replace("index.html");
   } else {
-    db.collection("users").doc(user.uid).get().then(doc => {
-      if (!doc.exists) return;
-      const userData = doc.data();
-      document.getElementById('user-name-display').textContent =
-      userData.name ? `Welcome, ${userData.name}` : '';
-      document.getElementById('user-name-display').onclick = function() {
+   db.collection("users").doc(user.uid).get().then(doc => {
+  const userData = doc.exists ? doc.data() : {};
+  const nameEl = document.getElementById('user-name-display');
+  const nameToShow =
+    (userData.name && userData.name.trim()) ||
+    (user.displayName && user.displayName.trim()) ||
+    (user.email || '').trim();
+
+  if (nameEl) {
+    nameEl.textContent = nameToShow ? `Welcome, ${nameToShow}` : 'Welcome';
+    nameEl.onclick = function() {
       showPopup(`
         <form id="editNameForm">
           <div class="popup-title">Change Name</div>
@@ -831,6 +836,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
