@@ -352,23 +352,42 @@
     const mainArea = document.getElementById("main-area");
 
     function renderClassList() {
+  db.collection('years').doc(academicYear).collection('classes')
+    .orderBy('order')
+    .get()
+    .then(snapshot => {
       let html = `<div class="screen-title">Select a Class</div>
                   <div class="class-list">`;
-      classLabels.forEach((label, idx) => {
-        let color = colorPalette[idx % colorPalette.length];
-        html += `<button class="class-btn" style="border-color:${color};color:${color};"
-          data-class-id="" data-class-name="${label}">${label}</button>`;
-      });
+
+      if (snapshot.empty) {
+        html += `<div style="color:#888;">No classes found. Click + to add one.</div>`;
+      } else {
+        snapshot.forEach(doc => {
+          const classData = doc.data();
+          const label = classData.name;
+          const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+          html += `<button class="class-btn" style="border-color:${color};color:${color};"
+                    data-class-id="${doc.id}" data-class-name="${label}">${label}</button>`;
+        });
+      }
+
       html += "</div>";
       if (mainArea) mainArea.innerHTML = html;
-      document.querySelectorAll('.class-btn').forEach((button, idx) => {
+
+      // Attach click handlers
+      document.querySelectorAll('.class-btn').forEach(button => {
         button.addEventListener('click', function () {
-          const className = encodeURIComponent(classLabels[idx]);
-          const year = encodeURIComponent(academicYear); // get the selected year from your variable
+          const className = encodeURIComponent(this.getAttribute('data-class-name'));
+          const year = encodeURIComponent(academicYear);
           window.location.href = `sections.html?year=${year}&className=${className}`;
         });
       });
-    }
+    })
+    .catch(err => {
+      console.error("Error loading classes:", err);
+      if (mainArea) mainArea.innerHTML = `<div style="color:red;">Failed to load classes.</div>`;
+    });
+}
     renderClassList();
 
     // Popup Logic
@@ -831,6 +850,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
