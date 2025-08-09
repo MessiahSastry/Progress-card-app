@@ -185,17 +185,15 @@
 }
 .add-teacher-btn:active { background: #195084; }
 .add-teacher-btn i { color: #fff !important; }
-    #user-name-display{
-  position: absolute;
-  left: 12px;
-  top: 6px;
-  font-size: .95em;
+    
+   #user-name-display {
+  font-size: 1.05em;
   font-weight: 600;
-  color: #fff;           /* white so it shows on the header */
+  color: #0f3d6b;
+  margin: 14px 0 12px 16px; /* extra top margin to clear header */
   text-align: left;
   cursor: pointer;
 }
-
 
 @media (max-width: 480px) {
   #user-name-display { font-size: 0.95em; margin-left: 8px; }
@@ -208,9 +206,8 @@
     <div class="school-title" id="school-title"></div>
     <div class="subtitle" id="header-subtitle"></div>
     <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
-  <div id="user-name-display"></div>
-</div> <!-- closes .fixed-header -->
-
+  </div> <!-- closes .fixed-header -->
+<div id="user-name-display"></div>
 <div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
 <!-- Add this line below your existing FAB -->
@@ -829,6 +826,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
