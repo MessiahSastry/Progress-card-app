@@ -30,11 +30,11 @@
       font-size: 1.13em; font-weight: bold; color: #fdc600; margin: 6px 0 0 0;
     }
         .main-content {
-      padding: 18px 10px 80px 10px;
-      max-width: 510px;
-      margin: 8px auto 0 auto; /* name div already created the top offset */
-      min-height: 60vh;
-    }
+  padding: 18px 10px 80px 10px;
+  max-width: 510px;
+  margin: 8px auto 0 auto;  /* small, spacer handles the push-down */
+  min-height: 60vh;
+}
     .screen-title {
       font-size: 1.4em;
       font-weight: bold;
@@ -189,16 +189,20 @@
   font-size: 1.05em;
   font-weight: 600;
   color: #0f3d6b;
-  margin: 92px 0 8px 12px; /* push below fixed header */
+  margin: 8px 0 8px 12px;  /* small margin, no big top offset */
   text-align: left;
   cursor: pointer;
 }
-@media (max-width: 480px) {
-  #user-name-display {
-    font-size: 0.95em;
-    margin-left: 8px;
-  }
+
+/* spacer below fixed header */
+#header-spacer {
+  height: var(--header-h, 120px); /* fallback 120px */
 }
+
+@media (max-width: 480px) {
+  #user-name-display { font-size: 0.95em; margin-left: 8px; }
+}
+
   </style>
 </head>
 <body class="dashboard">
@@ -207,6 +211,7 @@
     <div class="subtitle" id="header-subtitle"></div>
     <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
   </div>
+  <div id="header-spacer"></div>
   <!-- User name display -->
 <div id="user-name-display"></div>
 <div class="main-content" id="main-area"></div>
@@ -323,6 +328,17 @@
     // Academic Year logic
     let academicYear = localStorage.getItem('sp_selectedYear') || '2024-25';
     document.getElementById('header-exam').textContent = academicYear;
+
+function setHeaderSpacer() {
+  const header = document.getElementById('header');
+  const spacer = document.getElementById('header-spacer');
+  if (!header || !spacer) return;
+  const h = header.offsetHeight;              // actual rendered height
+  document.documentElement.style.setProperty('--header-h', (h) + 'px');
+  spacer.style.height = h + 'px';
+}
+window.addEventListener('load', setHeaderSpacer);
+window.addEventListener('resize', setHeaderSpacer);
 
     const classLabels = [
       "Nursery", "LKG", "UKG",
@@ -815,6 +831,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
