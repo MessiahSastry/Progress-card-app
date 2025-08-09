@@ -182,6 +182,20 @@
 }
 .add-teacher-btn:active { background: #195084; }
 .add-teacher-btn i { color: #fff !important; }
+    #user-name-display {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: #0f3d6b;
+  margin: 10px 0 0 12px;
+  text-align: left;
+}
+
+@media (max-width: 480px) {
+  #user-name-display {
+    font-size: 0.95em;
+    margin-left: 8px;
+  }
+}
   </style>
 </head>
 <body class="dashboard">
@@ -190,7 +204,10 @@
     <div class="subtitle" id="header-subtitle"></div>
     <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
   </div>
-  <div class="main-content" id="main-area"></div>
+  <!-- User name display -->
+<div id="user-name-display" style="font-size:1.05em; font-weight:600; color:#0f3d6b; margin:10px 0 0 12px; text-align:left;"></div>
+<div id="user-name-display" style="cursor:pointer;"></div>
+<div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
 <!-- Add this line below your existing FAB -->
 <button class="add-teacher-btn" id="add-teacher-fab" style="bottom:86px;display:none;" title="Add Teacher">
@@ -230,6 +247,39 @@
     db.collection("users").doc(user.uid).get().then(doc => {
       if (!doc.exists) return;
       const userData = doc.data();
+      document.getElementById('user-name-display').textContent =
+      userData.name ? `Welcome, ${userData.name}` : '';
+      document.getElementById('user-name-display').onclick = function() {
+      showPopup(`
+        <form id="editNameForm">
+          <div class="popup-title">Change Name</div>
+          <label>New Name</label>
+          <input name="editName" value="${userData.name || ''}" maxlength="30" required>
+          <div class="popup-btn-row">
+            <button type="button" class="popup-cancel-btn">Cancel</button>
+            <button type="submit" class="popup-action-btn">Save</button>
+          </div>
+        </form>
+      `, 'editNameForm', function(e) {
+        e.preventDefault();
+        const newName = e.target.editName.value.trim();
+        if (!newName) {
+          alert("Name cannot be empty.");
+          return;
+        }
+    
+        const uid = user.uid;
+        db.collection('users').doc(uid).update({
+          name: newName
+        }).then(() => {
+          document.getElementById('user-name-display').textContent = `Welcome, ${newName}`;
+          alert("Name updated successfully.");
+          closePopup();
+        }).catch(err => {
+          alert("Error updating name: " + err.message);
+        });
+      });
+    };
      window.__IS_ADMIN__ = (userData.role === "admin");
       // Fetch school info for header
       if (userData.schoolId) {
@@ -342,7 +392,7 @@
     }
     function addClassToDB(e) {
       e.preventDefault();
-      const name = e.target.className.value.trim();
+      const name = e.target.elements['className'].value.trim();
       if (!name) return;
       // Keep the class order correct
       const orderArr = [
@@ -763,6 +813,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
