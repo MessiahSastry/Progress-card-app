@@ -220,6 +220,8 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const secondaryApp = firebase.initializeApp(firebaseConfig, 'secondary');
+    const secondaryAuth = secondaryApp.auth();
     // Require login before showing anything
     auth.onAuthStateChanged(function(user) {
   if (!user) {
@@ -568,7 +570,7 @@ function addTeacherHandler(e) {
   // Start adding teacher
   popupContent.querySelector(".popup-action-btn").disabled = true;
 
-  firebase.auth().createUserWithEmailAndPassword(email, password)
+  secondaryAuth.createUserWithEmailAndPassword(email, password)
     .then(userCred => {
       const uid = userCred.user.uid;
      return db.collection('users').doc(uid).set({
@@ -581,11 +583,12 @@ function addTeacherHandler(e) {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     })
-    .then(() => {
-      alert("Teacher added!");
-      closePopup();
-      // Optionally refresh manage teachers popup here
-    })
+    .then(() => secondaryAuth.signOut().catch(()=>{}))
+      .then(() => {
+        alert("Teacher added!");
+        closePopup();
+        // Optionally refresh manage teachers popup here
+      })
     .catch(err => {
       alert("Error adding teacher: " + err.message);
       popupContent.querySelector(".popup-action-btn").disabled = false;
@@ -639,7 +642,7 @@ function handleBulkTeacherUpload() {
       return addNext(i + 1);
     }
 
-    firebase.auth().createUserWithEmailAndPassword(email, password)
+    secondaryAuth.createUserWithEmailAndPassword(email, password)
       .then(userCred => {
         const uid = userCred.user.uid;
         return db.collection('users').doc(uid).set({
@@ -651,6 +654,7 @@ function handleBulkTeacherUpload() {
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
       })
+      .then(() => secondaryAuth.signOut().catch(()=>{}))
       .then(() => {
         added++;
         addNext(i + 1);
@@ -666,4 +670,5 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
