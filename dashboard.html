@@ -388,6 +388,7 @@
   </div>
 </form>
 ${window.__IS_ADMIN__ ? `<button id="manage-teachers-btn" style="margin:10px 0 0 0;display:block;padding:11px 0;width:100%;background:#195084;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Manage Teachers</button>` : ""}
+<button id="change-password-btn" style="margin:10px 0 0 0;display:block;padding:11px 0;width:100%;background:#0f3d6b;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Change Password</button>
 <button id="logout-btn" style="margin:16px auto 0 auto;display:block;padding:11px 0;width:100%;background:#e74c3c;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Logout</button>
 `;
        showPopup(html,'yearForm',function(e){
@@ -488,6 +489,9 @@ document.body.addEventListener('click', function(e) {
   if (e.target && e.target.id === 'manage-teachers-btn') {
     showManageTeachersPopup();
   }
+  if (e.target && e.target.id === 'change-password-btn') {
+    showChangePasswordPopup();
+  }
 });
 
 // Show Manage Teachers Popup
@@ -543,6 +547,92 @@ function showManageTeachersPopup() {
         }
       });
     });
+}
+    function showChangePasswordPopup() {
+  const user = auth.currentUser;
+  if (!user) return alert('Not signed in.');
+
+  showPopup(`
+  <form id="changePwForm">
+    <div class="popup-title">Change Password</div>
+
+    <label>Current Password</label>
+    <div style="display:flex;gap:6px;">
+      <input type="password" name="currentPw" required placeholder="Current password" style="flex:1;">
+      <button type="button" id="toggleCurrent" class="popup-cancel-btn" style="min-width:84px;">Show</button>
+    </div>
+
+    <label>New Password</label>
+    <div style="display:flex;gap:6px;">
+      <input type="password" name="newPw" minlength="8" required placeholder="At least 8 characters" style="flex:1;">
+      <button type="button" id="toggleNew" class="popup-cancel-btn" style="min-width:84px;">Show</button>
+    </div>
+
+    <label>Confirm New Password</label>
+    <div style="display:flex;gap:6px;">
+      <input type="password" name="confirmPw" minlength="8" required placeholder="Re-type new password" style="flex:1;">
+      <button type="button" id="toggleConfirm" class="popup-cancel-btn" style="min-width:84px;">Show</button>
+    </div>
+
+    <div class="popup-btn-row">
+      <button type="button" class="popup-cancel-btn">Cancel</button>
+      <button type="submit" id="pwSubmit" class="popup-action-btn">Update</button>
+    </div>
+  </form>
+`, 'changePwForm', async function(e) {
+    e.preventDefault();
+
+    const currentPw = e.target.currentPw.value;
+    const newPw = e.target.newPw.value.trim();
+    const confirmPw = e.target.confirmPw.value.trim();
+
+    if (newPw !== confirmPw) {
+      alert('New passwords do not match.');
+      return;
+    }
+    if (newPw.length < 8) {
+      alert('New password must be at least 8 characters.');
+      return;
+    }
+
+    const submitBtn = document.getElementById('pwSubmit');
+submitBtn.disabled = true;
+submitBtn.textContent = 'Updating...';
+
+try {
+  const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPw);
+  await user.reauthenticateWithCredential(cred);
+
+  await user.updatePassword(newPw);
+
+  const uid = user.uid;
+  await db.collection('users').doc(uid).update({
+    tempPassword: firebase.firestore.FieldValue.delete(),
+    mustReset: false
+  }).catch(() => { /* ignore if fields don't exist */ });
+
+  alert('Password updated successfully.');
+  closePopup();
+} catch (err) {
+  alert('Failed to update password: ' + err.message);
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Update';
+}
+  });
+       // ---- ADD TOGGLES HERE (after showPopup/handler, still inside the function) ----
+  function toggleField(btnId, inputName) {
+    const btn = document.getElementById(btnId);
+    const input = document.querySelector(`#changePwForm [name="${inputName}"]`);
+    if (!btn || !input) return;
+    btn.onclick = () => {
+      const isPw = input.type === 'password';
+      input.type = isPw ? 'text' : 'password';
+      btn.textContent = isPw ? 'Hide' : 'Show';
+    };
+  }
+  toggleField('toggleCurrent', 'currentPw');
+  toggleField('toggleNew', 'newPw');
+  toggleField('toggleConfirm', 'confirmPw');
 }
     // SINGLE TEACHER ADD HANDLER
 function addTeacherHandler(e) {
@@ -673,6 +763,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
