@@ -351,32 +351,57 @@
     ];
     const mainArea = document.getElementById("main-area");
 
-    function renderClassList() {
+   function renderClassList() {
+  const orderArr = [
+    "Nursery","LKG","UKG",
+    "1st Class","2nd Class","3rd Class","4th Class","5th Class",
+    "6th Class","7th Class","8th Class","9th Class","10th Class",
+    "11th Class","12th Class"
+  ];
+
   db.collection('years').doc(academicYear).collection('classes')
-    .orderBy('order')
     .get()
     .then(snapshot => {
-      let html = `<div class="screen-title">Select a Class</div>
-                  <div class="class-list">`;
+      const items = [];
+      snapshot.forEach(doc => {
+        const d = doc.data() || {};
+        items.push({ id: doc.id, name: d.name || "", order: typeof d.order==="number" ? d.order : -1 });
+      });
 
-      if (snapshot.empty) {
+      // sort by our canonical order first, then by name
+      items.sort((a,b) => {
+        const ai = a.order >= 0 ? a.order : orderArr.indexOf(a.name);
+        const bi = b.order >= 0 ? b.order : orderArr.indexOf(b.name);
+        const as = ai < 0 ? 999 : ai;
+        const bs = bi < 0 ? 999 : bi;
+        if (as !== bs) return as - bs;
+        return (a.name || "").localeCompare(b.name || "");
+      });
+
+      // de-duplicate by normalized name (if any old duplicates exist in DB)
+      const seen = new Set();
+      const deduped = items.filter(it => {
+        const key = (it.name || "").toLowerCase().trim();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      let html = `<div class="screen-title">Select a Class</div><div class="class-list">`;
+      if (!deduped.length) {
         html += `<div style="color:#888;">No classes found. Click + to add one.</div>`;
       } else {
-        snapshot.forEach(doc => {
-          const classData = doc.data();
-          const label = classData.name;
+        deduped.forEach(it => {
           const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
           html += `<button class="class-btn" style="border-color:${color};color:${color};"
-                    data-class-id="${doc.id}" data-class-name="${label}">${label}</button>`;
+                   data-class-id="${it.id}" data-class-name="${it.name}">${it.name}</button>`;
         });
       }
-
       html += "</div>";
       if (mainArea) mainArea.innerHTML = html;
 
-      // Attach click handlers
-      document.querySelectorAll('.class-btn').forEach(button => {
-        button.addEventListener('click', function () {
+      document.querySelectorAll('.class-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
           const className = encodeURIComponent(this.getAttribute('data-class-name'));
           const year = encodeURIComponent(academicYear);
           window.location.href = `sections.html?year=${year}&className=${className}`;
@@ -427,23 +452,40 @@
         </form>
       `, 'addClassForm', addClassToDB);
     }
-    function addClassToDB(e) {
-      e.preventDefault();
-      const name = e.target.elements['className'].value.trim();
-      if (!name) return;
-      // Keep the class order correct
-      const orderArr = [
-        "Nursery", "LKG", "UKG", "1st Class", "2nd Class", "3rd Class", "4th Class", "5th Class",
-        "6th Class", "7th Class", "8th Class", "9th Class", "10th Class"
-      ];
-      const order = orderArr.indexOf(name);
-      db.collection('years').doc(academicYear).collection('classes').add({ name, order })
-        .then(() => {
-          closePopup();
-          renderClassList();
-        })
-        .catch(error => alert("Error adding class: " + error.message));
+   function addClassToDB(e) {
+  e.preventDefault();
+  const raw = e.target.elements['className'].value.trim();
+  if (!raw) return;
+
+  // Canonical list (includes 11th & 12th)
+  const orderArr = [
+    "Nursery","LKG","UKG",
+    "1st Class","2nd Class","3rd Class","4th Class","5th Class",
+    "6th Class","7th Class","8th Class","9th Class","10th Class",
+    "11th Class","12th Class"
+  ];
+
+  // Normalize input to exact canonical label if possible
+  const canon = orderArr.find(x => x.toLowerCase() === raw.toLowerCase()) || raw;
+  const order = orderArr.indexOf(canon);
+
+  // use slug as doc id to enforce uniqueness per year
+  const slug = canon.toLowerCase().replace(/\s+/g,'-');
+
+  const coll = db.collection('years').doc(academicYear).collection('classes');
+  coll.doc(slug).get().then(doc => {
+    if (doc.exists) {
+      alert('This class already exists.');
+      return;
     }
+    return coll.doc(slug).set({ name: canon, order });
+  })
+  .then(() => {
+    closePopup();
+    renderClassList();
+  })
+  .catch(error => alert("Error adding class: " + error.message));
+}
 
     // Settings: Academic year selection/add
     function showSettingsPopup() {
@@ -850,6 +892,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
