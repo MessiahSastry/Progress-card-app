@@ -22,25 +22,30 @@ exports.resetPasswordWithPhone = functions
       }
 
       // 3) Find the *app user* in Firestore by verified phone (E.164, e.g., +91...)
-      const snap = await db.collection('users').where('phone', '==', verifiedPhone).limit(1).get();
-      if (snap.empty) {
-        throw new functions.https.HttpsError('not-found', `No Firestore user found for ${verifiedPhone}`);
-      }
+     const q = await db.collection('users').where('phone', '==', verifiedPhone).get();
+if (q.empty) {
+  throw new functions.https.HttpsError('not-found', `No Firestore user found for ${verifiedPhone}`);
+}
+if (q.size > 1) {
+  throw new functions.https.HttpsError('failed-precondition', `Multiple user records share phone ${verifiedPhone}. Make it unique.`);
+}
 
-      const userDoc = snap.docs[0];
-      const userData = userDoc.data();
-      const targetEmail = userData?.email;
-      if (!targetEmail) {
-        throw new functions.https.HttpsError('failed-precondition', 'User record has no email.');
-      }
+const userDoc = q.docs[0];
+const userData = userDoc.data();
+const targetEmail = (userData?.email || '').trim();
+if (!targetEmail) {
+  throw new functions.https.HttpsError('failed-precondition', 'User record has no email.');
+}
 
-      // 4) Resolve the Auth UID by email (robust even if doc.id != uid)
-      const authUser = await admin.auth().getUserByEmail(targetEmail);
+const authUser = await admin.auth().getUserByEmail(targetEmail);
+await admin.auth().updateUser(authUser.uid, { password: newPassword });
 
-      // 5) Update password for that UID
-      await admin.auth().updateUser(authUser.uid, { password: newPassword });
-
-      return { ok: true, message: `Password updated for ${targetEmail}. Please sign in with your new password.` };
+return {
+  ok: true,
+  message: `Password updated.`,
+  targetEmail,
+  uid: authUser.uid
+};
     } catch (err) {
       console.error('resetPasswordWithPhone error:', err);
       if (err instanceof functions.https.HttpsError) throw err;
