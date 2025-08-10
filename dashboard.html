@@ -228,7 +228,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 
   <script>
     // Firebase config
@@ -244,7 +246,9 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const secondaryApp = firebase.initializeApp(firebaseConfig, 'secondary');
-    const secondaryAuth = secondaryApp.auth();
+const secondaryAuth = secondaryApp.auth();
+// Cloud Functions client (default region)
+const fns = firebase.app().functions('us-central1');
         // Require login before showing anything
     auth.onAuthStateChanged(function(user) {
   if (!user) {
@@ -696,18 +700,41 @@ document.querySelectorAll('.edit-teacher-btn').forEach(btn => {
       </form>
     `, 'editTeacherForm', function(e) {
       e.preventDefault();
-      const updated = {
-        name: e.target.name.value.trim(),
-        email: e.target.email.value.trim(),
-        phone: e.target.phone.value.trim(),
-        tempPassword: e.target.tempPassword.value.trim() || firebase.firestore.FieldValue.delete()
-      };
-      db.collection('users').doc(uid).update(updated).then(() => {
-        alert("Teacher updated.");
-        showManageTeachersPopup();
-      }).catch(err => {
-        alert("Error updating teacher: " + err.message);
-      });
+const tp = e.target.tempPassword.value.trim();
+
+const updated = {
+  name: e.target.name.value.trim(),
+  email: e.target.email.value.trim(),
+  phone: e.target.phone.value.trim()
+};
+// keep Firestore + UI flags in sync
+if (tp) {
+  updated.tempPassword = tp;
+  updated.mustReset = true;
+} else {
+  updated.tempPassword = firebase.firestore.FieldValue.delete();
+  updated.mustReset = false;
+}
+
+db.collection('users').doc(uid).update(updated).then(async () => {
+  // Also update Firebase Auth if email or password changed
+  const payload = { uid };
+  if (updated.email && updated.email !== (teacher.email || '')) payload.email = updated.email;
+  if (tp) payload.password = tp;
+
+  if (payload.email || payload.password) {
+    try {
+      await fns.httpsCallable('adminUpdateUser')(payload);
+    } catch (err) {
+      alert('Saved Firestore, but failed to update Auth: ' + err.message);
+      return showManageTeachersPopup();
+    }
+  }
+  alert("Teacher updated.");
+  showManageTeachersPopup();
+}).catch(err => {
+  alert("Error updating teacher: " + err.message);
+});
     });
   };
 });
@@ -942,6 +969,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
