@@ -722,14 +722,20 @@ db.collection('users').doc(uid).update(updated).then(async () => {
   if (updated.email && updated.email !== (teacher.email || '')) payload.email = updated.email;
   if (tp) payload.password = tp;
 
-  if (payload.email || payload.password) {
-    try {
-      await fns.httpsCallable('adminUpdateUser')(payload);
-    } catch (err) {
-      alert('Saved Firestore, but failed to update Auth: ' + err.message);
-      return showManageTeachersPopup();
+ if (payload.email || payload.password) {
+  try {
+    // ensure the callable has a fresh ID token
+    if (!auth.currentUser) {
+      alert('Please sign in again.'); 
+      return;
     }
+    await auth.currentUser.getIdToken(true);
+    await fns.httpsCallable('adminUpdateUser')(payload);
+  } catch (err) {
+    alert('Saved Firestore, but failed to update Auth: ' + err.message);
+    return showManageTeachersPopup();
   }
+}
   alert("Teacher updated.");
   showManageTeachersPopup();
 }).catch(err => {
@@ -969,6 +975,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
