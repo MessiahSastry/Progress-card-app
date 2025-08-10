@@ -730,8 +730,17 @@ db.collection('users').doc(uid).update(updated).then(async () => {
       return;
     }
     const idToken = await auth.currentUser.getIdToken(true);
-    payload.idToken = idToken;           // fallback auth
-    await fns.httpsCallable('adminUpdateUser')(payload);
+const url = `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/adminUpdateUser`;
+const res = await fetch(url, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${idToken}`   // <- real auth header
+  },
+  body: JSON.stringify({ data: payload })   // callable expects { data: ... }
+});
+const json = await res.json();
+if (json.error) throw new Error(json.error.message || 'Auth update failed');
   } catch (err) {
     alert('Saved Firestore, but failed to update Auth: ' + err.message);
     return showManageTeachersPopup();
@@ -976,6 +985,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
