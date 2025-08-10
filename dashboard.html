@@ -13,34 +13,35 @@
       min-height: 100vh; min-width: 100vw;
       overflow-x: hidden;
     }
-    .fixed-header {
-      background: #0f3d6b; color: #fff;
-      text-align: center;
-      padding: 18px 0 12px 0;   /* a bit more bottom space */
-      border-bottom-left-radius: 14px;
-      border-bottom-right-radius: 14px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      padding-right: 64px;      /* reserve room for the gear */
+.fixed-header {
+  background: #0f3d6b; color: #fff;
+  text-align: center;
+  padding: 18px 0 12px 0;     /* a bit more bottom room */
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  padding-right: 64px;        /* space for gear */
 }
-    .fixed-header .school-title {
-  color: #fff;
-  margin: 0;
-  white-space: nowrap;                 /* keep on one line */
-  max-width: calc(100% - 88px);        /* leave room for the gear */
-  font-size: clamp(18px, 6.2vw, 30px); /* auto-shrink on small screens */
-  line-height: 1.15;
-  display: inline-block;
+    .fixed-header .school-title{
+  color:#fff; margin:0;
+  line-height:1.15;
+  font-size: 1.9em;           /* adjust if you want bigger/smaller */
+  white-space: normal;        /* keep heading/subheading/year centered */
+  display:block;
 }
-    .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
-    .fixed-header #header-exam {
-      font-size: 1.13em; font-weight: bold; color: #fdc600; margin: 6px 0 0 0;
-    }
+
+    .fixed-header .subtitle{
+  color:#c9e4ff; font-size:.99em; font-weight:400; margin:0;
+  display:block; margin-inline:auto; max-width:calc(100% - 88px);
+}
+    .fixed-header #header-exam{
+  font-size:1.13em; font-weight:bold; color:#fdc600; margin:6px 0 0 0;
+  display:block; margin-inline:auto; max-width:calc(100% - 88px);
+}
         /* pushes everything (including the name) below the fixed header */
-#header-spacer { height: 120px; }
+#header-spacer { height: 132px; }
 
 /* main area no longer needs a huge top margin */
 .main-content {
@@ -1031,6 +1032,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
