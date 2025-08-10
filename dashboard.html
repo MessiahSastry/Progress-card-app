@@ -551,20 +551,7 @@ ${window.__IS_ADMIN__ ? `<button id="manage-teachers-btn" style="margin:10px 0 0
         });
       });
     }
-   // Attach logout handler when the button appears
-const observer = new MutationObserver(() => {
-  const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) {
-    logoutBtn.onclick = function() {
-      auth.signOut().then(() => {
-        window.location.replace('index.html');
-      });
-    };
-    observer.disconnect(); // Stop watching after found
-  }
-});
-observer.observe(document.body, { childList: true, subtree: true });
-
+  
 // Attach class add/settings handlers
 document.getElementById('fab').onclick = showAddClassPopup;
 document.getElementById('settings-btn').onclick = showSettingsPopup;
@@ -629,6 +616,11 @@ document.body.addEventListener('click', function(e) {
   }
   if (e.target && e.target.id === 'change-password-btn') {
     showChangePasswordPopup();
+  }
+  if (e.target && e.target.id === 'logout-btn') {
+    auth.signOut().then(() => {
+      window.location.replace('index.html');
+    });
   }
 });
 
@@ -975,6 +967,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
