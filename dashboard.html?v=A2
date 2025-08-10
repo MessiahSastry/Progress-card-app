@@ -396,7 +396,7 @@ document.getElementById('fab').style.display =
         return true;
       });
 
-      let html = `<div class="screen-title">Select a Class · vA1</div><div class="class-list">`;
+      let html = `<div class="screen-title">Select a Class · vA2</div><div class="class-list">`;
       if (!deduped.length) {
         html += `<div style="color:#888;">No classes found. Click + to add one.</div>`;
       } else {
@@ -975,6 +975,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
