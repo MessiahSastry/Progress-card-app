@@ -653,19 +653,64 @@ function showManageTeachersPopup() {
         html += `<div style="color:#888;margin:18px 0;">No teachers found.</div>`;
       } else {
         html += `<ul style="list-style:none;padding:0;max-height:310px;overflow:auto;">`;
-        teachers.forEach(t => {
-          html += `
-            <li style="margin-bottom:13px;padding-bottom:7px;border-bottom:1px solid #eee;">
+      teachers.forEach(t => {
+        html += `
+          <li style="margin-bottom:13px;padding-bottom:7px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+            <div>
               <b>${t.name || "(No Name)"}${t.tempPassword ? ' (' + t.tempPassword + ')' : ''}</b><br>
-              <span style="font-size:0.99em;color:#333;">${t.email || ""}</span>
-              <button data-uid="${t.uid}" class="delete-teacher-btn" style="float:right;background:#e74c3c;color:#fff;border:none;padding:5px 14px;border-radius:7px;cursor:pointer;">Delete</button>
-            </li>`;
-        });
+              <span style="font-size:0.99em;color:#333;">${t.email || ""}</span><br>
+              <span style="font-size:0.88em;color:#555;">${t.phone || ""}</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button data-uid="${t.uid}" class="edit-teacher-btn" style="background:#1561b8;color:#fff;border:none;padding:5px 10px;border-radius:7px;cursor:pointer;">Edit</button>
+              <button data-uid="${t.uid}" class="delete-teacher-btn" style="background:#e74c3c;color:#fff;border:none;padding:5px 10px;border-radius:7px;cursor:pointer;">Delete</button>
+            </div>
+          </li>`;
+      });
         html += `</ul>`;
       }
       html += `<div class="popup-btn-row"><button type="button" class="popup-cancel-btn">Close</button></div>`;
       showPopup(html);
+// Edit teacher handler
+document.querySelectorAll('.edit-teacher-btn').forEach(btn => {
+  btn.onclick = function() {
+    const uid = btn.getAttribute('data-uid');
+    const teacher = teachers.find(t => t.uid === uid);
+    if (!teacher) return;
 
+    showPopup(`
+      <form id="editTeacherForm" style="display:flex;flex-direction:column;gap:10px;">
+        <div class="popup-title">Edit Teacher</div>
+        <label>Name</label>
+        <input name="name" value="${teacher.name || ''}" required>
+        <label>Email</label>
+        <input name="email" value="${teacher.email || ''}" required>
+        <label>Phone</label>
+        <input name="phone" value="${teacher.phone || ''}">
+        <label>Temp Password</label>
+        <input name="tempPassword" value="${teacher.tempPassword || ''}">
+        <div class="popup-btn-row">
+          <button type="button" class="popup-cancel-btn">Cancel</button>
+          <button type="submit" class="popup-action-btn">Save</button>
+        </div>
+      </form>
+    `, 'editTeacherForm', function(e) {
+      e.preventDefault();
+      const updated = {
+        name: e.target.name.value.trim(),
+        email: e.target.email.value.trim(),
+        phone: e.target.phone.value.trim(),
+        tempPassword: e.target.tempPassword.value.trim() || firebase.firestore.FieldValue.delete()
+      };
+      db.collection('users').doc(uid).update(updated).then(() => {
+        alert("Teacher updated.");
+        showManageTeachersPopup();
+      }).catch(err => {
+        alert("Error updating teacher: " + err.message);
+      });
+    });
+  };
+});
       // Delete teacher handler
       document.querySelectorAll('.delete-teacher-btn').forEach(btn => {
         btn.onclick = function() {
@@ -897,6 +942,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
