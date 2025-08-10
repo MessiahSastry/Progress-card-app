@@ -13,33 +13,25 @@
       min-height: 100vh; min-width: 100vw;
       overflow-x: hidden;
     }
-.fixed-header {
-  background: #0f3d6b; color: #fff;
-  text-align: center;
-  padding: 18px 0 12px 0;     /* a bit more bottom room */
-  border-bottom-left-radius: 14px;
-  border-bottom-right-radius: 14px;
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 1000;
-  padding-right: 64px;        /* space for gear */
-}
-    .fixed-header .school-title{
-  color:#fff; margin:0;
-  line-height:1.15;
-  font-size: 1.9em;           /* adjust if you want bigger/smaller */
-  white-space: normal;        /* keep heading/subheading/year centered */
-  display:block;
-}
-
-    .fixed-header .subtitle{
-  color:#c9e4ff; font-size:.99em; font-weight:400; margin:0;
-  display:block; margin-inline:auto; max-width:calc(100% - 88px);
-}
-    .fixed-header #header-exam{
-  font-size:1.13em; font-weight:bold; color:#fdc600; margin:6px 0 0 0;
-  display:block; margin-inline:auto; max-width:calc(100% - 88px);
-}
+    .fixed-header {
+      background: #0f3d6b; color: #fff;
+      text-align: center;
+      padding: 18px 0 8px 0;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+    }
+    .fixed-header .school-title { color: #fff; font-size: 1.5em; margin: 0; }
+    .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
+    .fixed-header #header-exam {
+      font-size: 1.13em; font-weight: bold; color: #fdc600; margin: 6px 0 0 0;
+    }
+        /* pushes everything (including the name) below the fixed header */
+#header-spacer { height: 120px; }
+    
         /* pushes everything (including the name) below the fixed header */
 #header-spacer { height: 132px; }
 
@@ -1032,6 +1024,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
