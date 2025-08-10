@@ -71,6 +71,15 @@
 </head>
 <body>
   <div id="login-root"></div>
+<!-- Splash Overlay (after-login) -->
+<div id="splash" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#fff;z-index:2000;">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+    <img id="splashLogoImg" src="" alt="School Logo" style="width:120px;height:120px;object-fit:contain;"/>
+    <div id="splashSchoolName" style="font-weight:800;color:#0f3d6b;font-size:1.1em;text-align:center;"></div>
+    <div style="width:44px;height:44px;border:4px solid #e1ecf7;border-top-color:#1762a7;border-radius:50%;animation:spin 1s linear infinite;"></div>
+  </div>
+</div>
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -91,6 +100,49 @@
     const auth = firebase.auth();
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const db = firebase.firestore();
+
+// Splash helpers (Firebase Storage logo)
+async function resolveLogoUrl(schoolData) {
+  try {
+    const direct = schoolData?.logoUrl || schoolData?.logo || schoolData?.logo1;
+    if (direct && (/^https?:/i.test(direct) || /^data:/i.test(direct))) return direct;
+
+    const path = schoolData?.logoPath || schoolData?.logoStoragePath || schoolData?.storageLogo || schoolData?.logoRef || schoolData?.storagePath;
+    if (!path) return null;
+
+    const storage = firebase.storage();
+    const ref = path.startsWith('gs://') ? storage.refFromURL(path) : storage.ref(path);
+    return await ref.getDownloadURL();
+  } catch (e) {
+    console.warn('Logo fetch failed:', e);
+    return null;
+  }
+}
+
+async function showSplash() {
+  const splash = document.getElementById('splash');
+  if (splash) splash.style.display = 'flex';
+
+  let schoolData = {};
+  try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch (e) {}
+
+  const schoolName = schoolData?.name || schoolData?.schoolName || 'Your School';
+  const nameEl = document.getElementById('splashSchoolName');
+  if (nameEl) nameEl.textContent = schoolName;
+
+  const img = document.getElementById('splashLogoImg');
+  if (img) {
+    let url = await resolveLogoUrl(schoolData);
+    if (!url) url = 'schoollogo1.png'; // fallback
+    img.src = url;
+    img.onerror = () => { img.style.display = 'none'; };
+  }
+}
+
+async function goToDashboard() {
+  try { await showSplash(); } catch (e) {}
+  setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+}
 
     const loginRoot = document.getElementById('login-root');
 
@@ -132,14 +184,14 @@
   if (!schoolDoc.exists) throw new Error("School info not found!");
   const schoolData = schoolDoc.data();
   localStorage.setItem("schoolData", JSON.stringify(schoolData));
-  window.location.href = "dashboard.html";
+  goToDashboard();
 })
         .then(schoolDoc => {
           if (!schoolDoc.exists) throw new Error("School info not found!");
           const schoolData = schoolDoc.data();
           localStorage.setItem("schoolData", JSON.stringify(schoolData));
           // 3. Go to dashboard
-          window.location.href = "dashboard.html";
+          goToDashboard();
         })
         .catch(err => {
           let msg = err.message;
@@ -155,7 +207,7 @@
     const cachedUser = localStorage.getItem("userData");
     const cachedSchool = localStorage.getItem("schoolData");
     if (cachedUser && cachedSchool) {
-      window.location.replace("dashboard.html");
+      goToDashboard();
       return;
     }
 
@@ -267,6 +319,7 @@ async function sendResetEmail() {
 </script>
 </body>
 </html>
+
 
 
 
