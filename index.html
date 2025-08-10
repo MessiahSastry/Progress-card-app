@@ -117,18 +117,26 @@
       const password = document.getElementById('password').value.trim();
       if (!email || !password) return alert('Enter email and password!');
       auth.signInWithEmailAndPassword(email, password)
-        .then(userCred => {
-          const uid = userCred.user.uid;
-          // 1. Fetch user profile from Firestore
-          return db.collection('users').doc(uid).get();
-        })
-        .then(doc => {
-          if (!doc.exists) throw new Error("User profile not found in Firestore.");
-          const userData = doc.data();
-          localStorage.setItem("userData", JSON.stringify(userData));
-          // 2. Fetch school info from Firestore
-          return db.collection('schools').doc(userData.schoolId).get();
-        })
+        .then(async userCred => {
+  const email = (userCred.user.email || '').trim().toLowerCase();
+  const snap = await db.collection('users').where('email', '==', email).get();
+
+  if (snap.empty) throw new Error("User profile not found in Firestore.");
+
+  if (snap.size > 1) {
+    // If same email is used for multiple schools, pick the first for now
+    console.warn("Multiple user docs for this email; using the first.");
+  }
+  const userDoc = snap.docs[0];
+  const userData = userDoc.data();
+  localStorage.setItem("userData", JSON.stringify(userData));
+
+  const schoolDoc = await db.collection('schools').doc(userData.schoolId).get();
+  if (!schoolDoc.exists) throw new Error("School info not found!");
+  const schoolData = schoolDoc.data();
+  localStorage.setItem("schoolData", JSON.stringify(schoolData));
+  window.location.href = "dashboard.html";
+})
         .then(schoolDoc => {
           if (!schoolDoc.exists) throw new Error("School info not found!");
           const schoolData = schoolDoc.data();
@@ -153,13 +161,21 @@
           window.location.replace("dashboard.html");
         } else {
           // Fetch info if not in localStorage (refresh/login)
-          db.collection('users').doc(user.uid).get()
-            .then(doc => {
-              if (!doc.exists) throw new Error("User profile not found in Firestore.");
-              const userData = doc.data();
-              localStorage.setItem("userData", JSON.stringify(userData));
-              return db.collection('schools').doc(userData.schoolId).get();
-            })
+          (async () => {
+  const email = (user.email || '').trim().toLowerCase();
+  const snap = await db.collection('users').where('email', '==', email).get();
+  if (snap.empty) throw new Error("User profile not found in Firestore.");
+
+  const userDoc = snap.docs[0];
+  const userData = userDoc.data();
+  localStorage.setItem("userData", JSON.stringify(userData));
+
+  const schoolDoc = await db.collection('schools').doc(userData.schoolId).get();
+  if (!schoolDoc.exists) throw new Error("School info not found!");
+  const schoolData = schoolDoc.data();
+  localStorage.setItem("schoolData", JSON.stringify(schoolData));
+  window.location.replace("dashboard.html");
+})().catch(() => { showLoginUI(); });
             .then(schoolDoc => {
               if (!schoolDoc.exists) throw new Error("School info not found!");
               const schoolData = schoolDoc.data();
@@ -337,3 +353,4 @@ closeResetModal();
 </script>
 </body>
 </html>
+
