@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard - St. Patrick's Progress Card App</title>
+  <title>CampusConnect – Multi School Progress Card App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
@@ -312,7 +312,8 @@ const fns = firebase.app().functions('us-central1');
         if (schoolDoc.exists) {
           schoolData = schoolDoc.data();
           document.getElementById('school-title').textContent = schoolData.name || "School Name";
-          document.getElementById('header-subtitle').textContent = schoolData.subtitle || "";
+          document.getElementById('header-subtitle').textContent = schoolData.subtitle || "CampusConnect";
+
           localStorage.setItem("schoolData", JSON.stringify({
             name: schoolData.name,
             subtitle: schoolData.subtitle,
@@ -965,25 +966,33 @@ function handleBulkTeacherUpload() {
   addNext(0);
 }
   </script>
+  <style>
+  #cc-alert { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: #00000066; z-index: 3000; }
+  #cc-alert .box { width: 92vw; max-width: 360px; background: #fff; border-radius: 14px; box-shadow: 0 10px 28px #0f3d6b22; padding: 16px; }
+  #cc-alert .title { font-weight: 800; color: #0f3d6b; font-size: 1.05em; margin-bottom: 8px; }
+  #cc-alert .msg { color: #223; margin-bottom: 12px; white-space: pre-wrap; }
+  #cc-alert .ok { width: 100%; padding: 10px; border: none; border-radius: 8px; background: #1762a7; color: #fff; font-weight: 700; cursor: pointer; }
+</style>
+
+<div id="cc-alert" role="dialog" aria-modal="true" aria-labelledby="cc-alert-title">
+  <div class="box">
+    <div id="cc-alert-title" class="title">CampusConnect</div>
+    <div id="cc-alert-msg" class="msg"></div>
+    <button class="ok" onclick="closeCcAlert()">OK</button>
+  </div>
+</div>
+
+<script>
+  function ccAlert(message, title = 'CampusConnect') {
+    document.getElementById('cc-alert-title').textContent = title;
+    document.getElementById('cc-alert-msg').textContent = String(message ?? '');
+    document.getElementById('cc-alert').style.display = 'flex';
+  }
+  function closeCcAlert() {
+    document.getElementById('cc-alert').style.display = 'none';
+  }
+  // Use CampusConnect alert everywhere on this page
+  window.alert = (msg) => ccAlert(msg);
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
