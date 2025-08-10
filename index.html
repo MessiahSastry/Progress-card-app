@@ -211,15 +211,22 @@ function setupRecaptcha() {
 
 window.startPhoneReset = async function() {
   try {
-    const phone = (document.getElementById('rp-phone')?.value || '').trim();
-    if (!phone) return alert('Enter registered phone number with country code (e.g., +91XXXXXXXXXX).');
+    let phone = (document.getElementById('rp-phone')?.value || '').trim();
+    phone = phone.replace(/\s+/g, '');
+
+    // If user typed exactly 10 digits, assume India and prepend +91
+    if (/^\d{10}$/.test(phone)) phone = '+91' + phone;
+
+    // Final check: must be + and 10-15 digits
+    if (!/^\+\d{10,15}$/.test(phone)) {
+      return alert('Enter phone in international format, e.g., +91XXXXXXXXXX');
+    }
 
     if (!_appVerifier) setupRecaptcha();
     _confirmationResult = await auth.signInWithPhoneNumber(phone, _appVerifier);
 
     const area = document.getElementById('rp-otp-area');
     if (area) area.style.display = 'block';
-
     alert('OTP sent to your phone.');
   } catch (e) {
     alert(e.message || 'Failed to send OTP.');
@@ -278,6 +285,7 @@ window.verifyOtpAndSetPassword = async function() {
 </div>
 </body>
 </html>
+
 
 
 
