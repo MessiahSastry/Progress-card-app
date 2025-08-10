@@ -77,7 +77,7 @@
       border-width: 3.2px;
       box-shadow: 0 4px 22px #1467b71a;
     }
-    .fab, .settings-btn, #add-teacher-fab {
+    .fab, #add-teacher-fab {
   position: fixed;
   right: 22px;
   width: 44px;
@@ -98,7 +98,26 @@
 /* Individual bottom positions so they don't overlap */
 .fab { bottom: 30px; display:none; }
 #add-teacher-fab { bottom: 86px; }
-.settings-btn { bottom: 142px; }
+/* Settings in header (like second code) */
+.settings-btn {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 1.1em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color .2s;
+}
+.settings-btn:hover { background: rgba(255,255,255,0.25); }
 
 .fab:active, .settings-btn:active, #add-teacher-fab:active { background: #195084; box-shadow: 0 2px 8px #0f3d6b44; }
 .fab::before { content: "+"; display: block; font-size: 1.1em; font-weight: bold; color: #fff; line-height: 1; text-align: center; }
@@ -211,15 +230,20 @@
     <div class="subtitle" id="header-subtitle"></div>
     <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
   </div> <!-- closes .fixed-header -->
-  <div id="header-spacer"></div>
+    <!-- Settings button inside header -->
+  <button class="settings-btn" id="settings-btn" title="Settings">
+    <i class="fa fa-cog"></i>
+  </button>
+</div> <!-- closes .fixed-header -->
+
+<div id="header-spacer"></div>
 <div id="user-name-display"></div>
 <div class="main-content" id="main-area"></div>
-  <button class="fab" id="fab"></button>
-<!-- Add this line below your existing FAB -->
+
+<button class="fab" id="fab"></button>
 <button class="add-teacher-btn" id="add-teacher-fab" style="bottom:86px;display:none;" title="Add Teacher">
   <i class="fa fa-user-plus"></i>
 </button>
-  <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
   <!-- Popup Modal -->
   <div id="popup-bg">
     <div id="popup-content"></div>
@@ -996,3 +1020,4 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
