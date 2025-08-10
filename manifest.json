@@ -1,20 +1,14 @@
 {
   "name": "St. Patrick's Progress Card App",
   "short_name": "StudentReport",
-  "start_url": "./index.html",
+  "id": "/Progress-card-app/index.html",
+  "start_url": "/Progress-card-app/index.html",
+  "scope": "/Progress-card-app/",
   "display": "standalone",
   "background_color": "#f4f8fc",
   "theme_color": "#0f3d6b",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
+    { "src": "icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "icon-512.png", "type": "image/png", "sizes": "512x512" }
   ]
 }
