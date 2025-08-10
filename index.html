@@ -248,8 +248,10 @@ window.verifyOtpAndSetPassword = async function() {
     const phoneUser = result.user; // not used further, but proves verification
 
     // Call Cloud Function to update the real account password
-    const callable = functions.httpsCallable('resetPasswordWithPhone');
-    const resp = await callable({ phone, newPassword: newPass });
+   // No phone sent — server will read from verified OTP session
+const callable = functions.httpsCallable('resetPasswordWithPhone');
+const resp = await callable({ newPassword: newPass });
+
 
     await auth.signOut(); // sign out temporary phone session
 
@@ -285,6 +287,7 @@ window.verifyOtpAndSetPassword = async function() {
 </div>
 </body>
 </html>
+
 
 
 
