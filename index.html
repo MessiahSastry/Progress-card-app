@@ -153,43 +153,40 @@
     };
 
     auth.onAuthStateChanged(function (user) {
-      if (user) {
-        // If already logged in, check localStorage and redirect
-        const userData = localStorage.getItem("userData");
-        const schoolData = localStorage.getItem("schoolData");
-        if (userData && schoolData) {
-          window.location.replace("dashboard.html");
-        } else {
-          // Fetch info if not in localStorage (refresh/login)
-          (async () => {
-  const email = (user.email || '').trim().toLowerCase();
-  const snap = await db.collection('users').where('email', '==', email).get();
-  if (snap.empty) throw new Error("User profile not found in Firestore.");
+  if (user) {
+    // If already logged in, check localStorage and redirect
+    const cachedUser = localStorage.getItem("userData");
+    const cachedSchool = localStorage.getItem("schoolData");
+    if (cachedUser && cachedSchool) {
+      window.location.replace("dashboard.html");
+      return;
+    }
 
-  const userDoc = snap.docs[0];
-  const userData = userDoc.data();
-  localStorage.setItem("userData", JSON.stringify(userData));
+    // Fresh fetch by EMAIL (not doc(uid))
+    (async () => {
+      const email = (user.email || '').trim().toLowerCase();
+      const snap = await db.collection('users').where('email', '==', email).get();
+      if (snap.empty) throw new Error("User profile not found in Firestore.");
 
-  const schoolDoc = await db.collection('schools').doc(userData.schoolId).get();
-  if (!schoolDoc.exists) throw new Error("School info not found!");
-  const schoolData = schoolDoc.data();
-  localStorage.setItem("schoolData", JSON.stringify(schoolData));
-  window.location.replace("dashboard.html");
-})().catch(() => { showLoginUI(); });
-            .then(schoolDoc => {
-              if (!schoolDoc.exists) throw new Error("School info not found!");
-              const schoolData = schoolDoc.data();
-              localStorage.setItem("schoolData", JSON.stringify(schoolData));
-              window.location.replace("dashboard.html");
-            })
-            .catch(() => {
-              showLoginUI();
-            });
-        }
-      } else {
-        showLoginUI();
-      }
+      const userDoc = snap.docs[0];
+      const userData = userDoc.data();
+      localStorage.setItem("userData", JSON.stringify(userData));
+
+      const schoolDoc = await db.collection('schools').doc(userData.schoolId).get();
+      if (!schoolDoc.exists) throw new Error("School info not found!");
+      const schoolData = schoolDoc.data();
+      localStorage.setItem("schoolData", JSON.stringify(schoolData));
+
+      window.location.replace("dashboard.html");
+    })().catch((e) => {
+      console.warn(e);
+      showLoginUI();
     });
+
+  } else {
+    showLoginUI();
+  }
+});
     // --- Forgot Password via Phone OTP ---
 const functions = firebase.app().functions('asia-south1');
 
@@ -353,4 +350,5 @@ closeResetModal();
 </script>
 </body>
 </html>
+
 
