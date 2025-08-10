@@ -730,7 +730,7 @@ db.collection('users').doc(uid).update(updated).then(async () => {
       return;
     }
     const token = await auth.currentUser.getIdToken(true);
-await fns.httpsCallable('adminUpdateUser')({ ...payload, idToken: token });
+await fns.httpsCallable('adminUpdateUser')({ ...payload, idToken: 'TEST' });
   } catch (err) {
     alert('Saved Firestore, but failed to update Auth: ' + err.message);
     return showManageTeachersPopup();
@@ -975,6 +975,7 @@ function handleBulkTeacherUpload() {
   </script>
 </body>
 </html>
+
 
 
 
