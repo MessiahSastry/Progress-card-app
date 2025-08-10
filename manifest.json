@@ -1,7 +1,7 @@
 {
   "name": "Campus Connect",
   "short_name": "Campus Connect",
-  "start_url": ./index.html",
+  "start_url": "./index.html",
    "display": "standalone",
   "background_color": "#f4f8fc",
   "theme_color": "#0f3d6b",
@@ -18,4 +18,5 @@
     }
   ]
 }
+
 
