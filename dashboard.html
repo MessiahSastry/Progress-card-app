@@ -23,6 +23,7 @@
       top: 0;
       left: 0;
       right: 0;
+      z-index: 1000;
     }
     .fixed-header .school-title { color: #fff; font-size: 1.5em; margin: 0; }
     .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
@@ -116,6 +117,7 @@
   align-items: center;
   justify-content: center;
   transition: background-color .2s;
+  z-index: 1001;
 }
 .settings-btn:hover { background: rgba(255,255,255,0.25); }
 
@@ -229,13 +231,11 @@
     <div class="school-title" id="school-title"></div>
     <div class="subtitle" id="header-subtitle"></div>
     <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
-  </div> <!-- closes .fixed-header -->
     <!-- Settings button inside header -->
-  <button class="settings-btn" id="settings-btn" title="Settings">
+  <button class="settings-btn" id="settings-btn" title="Settings" aria-label="Settings">
     <i class="fa fa-cog"></i>
   </button>
 </div> <!-- closes .fixed-header -->
-
 <div id="header-spacer"></div>
 <div id="user-name-display"></div>
 <div class="main-content" id="main-area"></div>
@@ -1020,4 +1020,5 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
