@@ -26,7 +26,15 @@
       z-index: 1000;
       padding-right: 64px;      /* reserve room for the gear */
 }
-    .fixed-header .school-title { color: #fff; font-size: 1.5em; margin: 0; }
+    .fixed-header .school-title {
+  color: #fff;
+  margin: 0;
+  white-space: nowrap;                 /* keep on one line */
+  max-width: calc(100% - 88px);        /* leave room for the gear */
+  font-size: clamp(18px, 6.2vw, 30px); /* auto-shrink on small screens */
+  line-height: 1.15;
+  display: inline-block;
+}
     .fixed-header .subtitle { color: #c9e4ff; font-size: .99em; font-weight: 400; margin: 0; }
     .fixed-header #header-exam {
       font-size: 1.13em; font-weight: bold; color: #fdc600; margin: 6px 0 0 0;
@@ -1023,6 +1031,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
