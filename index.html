@@ -175,7 +175,7 @@
       }
     });
     // --- Forgot Password via Phone OTP ---
-const functions = firebase.functions();
+const functions = firebase.app().functions('asia-south1');
 
 let _appVerifier = null;
 let _confirmationResult = null;
@@ -287,6 +287,7 @@ const resp = await callable({ newPassword: newPass });
 </div>
 </body>
 </html>
+
 
 
 
