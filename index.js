@@ -26,8 +26,30 @@ exports.resetPasswordWithPhone = functions
 if (q.empty) {
   throw new functions.https.HttpsError('not-found', `No Firestore user found for ${verifiedPhone}`);
 }
+// If multiple docs share the phone, require the caller to specify email
 if (q.size > 1) {
-  throw new functions.https.HttpsError('failed-precondition', `Multiple user records share phone ${verifiedPhone}. Make it unique.`);
+  const requestedEmail = (data?.email || '').trim().toLowerCase();
+  if (!requestedEmail) {
+    // Send back the candidate emails so the client can prompt the user
+    const candidates = q.docs.map(d => (d.data()?.email || '')).filter(Boolean);
+    throw new functions.https.HttpsError(
+      'failed-precondition',
+      `Multiple accounts share this phone. Specify email.`,
+      { candidates }
+    );
+  }
+  // Narrow to the matching Firestore record
+  const pick = q.docs.find(d => ((d.data()?.email || '').trim().toLowerCase() === requestedEmail));
+  if (!pick) {
+    throw new functions.https.HttpsError('not-found', `No Firestore user with this phone and email ${requestedEmail}.`);
+  }
+  // Overwrite single-doc path with chosen record
+  const chosenData = pick.data();
+  const targetEmail = (chosenData?.email || '').trim();
+  if (!targetEmail) throw new functions.https.HttpsError('failed-precondition', 'User record has no email.');
+  const au = await admin.auth().getUserByEmail(targetEmail);
+  await admin.auth().updateUser(au.uid, { password: newPassword });
+  return { ok: true, message: 'Password updated.', targetEmail, uid: au.uid };
 }
 
 const userDoc = q.docs[0];
