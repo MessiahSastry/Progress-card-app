@@ -49,6 +49,7 @@ if (q.size > 1) {
   if (!targetEmail) throw new functions.https.HttpsError('failed-precondition', 'User record has no email.');
   const au = await admin.auth().getUserByEmail(targetEmail);
   await admin.auth().updateUser(au.uid, { password: newPassword });
+  console.log(`✅ Password updated in Auth for: ${targetEmail}`);
   return { ok: true, message: 'Password updated.', targetEmail, uid: au.uid };
 }
 
