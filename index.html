@@ -185,14 +185,7 @@ async function goToDashboard() {
   const schoolData = schoolDoc.data();
   localStorage.setItem("schoolData", JSON.stringify(schoolData));
   goToDashboard();
-})
-        .then(schoolDoc => {
-          if (!schoolDoc.exists) throw new Error("School info not found!");
-          const schoolData = schoolDoc.data();
-          localStorage.setItem("schoolData", JSON.stringify(schoolData));
-          // 3. Go to dashboard
-          goToDashboard();
-        })
+    })
         .catch(err => {
           let msg = err.message;
           if (msg.includes('no user')) msg = "No such account.";
@@ -319,6 +312,7 @@ async function sendResetEmail() {
 </script>
 </body>
 </html>
+
 
 
 
