@@ -252,11 +252,13 @@ window.verifyOtpAndSetPassword = async function() {
 const callable = functions.httpsCallable('resetPasswordWithPhone');
 const resp = await callable({ newPassword: newPass });
 
+await auth.signOut();
+localStorage.removeItem('userData');
+localStorage.removeItem('schoolData');
 
-    await auth.signOut(); // sign out temporary phone session
-
-    alert(resp?.data?.message || 'Password updated. Please sign in with new password.');
-    closeResetModal();
+const updatedEmail = resp?.data?.targetEmail || '(unknown email)';
+alert(`Password updated for: ${updatedEmail}\nNow sign in with this email and your new password.`);
+closeResetModal();
   } catch (e) {
     alert(e.message || 'Failed to verify or update password.');
   }
@@ -287,6 +289,7 @@ const resp = await callable({ newPassword: newPass });
 </div>
 </body>
 </html>
+
 
 
 
