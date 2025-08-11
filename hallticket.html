@@ -310,6 +310,7 @@ function getClassGroupName(className) {
   const examChoices = new Choices(examSel, { searchEnabled: false, itemSelectText: '', shouldSort: false });
 
   let years = [], classes = [], sections = [], exams = [];
+let lastSectionId = null;
 
   // LOADERS (like memo.html)
   async function loadYears() {
@@ -368,9 +369,10 @@ function getClassGroupName(className) {
 }
   yearSel.onchange = () => loadClasses();
   classSel.onchange = () => loadSections();
-  sectionSel.onchange = async () => {
+ sectionSel.onchange = async () => {
   const list = document.getElementById('studentsListSection');
   if (list) list.textContent = "Loading students...";
+  lastSectionId = sectionSel.value; // guard for stale updates
   await loadExams();
   await renderStudentsList();
 };
@@ -618,5 +620,6 @@ function getClassGroupName(className) {
 </script>
 </body>
 </html>
+
 
 
