@@ -293,7 +293,9 @@ function getClassGroupName(className) {
   async function getStudents() {
   let year = yearSel.value;
   let classId = classSel.value;
-  let sectionId = sectionSel.value;
+  let sectionId = (sectionChoices && typeof sectionChoices.getValue === 'function')
+  ? sectionChoices.getValue(true)
+  : sectionSel.value;
   let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').doc(sectionId).collection('students').orderBy('roll').get();
   let arr = [];
   snap.forEach(doc => { let d=doc.data(); if (!d.isDeleted) arr.push({ ...d }); });
@@ -622,6 +624,7 @@ let lastSectionId = null;
 </script>
 </body>
 </html>
+
 
 
 
