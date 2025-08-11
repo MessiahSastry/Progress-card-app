@@ -290,17 +290,23 @@ function getClassGroupName(className) {
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-  async function getStudents() {
+  async function getStudents(sectionIdOverride) {
   let year = yearSel.value;
   let classId = classSel.value;
-  let sectionId = (sectionChoices && typeof sectionChoices.getValue === 'function')
-  ? sectionChoices.getValue(true)
-  : sectionSel.value;
-  let snap = await db.collection('years').doc(year).collection('classes').doc(classId).collection('sections').doc(sectionId).collection('students').orderBy('roll').get();
+  let sectionId = sectionIdOverride || ((sectionChoices && typeof sectionChoices.getValue === 'function')
+    ? sectionChoices.getValue(true)
+    : sectionSel.value);
+
+  let snap = await db.collection('years').doc(year)
+    .collection('classes').doc(classId)
+    .collection('sections').doc(sectionId)
+    .collection('students').orderBy('roll').get();
+
   let arr = [];
-  snap.forEach(doc => { let d=doc.data(); if (!d.isDeleted) arr.push({ ...d }); });
+  snap.forEach(doc => { let d = doc.data(); if (!d.isDeleted) arr.push({ ...d }); });
   return arr;
 }
+
   // Choices.js
   const yearSel = document.getElementById('yearSel');
   const classSel = document.getElementById('classSel');
@@ -374,10 +380,14 @@ let lastSectionId = null;
  sectionSel.onchange = async () => {
   const list = document.getElementById('studentsListSection');
   if (list) list.textContent = "Loading students...";
-  lastSectionId = sectionSel.value; // guard for stale updates
+  const newSectionId = (sectionChoices && typeof sectionChoices.getValue === 'function')
+    ? sectionChoices.getValue(true)
+    : sectionSel.value;
+  lastSectionId = newSectionId;
   await loadExams();
-  await renderStudentsList();
+  await renderStudentsList(newSectionId);
 };
+
   firebase.auth().onAuthStateChanged(function(user) {
   if (!user) window.location.replace("login.html");
   else loadYears();
@@ -508,17 +518,28 @@ let lastSectionId = null;
     let d = new Date(dateStr);
     return d.toLocaleDateString('en-GB').replace(/\//g,'-');
   }
- async function renderStudentsList() {
+async function renderStudentsList(sectionIdOverride) {
   const studentsDiv = document.getElementById('studentsListSection');
-  const mySectionId = lastSectionId || sectionSel.value; // snapshot
+  const selectedNow = (sectionChoices && typeof sectionChoices.getValue === 'function')
+    ? sectionChoices.getValue(true)
+    : sectionSel.value;
+  const mySectionId = sectionIdOverride || lastSectionId || selectedNow; // snapshot
+
   studentsDiv.innerHTML = "Loading students...";
-  let students = await getStudents();
-  if (mySectionId !== lastSectionId) return; // user switched sections; drop stale update
+  let students = await getStudents(mySectionId);
+
+  // If user switched sections while loading, abort rendering
+  const selectedAfter = (sectionChoices && typeof sectionChoices.getValue === 'function')
+    ? sectionChoices.getValue(true)
+    : sectionSel.value;
+  if (mySectionId !== selectedAfter) return;
+
   if (!students.length) {
     studentsDiv.innerHTML = "<span style='color:#b00;'>No students found for this class/section.</span>";
     return;
   }
-  let html = `<table style="width:100%;border-collapse:collapse;font-size:1.1em;">
+
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:1.1em;">`
     <tr style="background:#e8f0fb;"><th style="padding:7px 0;">Roll</th><th>Name</th><th></th></tr>`;
   for (let stu of students) {
     html += `<tr>
@@ -624,6 +645,7 @@ let lastSectionId = null;
 </script>
 </body>
 </html>
+
 
 
 
