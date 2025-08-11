@@ -368,8 +368,10 @@ function getClassGroupName(className) {
 }
   yearSel.onchange = () => loadClasses();
   classSel.onchange = () => loadSections();
-  sectionSel.onchange = () => loadExams();
-
+  sectionSel.onchange = () => {
+  loadExams();
+  renderStudentsList(); // refresh names when section changes
+};
   firebase.auth().onAuthStateChanged(function(user) {
   if (!user) window.location.replace("login.html");
   else loadYears();
@@ -614,3 +616,4 @@ function getClassGroupName(className) {
 </script>
 </body>
 </html>
+
