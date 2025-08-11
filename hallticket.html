@@ -368,9 +368,11 @@ function getClassGroupName(className) {
 }
   yearSel.onchange = () => loadClasses();
   classSel.onchange = () => loadSections();
-  sectionSel.onchange = () => {
-  loadExams();
-  renderStudentsList(); // refresh names when section changes
+  sectionSel.onchange = async () => {
+  const list = document.getElementById('studentsListSection');
+  if (list) list.textContent = "Loading students...";
+  await loadExams();
+  await renderStudentsList();
 };
   firebase.auth().onAuthStateChanged(function(user) {
   if (!user) window.location.replace("login.html");
@@ -616,4 +618,5 @@ function getClassGroupName(className) {
 </script>
 </body>
 </html>
+
 
