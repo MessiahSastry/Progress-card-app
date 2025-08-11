@@ -506,10 +506,12 @@ let lastSectionId = null;
     let d = new Date(dateStr);
     return d.toLocaleDateString('en-GB').replace(/\//g,'-');
   }
-  async function renderStudentsList() {
+ async function renderStudentsList() {
   const studentsDiv = document.getElementById('studentsListSection');
+  const mySectionId = lastSectionId || sectionSel.value; // snapshot
   studentsDiv.innerHTML = "Loading students...";
   let students = await getStudents();
+  if (mySectionId !== lastSectionId) return; // user switched sections; drop stale update
   if (!students.length) {
     studentsDiv.innerHTML = "<span style='color:#b00;'>No students found for this class/section.</span>";
     return;
@@ -620,6 +622,7 @@ let lastSectionId = null;
 </script>
 </body>
 </html>
+
 
 
 
