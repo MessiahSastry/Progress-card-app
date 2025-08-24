@@ -560,30 +560,40 @@ renderClassList();
     .collection('years')
     .get()
     .then(snap => {
-      // DEBUG
-      console.log('[Settings] schoolId =', schoolId, 'years size =', snap.size, 'ids =', snap.docs.map(d => d.id));
-
+      // gather years
       let years = [];
       snap.forEach(doc => years.push(doc.id));
-
-      // never-empty fallback
       if (academicYear && !years.includes(academicYear)) years.push(academicYear);
+      years.sort((a,b)=>b.localeCompare(a));
 
-      years.sort((a, b) => b.localeCompare(a));
+      const selected = academicYear || (years[0] || '2025-26');
 
-      const optionsHtml = years.map(y =>
-        `<option value="${y}" ${y === academicYear ? 'selected' : ''}>${y}</option>`
-      ).join('');
+      // build modal-style dropdown list
+      const listItems = years.map(y => `
+        <div class="cc-opt" data-value="${y}"
+             style="padding:12px 10px;border-bottom:1px solid #eef;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+          <span>${y}</span>${y===selected?'<i class="fa fa-check"></i>':''}
+        </div>
+      `).join('');
 
       const html = `
         <form id="yearForm">
           <div class="popup-title">Academic Year</div>
 
           <label>Select Academic Year</label>
-          <select name="yearSel" required
-            style="width:96%;box-sizing:border-box;padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;margin-bottom:6px;">
-            ${optionsHtml}
-          </select>
+          <!-- fake select that opens an in-modal list -->
+          <div id="cc-year-picker"
+               style="width:96%;box-sizing:border-box;padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;background:#f7fafd;display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:6px;">
+            <span id="cc-year-picker-text">${selected}</span>
+            <i class="fa fa-chevron-down"></i>
+          </div>
+          <input type="hidden" name="yearSel" value="${selected}">
+
+          <!-- the modal-style dropdown list (inside the popup) -->
+          <div id="cc-year-menu"
+               style="display:none;max-height:220px;overflow:auto;border:1px solid #d2e3fa;border-radius:8px;background:#fff;margin:-2px 0 10px 0;box-shadow:0 8px 20px #0f3d6b22;">
+            ${listItems || '<div style="padding:12px 10px;color:#777;">No years</div>'}
+          </div>
 
           ${window.__IS_ADMIN__ ? `
             <div style="text-align:right; margin-bottom:10px;">
@@ -629,15 +639,31 @@ renderClassList();
         }
       });
 
-      // FINAL GUARANTEE: if the select somehow has no options, inject one now
-      setTimeout(() => {
-        const selEl = document.querySelector('#yearForm select[name=yearSel]');
-        if (selEl && selEl.options.length === 0) {
-          console.warn('[Settings] Select was empty; injecting fallback', academicYear);
-          const opt = new Option(academicYear || '2025-26', academicYear || '2025-26', true, true);
-          selEl.add(opt);
-        }
-      }, 0);
+      // wire up the modal dropdown behaviour
+      const picker   = document.getElementById('cc-year-picker');
+      const menu     = document.getElementById('cc-year-menu');
+      const textEl   = document.getElementById('cc-year-picker-text');
+      const hiddenEl = () => document.querySelector('#yearForm [name=yearSel]');
+
+      picker.onclick = () => {
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+      };
+
+      // pick an option
+      menu.querySelectorAll('.cc-opt').forEach(opt => {
+        opt.onclick = () => {
+          const val = opt.getAttribute('data-value');
+          hiddenEl().value = val;
+          textEl.textContent = val;
+          menu.style.display = 'none';
+        };
+      });
+
+      // close the list if user clicks elsewhere inside the popup
+      popupContent.addEventListener('click', (ev) => {
+        const within = ev.target.closest('#cc-year-picker') || ev.target.closest('#cc-year-menu');
+        if (!within) menu.style.display = 'none';
+      }, { once:false });
     })
     .catch(err => {
       console.error('[Settings] years get() failed:', err);
@@ -645,18 +671,14 @@ renderClassList();
       const html = `
         <form id="yearForm">
           <div class="popup-title">Academic Year</div>
-          <div style="color:#c00; margin-bottom:8px;">${err.message}</div>
           <label>Select Academic Year</label>
-          <select name="yearSel" required
-            style="width:96%;box-sizing:border-box;padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;margin-bottom:6px;">
-            <option value="${fallback}" selected>${fallback}</option>
-          </select>
+          <div style="padding:10px;border:1px solid #d2e3fa;border-radius:7px;background:#f7fafd;margin-bottom:10px;">${fallback}</div>
+          <input type="hidden" name="yearSel" value="${fallback}">
           <div class="popup-btn-row">
             <button type="button" class="popup-cancel-btn">Cancel</button>
             <button type="submit" class="popup-action-btn">Save</button>
           </div>
-        </form>
-      `;
+        </form>`;
       showPopup(html, 'yearForm', function (e) {
         e.preventDefault();
         const sel = e.target.yearSel.value;
@@ -1138,6 +1160,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
