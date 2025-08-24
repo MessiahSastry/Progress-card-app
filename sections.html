@@ -209,7 +209,8 @@ auth.onAuthStateChanged(async function(user) {
 }
 // NEW: toggle FAB immediately based on admin status
 fab.style.display = isAdmin ? 'flex' : 'none';
-
+fab.disabled = !isAdmin;
+fab.style.opacity = isAdmin ? 1 : 0.5;
 // Re-evaluate FAB visibility now that isAdmin is known
 if (typeof loadSections === 'function') loadSections();
 });
@@ -408,6 +409,7 @@ try {
   </script>
 </body>
 </html>
+
 
 
 
