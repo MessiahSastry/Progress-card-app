@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Sections - St. Patrick's Progress Card App</title>
+  <title>Sections – CampusConnect</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
@@ -165,13 +165,13 @@
 </head>
 <body>
   <div class="fixed-header" id="header">
-    <div class="school-title">St. Patrick's School</div>
-    <div class="subtitle">IIT & NEET FOUNDATION</div>
+    <div class="school-title" id="school-title"></div>
+<div class="subtitle" id="header-subtitle"></div>
     <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
   </div>
   <div id="current-class-title" class="class-title-bar"></div>
   <div class="main-content" id="main-area"></div>
-  <button class="fab" id="fab"></button>
+  <button class="fab" id="fab" style="display:none;"></button>
   <div id="popup-bg">
     <div id="popup-content"></div>
   </div>
@@ -190,25 +190,62 @@
       appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    auth.onAuthStateChanged(function(user) {
-      if (!user) {
-        window.location.replace("index.html");
-      }
-    });
+   const db = firebase.firestore();
+const auth = firebase.auth();
+
+let isAdmin = false;
+auth.onAuthStateChanged(async function(user) {
+  if (!user) {
+    window.location.replace("index.html");
+    return;
+  }
+  try {
+    const udoc = await db.collection('users').doc(user.uid).get();
+    isAdmin = !!(udoc.exists && udoc.data().role === 'admin');
+  } catch (e) {
+    isAdmin = false;
+  }
+  // Re-evaluate FAB visibility now that isAdmin is known
+if (typeof loadSections === 'function') loadSections();
+});
 
     // Get year and className from query string
     function getQueryParam(key) {
       const params = new URLSearchParams(window.location.search);
       return params.get(key);
     }
-    const mainArea = document.getElementById("main-area");
-    const popupBg = document.getElementById('popup-bg');
-    const popupContent = document.getElementById('popup-content');
-    const fab = document.getElementById('fab');
-    const year = getQueryParam('year');
-    const className = getQueryParam('className');
+   const mainArea = document.getElementById("main-area");
+const popupBg = document.getElementById('popup-bg');
+const popupContent = document.getElementById('popup-content');
+const fab = document.getElementById('fab');
+const year = getQueryParam('year');
+const className = getQueryParam('className');
+
+// NEW: resolve schoolId for multi-school scoping
+let schoolData = {};
+try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch (e) {}
+const schoolId = schoolData.schoolId;
+if (!schoolId) {
+  alert('School not set. Please sign in again.');
+  window.location.replace('index.html');
+}
+    const schoolTitleEl = document.getElementById('school-title');
+const headerSubtitleEl = document.getElementById('header-subtitle');
+if (schoolTitleEl) schoolTitleEl.textContent = schoolData.name || 'School Name';
+if (headerSubtitleEl) headerSubtitleEl.textContent = schoolData.subtitle || 'CampusConnect';
+// Dynamic document title per school
+document.title = schoolData?.name
+  ? `Sections – ${schoolData.name}`
+  : 'Sections – CampusConnect';
+// Persist current context for downstream pages
+try {
+  localStorage.setItem('sp_context', JSON.stringify({
+    schoolId,
+    year,
+    className: className ? decodeURIComponent(className) : ''
+  }));
+} catch (e) {}
+
     // Set academic year in header
       const headerExam = document.getElementById('header-exam');
       if (year) {
@@ -240,7 +277,7 @@
         chip.addEventListener('click', function () {
           const sectionName = this.dataset.sectionName;
           // Query Firestore for class and section IDs
-          db.collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+          db.collection('schools').doc(schoolId).collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
             if (!snap.empty) {
               const classDoc = snap.docs[0];
               classDoc.ref.collection('sections').where('name', '==', decodeURIComponent(sectionName)).get().then(secSnap => {
@@ -251,7 +288,7 @@
                   localStorage.setItem('sp_selectedClassName', decodeURIComponent(className));
                   localStorage.setItem('sp_selectedSectionId', sectionDoc.id);
                   localStorage.setItem('sp_selectedSectionName', decodeURIComponent(sectionName));
-                  window.location.href = `students.html?year=${encodeURIComponent(year)}&className=${encodeURIComponent(className)}&sectionName=${sectionName}`;
+                  window.location.href = `students.html?schoolId=${encodeURIComponent(schoolId)}&year=${encodeURIComponent(year)}&className=${encodeURIComponent(className)}&sectionName=${sectionName}`;
                 } else {
                   alert('Section not found!');
                 }
@@ -277,8 +314,9 @@
         fab.onclick = null;
         return;
       }
-      console.log("Querying:", "/years/" + year + "/classes/", "Looking for name =", decodeURIComponent(className));
-      db.collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+      console.log("Querying:", "/schools/" + schoolId + "/years/" + year + "/classes/", "Looking for name =", decodeURIComponent(className));
+      db.collection('schools').doc(schoolId).collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+
         console.log("Query result size:", snap.size);
         if (snap.empty) {
           classDocRef = null;
@@ -292,9 +330,18 @@
         const classDoc = snap.docs[0];
         classDocRef = classDoc.ref;
         console.log("Class found! doc.id:", classDoc.id, "data:", classDoc.data());
-        fab.disabled = false;
-        fab.style.opacity = 1;
-        fab.onclick = showAddSectionPopup;
+       if (isAdmin) {
+  fab.style.display = 'flex';
+  fab.disabled = false;
+  fab.style.opacity = 1;
+  fab.onclick = showAddSectionPopup;
+} else {
+  fab.style.display = 'none';
+  fab.disabled = true;
+  fab.style.opacity = 0.5;
+  fab.onclick = null;
+}
+
         classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
           let sections = [];
           secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
@@ -356,3 +403,4 @@
   </script>
 </body>
 </html>
+
