@@ -264,26 +264,6 @@ const headerSubtitleEl = document.getElementById('header-subtitle');
 if (schoolTitleEl) schoolTitleEl.textContent = schoolData.name || 'School Name';
 if (headerSubtitleEl) headerSubtitleEl.textContent = schoolData.subtitle || 'CampusConnect';
 document.title = schoolData?.name ? `Students – ${schoolData.name}` : 'Students – CampusConnect';
-
-/* ==== MULTI-SCHOOL: resolve schoolId & hydrate header/title ==== */
-let schoolData = {};
-try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch (e) {}
-const schoolId = (schoolData.schoolId || '').trim();
-if (!schoolId) {
-  alert('School not set. Please sign in again.');
-  window.location.replace('index.html');
-}
-
-// Set header text
-const schoolTitleEl = document.getElementById('school-title');
-const headerSubtitleEl = document.getElementById('header-subtitle');
-if (schoolTitleEl) schoolTitleEl.textContent = schoolData.name || 'School Name';
-if (headerSubtitleEl) headerSubtitleEl.textContent = schoolData.subtitle || 'CampusConnect';
-
-// Dynamic page title
-document.title = schoolData?.name ? `Students – ${schoolData.name}` : 'Students – CampusConnect';
-/* =============================================================== */
-
 const CLASS_GROUP_MAP = {
   'Nursery': 'nursery-lkg-ukg',
   'LKG': 'nursery-lkg-ukg',
@@ -309,12 +289,9 @@ function getClassGroupName(className) {
         const [year, month, day] = dateStr.split('-');
         return `${day}-${month}-${year}`;
       }
-            // ======================= GLOBALS =============================
-      let academicYear = localStorage.getItem('sp_selectedYear') || '';
-    // current school's name (for messages, headers, etc.)
-    let schoolData = {};
-    try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch (e) {}
-    const schoolName = schoolData.name || 'School';
+      // ======================= GLOBALS =============================
+    let academicYear = localStorage.getItem('sp_selectedYear') || '';
+    const schoolName = schoolData.name || 'School'; // reuse the one defined earlier
       console.log('academicYear raw:', academicYear, 'length:', academicYear.length);
       document.getElementById('header-exam').textContent = academicYear;
       const mainArea = document.getElementById("main-area");
@@ -2130,4 +2107,5 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
