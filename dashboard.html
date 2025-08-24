@@ -274,6 +274,12 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     let schoolId = '';   // <-- global; renderClassList() reads this
+    // ADD THIS HELPER HERE (top-level, not inside any function)
+function schoolUsers() {
+  // optional: helps catch cases where schoolId isn't ready yet
+  if (!schoolId) console.warn('schoolId not set yet');
+  return db.collection('schools').doc(schoolId).collection('users');
+}
     const secondaryApp = firebase.initializeApp(firebaseConfig, 'secondary');
 const secondaryAuth = secondaryApp.auth();
 // Cloud Functions client (default region)
@@ -687,10 +693,10 @@ function showManageTeachersPopup() {
   if (!schoolId) return alert("School ID not found!");
 
   // Fetch teachers for this school
-  db.collection('users')
-    .where('role', '==', 'teacher')
-    .where('schoolId', '==', schoolId)
-    .get()
+  schoolUsers()
+  .where('role', '==', 'teacher')
+  .get()
+
     .then(snap => {
       let teachers = [];
       snap.forEach(doc => {
@@ -762,7 +768,10 @@ if (tp) {
   updated.mustReset = false;
 }
 
-db.collection('users').doc(uid).update(updated).then(async () => {
+Promise.all([
+  db.collection('users').doc(uid).update(updated),
+  schoolUsers().doc(uid).update(updated)
+]).then(async () => {
   // Also update Firebase Auth if email or password changed
   const payload = { uid };
   if (updated.email && updated.email !== (teacher.email || '')) payload.email = updated.email;
@@ -795,7 +804,10 @@ await fns.httpsCallable('adminUpdateUser')({ ...payload, idToken: 'TEST' });
         btn.onclick = function() {
           const uid = btn.getAttribute('data-uid');
           if (confirm('Are you sure you want to delete this teacher? This cannot be undone.')) {
-            db.collection('users').doc(uid).delete().then(() => {
+            Promise.all([
+  db.collection('users').doc(uid).delete(),
+  schoolUsers().doc(uid).delete()
+]).then(() => {
               alert("Teacher deleted.");
               showManageTeachersPopup(); // Refresh the list
             }).catch(err => {
@@ -921,16 +933,26 @@ function addTeacherHandler(e) {
   secondaryAuth.createUserWithEmailAndPassword(email, password)
     .then(userCred => {
       const uid = userCred.user.uid;
-     return db.collection('users').doc(uid).set({
-      name,
-      email,
-      phone,
-      role: 'teacher',
-      schoolId: schoolData.schoolId,
-      tempPassword: password,
-      mustReset: true, 
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    return Promise.all([
+  db.collection('users').doc(uid).set({
+    name,
+    email,
+    phone,
+    role: 'teacher',
+    schoolId: schoolData.schoolId,
+    tempPassword: password,
+    mustReset: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }),
+  schoolUsers().doc(uid).set({
+    name,
+    email,
+    phone,
+    role: 'teacher',
+    uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
+]);
     })
     .then(() => secondaryAuth.signOut().catch(()=>{}))
       .then(() => {
@@ -994,16 +1016,26 @@ function handleBulkTeacherUpload() {
     secondaryAuth.createUserWithEmailAndPassword(email, password)
       .then(userCred => {
         const uid = userCred.user.uid;
-        return db.collection('users').doc(uid).set({
-          name,
-          email,
-          phone,
-          role: 'teacher',
-          schoolId: schoolData.schoolId || '',
-          tempPassword: password,
-          mustReset: true,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        return Promise.all([
+  db.collection('users').doc(uid).set({
+    name,
+    email,
+    phone,
+    role: 'teacher',
+    schoolId: schoolData.schoolId || '',
+    tempPassword: password,
+    mustReset: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }),
+  schoolUsers().doc(uid).set({
+    name,
+    email,
+    phone,
+    role: 'teacher',
+    uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
+]);
       })
       .then(() => secondaryAuth.signOut().catch(()=>{}))
       .then(() => {
@@ -1049,6 +1081,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
