@@ -192,6 +192,7 @@
     firebase.initializeApp(firebaseConfig);
    const db = firebase.firestore();
 const auth = firebase.auth();
+const fab = document.getElementById('fab'); // moved up so it's defined before use
 
 let isAdmin = false;
 auth.onAuthStateChanged(async function(user) {
@@ -226,7 +227,6 @@ if (typeof loadSections === 'function') loadSections();
    const mainArea = document.getElementById("main-area");
 const popupBg = document.getElementById('popup-bg');
 const popupContent = document.getElementById('popup-content');
-const fab = document.getElementById('fab');
 const year = getQueryParam('year');
 const className = getQueryParam('className');
 
@@ -408,6 +408,7 @@ try {
   </script>
 </body>
 </html>
+
 
 
 
