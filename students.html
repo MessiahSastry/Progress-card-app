@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Students - St. Patrick's Progress Card App</title>
+  <title>Students – CampusConnect</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
@@ -218,10 +218,10 @@
 </head>
 <body>
   <div class="fixed-header" id="header">
-    <div class="school-title">St. Patrick's School</div>
-    <div class="subtitle">IIT & NEET FOUNDATION</div>
-    <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
-  </div>
+  <div class="school-title" id="school-title"></div>
+  <div class="subtitle" id="header-subtitle"></div>
+  <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
+</div>
   <div class="main-content" id="main-area"></div>
   <button class="fab" id="fab"></button>
   <button class="settings-btn" id="settings-btn" title="Settings"><i class="fa fa-cog"></i></button>
@@ -236,18 +236,55 @@
    return name.replace(/[\s\.\-]/g, '').toUpperCase();
 }
     // ======================= CONFIG ==============================
+   // Firebase config
     const firebaseConfig = {
-      apiKey: "AIzaSyAszVhWXUUOYLQ7VimKmPKf1yEu_CI9RCE",
-      authDomain: "stpatricks-questionbank.firebaseapp.com",
-      projectId: "stpatricks-questionbank",
-      storageBucket: "stpatricks-questionbank.appspot.com",
-      messagingSenderId: "917615322861",
-      appId: "1:917615322861:web:c6c890aa2184dd395b8ee4"
+      apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
+      authDomain: "stpatricksprogresscard.firebaseapp.com",
+      projectId: "stpatricksprogresscard",
+      storageBucket: "stpatricksprogresscard.appspot.com",
+      messagingSenderId: "671416933178",
+      appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
     };
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
-      const auth = firebase.auth();
-      const CLASS_GROUP_MAP = {
+     firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+// —— multi-school context from dashboard/sections ——
+let schoolData = {};
+try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch {}
+const schoolId = schoolData.schoolId;
+if (!schoolId) {
+  alert('School not set. Please sign in again.');
+  window.location.replace('index.html');
+}
+
+// Header + document title
+const schoolTitleEl = document.getElementById('school-title');
+const headerSubtitleEl = document.getElementById('header-subtitle');
+if (schoolTitleEl) schoolTitleEl.textContent = schoolData.name || 'School Name';
+if (headerSubtitleEl) headerSubtitleEl.textContent = schoolData.subtitle || 'CampusConnect';
+document.title = schoolData?.name ? `Students – ${schoolData.name}` : 'Students – CampusConnect';
+
+/* ==== MULTI-SCHOOL: resolve schoolId & hydrate header/title ==== */
+let schoolData = {};
+try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch (e) {}
+const schoolId = (schoolData.schoolId || '').trim();
+if (!schoolId) {
+  alert('School not set. Please sign in again.');
+  window.location.replace('index.html');
+}
+
+// Set header text
+const schoolTitleEl = document.getElementById('school-title');
+const headerSubtitleEl = document.getElementById('header-subtitle');
+if (schoolTitleEl) schoolTitleEl.textContent = schoolData.name || 'School Name';
+if (headerSubtitleEl) headerSubtitleEl.textContent = schoolData.subtitle || 'CampusConnect';
+
+// Dynamic page title
+document.title = schoolData?.name ? `Students – ${schoolData.name}` : 'Students – CampusConnect';
+/* =============================================================== */
+
+const CLASS_GROUP_MAP = {
   'Nursery': 'nursery-lkg-ukg',
   'LKG': 'nursery-lkg-ukg',
   'UKG': 'nursery-lkg-ukg',
@@ -274,6 +311,10 @@ function getClassGroupName(className) {
       }
             // ======================= GLOBALS =============================
       let academicYear = localStorage.getItem('sp_selectedYear') || '';
+    // current school's name (for messages, headers, etc.)
+    let schoolData = {};
+    try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch (e) {}
+    const schoolName = schoolData.name || 'School';
       console.log('academicYear raw:', academicYear, 'length:', academicYear.length);
       document.getElementById('header-exam').textContent = academicYear;
       const mainArea = document.getElementById("main-area");
@@ -310,7 +351,7 @@ function getClassGroupName(className) {
     return;
   }
   const classGroup = getClassGroupName(currentClassName);
-  db.collection('years').doc(academicYear)
+  db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
     .collection('classes').doc(currentClassId)
     .collection('sections').doc(currentSectionId)
     .collection('students')
@@ -397,10 +438,10 @@ function openCertificateStudio() {
     </div>
 
     <label>School Name</label>
-    <input id="cs_school" placeholder="St. Patrick's School" value="${localStorage.getItem('sp_schoolTitle') || "St. Patrick's School"}">
+    <input id="cs_school" placeholder="${schoolData.name || 'School'}" value="${schoolData.name || ''}">
 
     <label>Subheading</label>
-    <input id="cs_sub" placeholder="IIT & NEET FOUNDATION" value="${localStorage.getItem('sp_schoolSub') || 'IIT & NEET FOUNDATION'}">
+    <input id="cs_sub" placeholder="${schoolData.subtitle || ''}" value="${schoolData.subtitle || ''}">
 
     <label>Certificate Title</label>
     <input id="cs_title" placeholder="Certificate of Merit">
@@ -450,7 +491,7 @@ function openCertificateStudio() {
     const title  = document.getElementById('cs_title').value.trim();
     ctx.fillStyle = '#0f3d6b'; ctx.textAlign='center';
     ctx.font = 'bold 56px "Segoe UI", Arial, sans-serif';
-    ctx.fillText(school || "St. Patrick's School", canvas.width/2, 180);
+    ctx.fillText(school || (schoolData.name || 'School'), canvas.width/2, 180);
     ctx.fillStyle = '#1467b7';
     ctx.font = '500 34px "Segoe UI", Arial, sans-serif';
     if (sub) ctx.fillText(sub, canvas.width/2, 230);
@@ -470,7 +511,7 @@ function openCertificateStudio() {
     if (!academicYear || !currentClassId || !currentSectionId) {
       alert('Class/Section not selected.'); return;
     }
-    const snap = await db.collection('years').doc(academicYear)
+    const snap = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
       .collection('classes').doc(currentClassId)
       .collection('sections').doc(currentSectionId)
       .collection('students').orderBy('roll').get();
@@ -523,11 +564,13 @@ function openCertificateStudio() {
       `, 'addStudentForm', function (e) {
         e.preventDefault();
         const name = e.target.studentName.value.trim();
-        const father = e.target.fatherName.value.trim();
-        const roll = parseInt(e.target.rollNo.value.trim(), 10);
-        const parentPhone = e.target.parentPhone.value.trim();
-        if (!name || !father || isNaN(roll) || !parentPhone) return;
-        db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+const father = e.target.fatherName.value.trim();
+const roll = toRoll(e.target.rollNo.value);
+let parentPhone = normalizePhone(e.target.parentPhone.value);
+
+if (!name || !father || roll === null) { alert('Please enter a valid name, father name and roll (1–999).'); return; }
+if (!isValidPhone(parentPhone)) { alert('Please enter a valid 10–12 digit parent phone number.'); return; }
+        db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
           .collection('sections').doc(currentSectionId)
           .collection('students')
           .add({ name, father, roll, parentPhone })
@@ -535,7 +578,7 @@ function openCertificateStudio() {
       });
     }
     function showStudentActionPopup(studentId) {
-      db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+      db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
         .collection('sections').doc(currentSectionId)
         .collection('students').doc(studentId)
         .get().then(doc => {
@@ -559,7 +602,7 @@ function openCertificateStudio() {
           }
           if (!stu.isDeleted && document.getElementById('deleteStudentBtn')) {
             document.getElementById('deleteStudentBtn').onclick = function () {
-              db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+              db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
                 .collection('sections').doc(currentSectionId)
                 .collection('students').doc(studentId)
                 .update({ isDeleted: true }).then(() => {
@@ -570,7 +613,7 @@ function openCertificateStudio() {
           }
           if (stu.isDeleted && document.getElementById('restoreStudentBtn')) {
             document.getElementById('restoreStudentBtn').onclick = function () {
-              db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+              db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
                 .collection('sections').doc(currentSectionId)
                 .collection('students').doc(studentId)
                 .update({ isDeleted: firebase.firestore.FieldValue.delete() }).then(() => {
@@ -601,10 +644,13 @@ function openCertificateStudio() {
       `, 'editStudentForm', function (e) {
         e.preventDefault();
         const name = e.target.studentName.value.trim();
-        const father = e.target.fatherName.value.trim();
-        const roll = parseInt(e.target.rollNo.value.trim(), 10);
-        const parentPhone = e.target.parentPhone.value.trim();
-        db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+const father = e.target.fatherName.value.trim();
+const roll = toRoll(e.target.rollNo.value);
+let parentPhone = normalizePhone(e.target.parentPhone.value);
+
+if (!name || !father || roll === null) { alert('Please enter a valid name, father name and roll (1–999).'); return; }
+if (!isValidPhone(parentPhone)) { alert('Please enter a valid 10–12 digit parent phone number.'); return; }
+        db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
           .collection('sections').doc(currentSectionId)
           .collection('students').doc(studentId)
           .update({ name, father, roll, parentPhone })
@@ -666,7 +712,7 @@ function openCertificateStudio() {
 function showExamSettingsPopup() {
   const classGroup = getClassGroupName(currentClassName);
   // Fetch all exams for this group
-  db.collection('years').doc(academicYear)
+  db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
     .collection('exams').doc('classGroups')
     .collection(classGroup)
     .get()
@@ -738,7 +784,7 @@ function showExamSettingsPopup() {
           return;
         }
         // Check for duplicates before adding
-        db.collection('years').doc(academicYear)
+        db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
           .collection('exams').doc('classGroups')
           .collection(classGroup)
           .where('nameKey', '==', nameKey)
@@ -749,7 +795,7 @@ function showExamSettingsPopup() {
               return;
             }
             // If not duplicate, add
-            db.collection('years').doc(academicYear)
+            db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
               .collection('exams').doc('classGroups')
               .collection(classGroup)
               .add({ name, nameKey, subjects })
@@ -791,7 +837,7 @@ function showExamSettingsPopup() {
 // ----------- EDIT EXAM -------------
 function showEditExamPopup(examId) {
   const classGroup = getClassGroupName(currentClassName);
-  db.collection('years').doc(academicYear)
+  db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
     .collection('exams').doc('classGroups')
     .collection(classGroup).doc(examId)
     .get()
@@ -839,7 +885,7 @@ function showEditExamPopup(examId) {
           return;
         }
         // Check for duplicates (but exclude this examId itself)
-        db.collection('years').doc(academicYear)
+        db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
           .collection('exams').doc('classGroups')
           .collection(classGroup)
           .where('nameKey', '==', nameKey)
@@ -856,7 +902,7 @@ function showEditExamPopup(examId) {
               }
             }
             // If not duplicate, update
-            db.collection('years').doc(academicYear)
+            db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
               .collection('exams').doc('classGroups')
               .collection(classGroup).doc(examId)
               .update({ name, nameKey, subjects })
@@ -894,7 +940,7 @@ function showEnterMarksPopup() {
   console.log('showEnterMarksPopup called');
   console.log('academicYear:', academicYear);
   const classGroup = getClassGroupName(currentClassName);
-db.collection('years').doc(academicYear)
+db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
   .collection('exams').doc('classGroups')
   .collection(classGroup).orderBy('name').get()
     .then(examSnap => {
@@ -932,7 +978,7 @@ db.collection('years').doc(academicYear)
         const examId = document.getElementById('examSelected').dataset.value;
         const subjectName = document.getElementById('subjectSelected').dataset.value;
         if (!examId || !subjectName) return;
-        db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+        db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
           .collection('sections').doc(currentSectionId)
           .collection('students').orderBy('roll').get().then(stuSnap => {
             let students = [];
@@ -948,7 +994,7 @@ db.collection('years').doc(academicYear)
             // --- Begin: Marks Entry Popup Block ---
             let marksData = {};
             let marksPromises = students.map(stu =>
-              db.collection('years').doc(academicYear)
+              db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
                 .collection('classes').doc(currentClassId)
                 .collection('sections').doc(currentSectionId)
                 .collection('students').doc(stu.id)
@@ -993,7 +1039,7 @@ db.collection('years').doc(academicYear)
                 let batch = db.batch();
                 students.forEach(stu => {
   let marksStr = formData.get('marks_' + stu.id);
-  let markRef = db.collection('years').doc(academicYear)
+  let markRef = db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
     .collection('classes').doc(currentClassId)
     .collection('sections').doc(currentSectionId)
     .collection('students').doc(stu.id).collection('marks').doc(examId);
@@ -1093,7 +1139,7 @@ db.collection('years').doc(academicYear)
 }
     // ========== ATTENDANCE + WHATSAPP ===========
     function showAttendancePopup() {
-        db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+        db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
           .collection('sections').doc(currentSectionId)
           .collection('students').orderBy('roll').get()
           .then(snap => {
@@ -1124,7 +1170,7 @@ db.collection('years').doc(academicYear)
       
       // Helper: actual attendance entry UI for a given date
       function showAttendanceEntryForDate(date, students) {
-        db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+        db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
           .collection('sections').doc(currentSectionId)
           .collection('attendance').doc(date)
           .get()
@@ -1244,7 +1290,7 @@ db.collection('years').doc(academicYear)
           setTimeout(() => {
             let btn = popupContent.querySelector('#confirmSaveAttendanceBtn');
             if (btn) btn.onclick = function() {
-              let attDoc = db.collection('years').doc(academicYear)
+              let attDoc = db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
                 .collection('classes').doc(currentClassId)
                 .collection('sections').doc(currentSectionId)
                 .collection('attendance').doc(date);
@@ -1261,7 +1307,7 @@ db.collection('years').doc(academicYear)
           }, 120);
           } else {
             // No absentees, just save
-            let attDoc = db.collection('years').doc(academicYear)
+            let attDoc = db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
               .collection('classes').doc(currentClassId)
               .collection('sections').doc(currentSectionId)
               .collection('attendance').doc(date);
@@ -1343,7 +1389,7 @@ db.collection('years').doc(academicYear)
   let stuid = btn.dataset.stuid;
 
   // Fetch all attendance records for this section to count absents
-  let attSnap = await db.collection('years').doc(academicYear)
+  let attSnap = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
     .collection('classes').doc(currentClassId)
     .collection('sections').doc(currentSectionId)
     .collection('attendance').get();
@@ -1369,7 +1415,7 @@ db.collection('years').doc(academicYear)
   `Your child *${name}* is absent today at school. Kindly send reason for absence. *${name}* has been absent for ${daysAbsentStr} day(s) so far this academic year.\n\n` + 
   `*${name}* ఈ రోజు స్కూల్‌కు హాజరు కాలేదు. హాజరు కాకపోవడానికి గల కారణం తెలియజేయగలరు. ఇప్పటి వరకు మొత్తం ${daysAbsentStr} రోజులు అబ్సెంట్ అయ్యారు.\n\n` +
   `Thank you\n` +
-  `*St. Patrick's School*`
+  `*${schoolData.name || 'School'}*`
 );
   window.open(`https://wa.me/91${ph}?text=${msg}`,'_blank');
 }
@@ -1380,7 +1426,7 @@ db.collection('years').doc(academicYear)
 }
     function showAttendanceHistoryPopup() {
   // Get attendance docs for this section
-  db.collection('years').doc(academicYear)
+  db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
     .collection('classes').doc(currentClassId)
     .collection('sections').doc(currentSectionId)
     .collection('attendance').orderBy(firebase.firestore.FieldPath.documentId()).get()
@@ -1475,7 +1521,7 @@ db.collection('years').doc(academicYear)
             return y && y.textContent ? y.textContent : '';
           })();
             // Get all students
-            let stuSnap = await db.collection('years').doc(academicYear)
+            let stuSnap = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
               .collection('classes').doc(currentClassId)
               .collection('sections').doc(currentSectionId)
               .collection('students').orderBy('roll').get();
@@ -1483,7 +1529,7 @@ db.collection('years').doc(academicYear)
             stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
           
             // Get all attendance docs
-            let attSnap = await db.collection('years').doc(academicYear)
+            let attSnap = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
               .collection('classes').doc(currentClassId)
               .collection('sections').doc(currentSectionId)
               .collection('attendance').get();
@@ -1497,7 +1543,7 @@ db.collection('years').doc(academicYear)
             days.sort();
           
             // Build headers for date/M/A
-            let titleRow = [`${currentClassName} ${currentSectionName} (Jun ${year})`];
+            let titleRow = [`${currentClassName} ${currentSectionName} (${monthName(month)} ${year})`];
             // Merge this cell across columns in Excel
             let headerRow = ['Roll', 'Name'];
             let subHeaderRow = ['', ''];
@@ -1588,11 +1634,27 @@ setTimeout(() => {
 }, 200);
         
         // Utility
-        function formatDate(dateStr) {
-          if (!dateStr) return '';
-          const [y, m, d] = dateStr.split('-');
-          return `${d}-${m}-${y}`;
-        }
+       function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-');
+  return `${day}-${month}-${year}`;
+}
+
+// --- new small helpers ---
+function normalizePhone(p) {
+  if (!p && p !== 0) return '';
+  let s = String(p).replace(/\D/g, '').replace(/^0+/, '');
+  // drop India country code if present (91xxxxxxxxxx -> xxxxxxxxxx)
+  if (s.startsWith('91') && s.length === 12) s = s.slice(2);
+  return s;
+}
+function isValidPhone(s) {
+  return /^\d{10,12}$/.test(String(s || ''));
+}
+function toRoll(n) {
+  const r = parseInt(n, 10);
+  return (isNaN(r) || r < 1 || r > 999) ? null : r;
+}
          // Add event handlers for each date button
       setTimeout(() => {
         popupContent.querySelectorAll('button[data-date]').forEach(btn => {
@@ -1604,7 +1666,7 @@ setTimeout(() => {
     });
 }
 function showDeletedStudentsPopup() {
-  db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+  db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
     .collection('sections').doc(currentSectionId)
     .collection('students').orderBy('roll').get()
     .then(snap => {
@@ -1643,7 +1705,7 @@ let html = `
       popupContent.querySelectorAll('button[data-restore]').forEach(btn => {
         btn.onclick = function() {
           const id = btn.getAttribute('data-restore');
-          db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+          db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
             .collection('sections').doc(currentSectionId)
             .collection('students').doc(id)
             .update({ isDeleted: firebase.firestore.FieldValue.delete() })
@@ -1658,7 +1720,7 @@ let html = `
         btn.onclick = function() {
           const id = btn.getAttribute('data-delete');
           if (!confirm("Are you sure you want to permanently delete this student? This cannot be undone!")) return;
-          db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+          db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
             .collection('sections').doc(currentSectionId)
             .collection('students').doc(id)
             .delete()
@@ -1673,14 +1735,14 @@ let html = `
 // View attendance for one date
 function showAttendanceForDate(date) {
   // Load student list
-  db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+  db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
     .collection('sections').doc(currentSectionId).collection('students').orderBy('roll').get()
     .then(stuSnap => {
       let students = [];
       stuSnap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
 
       // Load all attendance docs for absence counts
-      db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+     db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
         .collection('sections').doc(currentSectionId).collection('attendance').get()
         .then(allAttSnap => {
           let attDataByDate = {};
@@ -1691,7 +1753,7 @@ function showAttendanceForDate(date) {
           });
 
           // Load this date’s attendance
-          db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+          db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
             .collection('sections').doc(currentSectionId).collection('attendance').doc(date).get()
             .then(attSnap => {
               let att = attSnap.data() || {};
@@ -1830,12 +1892,18 @@ function formatDate(dateStr) {
       for (let i=1; i<rows.length; i++) {
         let row = rows[i];
         if (!row[nameIdx]) continue;
-        students.push({
-          name: row[nameIdx].toString().trim(),
-          father: row[fatherIdx].toString().trim(),
-          roll: parseInt(row[rollIdx]),
-          parentPhone: phoneIdx >= 0 ? row[phoneIdx].toString().trim() : ""
-        });
+        const roll = toRoll(row[rollIdx]);
+if (roll === null) { continue; }  // skip invalid roll rows
+
+const rawPhone = phoneIdx >= 0 ? row[phoneIdx] : '';
+const phone = normalizePhone(rawPhone);
+
+students.push({
+  name: row[nameIdx].toString().trim(),
+  father: row[fatherIdx].toString().trim(),
+  roll,
+  parentPhone: isValidPhone(phone) ? phone : ""
+});
       }
       if (students.length === 0) {
         alert('No valid students found!');
@@ -1843,7 +1911,7 @@ function formatDate(dateStr) {
       }
       // Upload students in batch
       let batch = db.batch();
-      let sectionRef = db.collection('years').doc(academicYear).collection('classes').doc(currentClassId)
+      let sectionRef = db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
         .collection('sections').doc(currentSectionId).collection('students');
       students.forEach(stu => {
         let ref = sectionRef.doc();
@@ -1887,7 +1955,7 @@ function closeAbsenteesModal() {
     if (e.target === this) closeAbsenteesModal();
   };
         function showBulkMarksUploadPopup() {
-  db.collection('years').doc(academicYear)
+  db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
     .collection('exams').doc('classGroups')
     .collection(getClassGroupName(currentClassName)).orderBy('name').get()
     .then(examSnap => {
@@ -1979,7 +2047,7 @@ function closeAbsenteesModal() {
           });
 
           // Get all students for this section
-          let stuSnap = await db.collection('years').doc(academicYear)
+          let stuSnap = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
             .collection('classes').doc(currentClassId)
             .collection('sections').doc(currentSectionId)
             .collection('students').orderBy('roll').get();
@@ -2014,7 +2082,7 @@ function closeAbsenteesModal() {
             });
 
             // Save under students/{id}/marks/{examId}
-            let markRef = db.collection('years').doc(academicYear)
+            let markRef = db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
               .collection('classes').doc(currentClassId)
               .collection('sections').doc(currentSectionId)
               .collection('students').doc(stu.id)
@@ -2062,3 +2130,4 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
