@@ -670,17 +670,7 @@ renderClassList();
       renderClassList();
     });
   });
-           }else{
-            localStorage.setItem('sp_selectedYear', sel);
-            academicYear = sel;
-            document.getElementById('header-exam').textContent = academicYear;
-            closePopup();
-            renderClassList();
-          }
-        });
-      });
-    }
-  
+            
 // Attach class add/settings handlers
 document.getElementById('fab').onclick = showAddClassPopup;
 document.getElementById('settings-btn').onclick = showSettingsPopup;
@@ -1150,6 +1140,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
