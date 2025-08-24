@@ -211,6 +211,9 @@ auth.onAuthStateChanged(async function(user) {
 fab.style.display = isAdmin ? 'flex' : 'none';
 fab.disabled = !isAdmin;
 fab.style.opacity = isAdmin ? 1 : 0.5;
+// NEW: make it clickable immediately when admin
+fab.onclick = isAdmin ? showAddSectionPopup : null;
+fab.style.pointerEvents = isAdmin ? 'auto' : 'none';
 // Re-evaluate FAB visibility now that isAdmin is known
 if (typeof loadSections === 'function') loadSections();
 });
@@ -307,11 +310,7 @@ try {
       });
     }
 
-    // Disable FAB by default
-    fab.disabled = true;
-    fab.style.opacity = 0.5;
-    fab.onclick = null;
-
+   
     function loadSections() {
       if (!year || !className) {
         mainArea.innerHTML = "<div style='color:red;'>Invalid URL: year or className missing.</div>";
@@ -409,6 +408,7 @@ try {
   </script>
 </body>
 </html>
+
 
 
 
