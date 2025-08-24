@@ -317,27 +317,56 @@ try {
   return;
 }
       console.log("Querying:", "/schools/" + schoolId + "/years/" + year + "/classes/", "Looking for name =", decodeURIComponent(className));
-      db.collection('schools').doc(schoolId).collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+const label = (className ? decodeURIComponent(className) : '').trim();
+const slug = label.toLowerCase().replace(/\s+/g,'-');
 
-        console.log("Query result size:", snap.size);
-       if (snap.empty) {
-  classDocRef = null;
-  renderSectionList([]);
-  console.log("No class found for year and name!");
-  return;
-}
-        const classDoc = snap.docs[0];
-        classDocRef = classDoc.ref;
-        console.log("Class found! doc.id:", classDoc.id, "data:", classDoc.data());
-      
-        classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
-          let sections = [];
-          secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
-          renderSectionList(sections);
-        });
-      }).catch(err => {
-        console.error("Firestore error:", err);
-      });
+const schoolClasses = db.collection('schools').doc(schoolId).collection('years').doc(year).collection('classes');
+const legacyClasses = db.collection('years').doc(year).collection('classes');
+
+(async () => {
+  try {
+    // 1) Try school path by slug, then by name
+    let doc = await schoolClasses.doc(slug).get();
+    if (!doc.exists) {
+      const byName = await schoolClasses.where('name', '==', label).limit(1).get();
+      if (!byName.empty) doc = byName.docs[0];
+    }
+
+    // 2) Fallback to legacy path; if found, copy to school path
+    if (!doc.exists) {
+      let legacyDoc = await legacyClasses.doc(slug).get();
+      if (!legacyDoc.exists) {
+        const legacyByName = await legacyClasses.where('name','==',label).limit(1).get();
+        if (!legacyByName.empty) legacyDoc = legacyByName.docs[0];
+      }
+      if (legacyDoc && legacyDoc.exists) {
+        const data = legacyDoc.data() || {};
+        await schoolClasses.doc(slug).set(
+          { name: data.name || label, order: (data.order ?? -1) },
+          { merge: true }
+        );
+        doc = await schoolClasses.doc(slug).get();
+      }
+    }
+
+    if (!doc || !doc.exists) {
+      classDocRef = null;
+      renderSectionList([]);
+      console.log("No class found for year and name!");
+      return;
+    }
+
+    classDocRef = doc.ref;
+    console.log("Class found! doc.id:", doc.id, "data:", doc.data());
+
+    const secSnap = await classDocRef.collection('sections').orderBy('name').get();
+    const sections = [];
+    secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
+    renderSectionList(sections);
+  } catch (err) {
+    console.error("Firestore error:", err);
+  }
+})();
     }
     loadSections();
 
@@ -391,6 +420,7 @@ try {
   </script>
 </body>
 </html>
+
 
 
 
