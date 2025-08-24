@@ -356,7 +356,7 @@ function getClassGroupName(className) {
   html += `<div class="student-row"
     data-student-id="${stu.id}">
     <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span>
-    <span style="color:#1467b7; font-weight:600;">${stu.name}</span>
+    <span style="color:#1467b7; font-weight:600;">${(stu.name || '').toUpperCase()}</span>
     <span style="flex:1"></span>
     ${
       stu.parentPhone
@@ -552,8 +552,8 @@ function openCertificateStudio() {
       </form>
       `, 'addStudentForm', function (e) {
         e.preventDefault();
-        const name = e.target.studentName.value.trim();
-const father = e.target.fatherName.value.trim();
+        const name = e.target.studentName.value.trim().toUpperCase();
+const father = e.target.fatherName.value.trim().toUpperCase();
 const roll = toRoll(e.target.rollNo.value);
 let parentPhone = normalizePhone(e.target.parentPhone.value);
 
@@ -1873,8 +1873,8 @@ const rawPhone = phoneIdx >= 0 ? row[phoneIdx] : '';
 const phone = normalizePhone(rawPhone);
 
 students.push({
-  name: row[nameIdx].toString().trim(),
-  father: row[fatherIdx].toString().trim(),
+  name: row[nameIdx].toString().trim().toUpperCase(),
+father: row[fatherIdx].toString().trim().toUpperCase(),
   roll,
   parentPhone: isValidPhone(phone) ? phone : ""
 });
@@ -2104,6 +2104,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
