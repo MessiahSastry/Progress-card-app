@@ -526,9 +526,9 @@ function openCertificateStudio() {
         <form id="addStudentForm">
         <div class="popup-title">Add Student</div>
         <label>Student Name</label>
-        <input name="studentName" maxlength="40" required>
+        <input name="studentName" style="text-transform:uppercase" maxlength="40" required>
         <label>Father's Name</label>
-        <input name="fatherName" maxlength="40" required>
+        <input name="fatherName" style="text-transform:uppercase" maxlength="40" required>
         <label>Roll Number</label>
         <input name="rollNo" type="number" min="1" max="999" required>
         <label>Parent Phone Number</label>
@@ -620,8 +620,8 @@ if (!isValidPhone(parentPhone)) { alert('Please enter a valid 10–12 digit pare
         </form>
       `, 'editStudentForm', function (e) {
         e.preventDefault();
-        const name = e.target.studentName.value.trim();
-const father = e.target.fatherName.value.trim();
+        const name = e.target.studentName.value.trim().toUpperCase();
+const father = e.target.fatherName.value.trim().toUpperCase();
 const roll = toRoll(e.target.rollNo.value);
 let parentPhone = normalizePhone(e.target.parentPhone.value);
 
@@ -2107,5 +2107,6 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
