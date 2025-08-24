@@ -273,6 +273,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    let schoolId = '';   // <-- global; renderClassList() reads this
     const secondaryApp = firebase.initializeApp(firebaseConfig, 'secondary');
 const secondaryAuth = secondaryApp.auth();
 // Cloud Functions client (default region)
@@ -332,6 +333,20 @@ const fns = firebase.app().functions('us-central1');
 
     // Set admin flag
     window.__IS_ADMIN__ = (userData.role === "admin");
+    // ---- Resolve schoolId for this session (from user profile, or cached) ----
+try {
+  const cached = JSON.parse(localStorage.getItem('schoolData') || '{}');
+  // prefer the value from Firestore user doc if present
+  schoolId = (userData.schoolId || cached.schoolId || '').trim();
+} catch (_) {
+  schoolId = (userData.schoolId || '').trim();
+}
+
+if (!schoolId) {
+  alert('School not set. Please sign in again.');
+  window.location.replace('index.html');
+  return;
+}
 
     // Fetch school info for header
     if (userData.schoolId) {
@@ -512,7 +527,10 @@ document.getElementById('fab').style.display =
   // use slug as doc id to enforce uniqueness per year
   const slug = canon.toLowerCase().replace(/\s+/g,'-');
 
-  const coll = db.collection('years').doc(academicYear).collection('classes');
+  const coll = db.collection('schools').doc(schoolId)
+  .collection('years').doc(academicYear)
+  .collection('classes');
+
   coll.doc(slug).get().then(doc => {
     if (doc.exists) {
       alert('This class already exists.');
@@ -1026,6 +1044,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
