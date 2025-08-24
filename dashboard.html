@@ -386,6 +386,10 @@ document.getElementById('add-teacher-fab').style.display =
 document.getElementById('fab').style.display =
   (userData.role === "admin") ? 'flex' : 'none';
 
+// now that schoolId is set, attach handlers and render
+document.getElementById('fab').onclick = showAddClassPopup;
+document.getElementById('settings-btn').onclick = showSettingsPopup;
+renderClassList();
   });
 });
 
@@ -468,8 +472,7 @@ document.getElementById('fab').style.display =
       if (mainArea) mainArea.innerHTML = `<div style="color:red;">Failed to load classes.</div>`;
     });
 }
-    renderClassList();
-
+    
     // Popup Logic
     const popupBg = document.getElementById('popup-bg');
     const popupContent = document.getElementById('popup-content');
@@ -549,7 +552,8 @@ document.getElementById('fab').style.display =
     function showSettingsPopup() {
       
       // Load years for dropdown
-      db.collection('years').orderBy('name','desc').get().then(snap=>{
+      db.collection('schools').doc(schoolId)
+  .collection('years').orderBy('name','desc').get().then(snap=>{
         let years = [];
         snap.forEach(doc=>years.push(doc.id));
         let html = `
@@ -583,7 +587,8 @@ ${window.__IS_ADMIN__ ? `<button id="manage-teachers-btn" style="margin:10px 0 0
           const sel = e.target.yearSel.value;
           const newYear = e.target.yearName.value.trim();
           if(newYear){
-            db.collection('years').doc(newYear).set({name:newYear}).then(()=>{
+            db.collection('schools').doc(schoolId)
+          .collection('years').doc(newYear).set({ name: newYear }).then(()=>{
               localStorage.setItem('sp_selectedYear', newYear);
               academicYear = newYear;
               document.getElementById('header-exam').textContent = academicYear;
@@ -1044,6 +1049,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
