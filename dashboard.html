@@ -555,121 +555,119 @@ renderClassList();
 }
 
     // Settings: Academic year selection/add
-    function showSettingsPopup() {
-      
-      // Load years for dropdown
-    db.collection('schools').doc(schoolId)
-  .collection('years')
-  .get()
-  .then(snap => {
-    // DEBUG: see which school and how many docs we got
-    console.log('[Settings] schoolId =', schoolId, 'years size =', snap.size, 'ids =', snap.docs.map(d=>d.id));
+   function showSettingsPopup() {
+  db.collection('schools').doc(schoolId)
+    .collection('years')
+    .get()
+    .then(snap => {
+      // DEBUG
+      console.log('[Settings] schoolId =', schoolId, 'years size =', snap.size, 'ids =', snap.docs.map(d => d.id));
 
-    let years = [];
-    snap.forEach(doc => years.push(doc.id));
+      let years = [];
+      snap.forEach(doc => years.push(doc.id));
 
-    // Fallback so dropdown is never empty (even if query returns zero)
-    if (academicYear && !years.includes(academicYear)) years.push(academicYear);
+      // never-empty fallback
+      if (academicYear && !years.includes(academicYear)) years.push(academicYear);
 
-    // Sort newest-looking first
-    years.sort((a,b)=>b.localeCompare(a));
+      years.sort((a, b) => b.localeCompare(a));
 
-    const optionsHtml = years.map(y =>
-      `<option value="${y}" ${y===academicYear ? 'selected' : ''}>${y}</option>`
-    ).join('');
+      const optionsHtml = years.map(y =>
+        `<option value="${y}" ${y === academicYear ? 'selected' : ''}>${y}</option>`
+      ).join('');
 
-    const html = `
-      <form id="yearForm">
-        <div class="popup-title">Academic Year</div>
+      const html = `
+        <form id="yearForm">
+          <div class="popup-title">Academic Year</div>
 
-        <label>Select Academic Year</label>
-        <select name="yearSel" required
-          style="width:96%;box-sizing:border-box;padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;margin-bottom:6px;">
-          ${optionsHtml}
-        </select>
+          <label>Select Academic Year</label>
+          <select name="yearSel" required
+            style="width:96%;box-sizing:border-box;padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;margin-bottom:6px;">
+            ${optionsHtml}
+          </select>
+
+          ${window.__IS_ADMIN__ ? `
+            <div style="text-align:right; margin-bottom:10px;">
+              <span style="color:#1561b8; cursor:pointer; font-weight:600;"
+                    onclick="document.querySelector('[name=yearName]').focus()">Add New</span>
+            </div>
+            <label>Add New Academic Year</label>
+            <input name="yearName" maxlength="10" placeholder="e.g., 2025-26"
+              style="width:96%;box-sizing:border-box;margin-bottom:14px;">
+          ` : ``}
+
+          <div class="popup-btn-row">
+            <button type="button" class="popup-cancel-btn">Cancel</button>
+            <button type="submit" class="popup-action-btn">Save</button>
+          </div>
+        </form>
 
         ${window.__IS_ADMIN__ ? `
-          <div style="text-align:right; margin-bottom:10px;">
-            <span style="color:#1561b8; cursor:pointer; font-weight:600;"
-                  onclick="document.querySelector('[name=yearName]').focus()">Add New</span>
+          <button id="manage-teachers-btn" style="margin:10px 0 0 0;display:block;padding:11px 0;width:100%;background:#195084;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Manage Teachers</button>` : ``}
+        <button id="change-password-btn" style="margin:10px 0 0 0;display:block;padding:11px 0;width:100%;background:#0f3d6b;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Change Password</button>
+        <button id="logout-btn" style="margin:16px auto 0 auto;display:block;padding:11px 0;width:100%;background:#e74c3c;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Logout</button>
+      `;
+
+      showPopup(html, 'yearForm', async function (e) {
+        e.preventDefault();
+        const sel = e.target.yearSel.value;
+        const newYear = e.target.yearName ? e.target.yearName.value.trim() : '';
+        const targetYear = newYear || sel;
+
+        try {
+          await db.collection('schools').doc(schoolId)
+            .collection('years').doc(targetYear)
+            .set({ name: targetYear }, { merge: true });
+
+          localStorage.setItem('sp_selectedYear', targetYear);
+          academicYear = targetYear;
+          document.getElementById('header-exam').textContent = academicYear;
+
+          closePopup();
+          renderClassList();
+        } catch (err) {
+          alert('Failed to save year: ' + err.message);
+        }
+      });
+
+      // FINAL GUARANTEE: if the select somehow has no options, inject one now
+      setTimeout(() => {
+        const selEl = document.querySelector('#yearForm select[name=yearSel]');
+        if (selEl && selEl.options.length === 0) {
+          console.warn('[Settings] Select was empty; injecting fallback', academicYear);
+          const opt = new Option(academicYear || '2025-26', academicYear || '2025-26', true, true);
+          selEl.add(opt);
+        }
+      }, 0);
+    })
+    .catch(err => {
+      console.error('[Settings] years get() failed:', err);
+      const fallback = academicYear || '2025-26';
+      const html = `
+        <form id="yearForm">
+          <div class="popup-title">Academic Year</div>
+          <div style="color:#c00; margin-bottom:8px;">${err.message}</div>
+          <label>Select Academic Year</label>
+          <select name="yearSel" required
+            style="width:96%;box-sizing:border-box;padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;margin-bottom:6px;">
+            <option value="${fallback}" selected>${fallback}</option>
+          </select>
+          <div class="popup-btn-row">
+            <button type="button" class="popup-cancel-btn">Cancel</button>
+            <button type="submit" class="popup-action-btn">Save</button>
           </div>
-          <label>Add New Academic Year</label>
-          <input name="yearName" maxlength="10" placeholder="e.g., 2025-26"
-            style="width:96%;box-sizing:border-box;margin-bottom:14px;">
-        ` : ``}
-
-        <div class="popup-btn-row">
-          <button type="button" class="popup-cancel-btn">Cancel</button>
-          <button type="submit" class="popup-action-btn">Save</button>
-        </div>
-      </form>
-
-      ${window.__IS_ADMIN__ ? `
-        <button id="manage-teachers-btn" style="margin:10px 0 0 0;display:block;padding:11px 0;width:100%;background:#195084;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Manage Teachers</button>` : ``}
-      <button id="change-password-btn" style="margin:10px 0 0 0;display:block;padding:11px 0;width:100%;background:#0f3d6b;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Change Password</button>
-      <button id="logout-btn" style="margin:16px auto 0 auto;display:block;padding:11px 0;width:100%;background:#e74c3c;color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:bold;cursor:pointer;">Logout</button>
-    `;
-
-    showPopup(html, 'yearForm', async function (e) {
-      e.preventDefault();
-      const sel = e.target.yearSel.value;
-      const newYear = e.target.yearName ? e.target.yearName.value.trim() : '';
-      const targetYear = newYear || sel;
-
-      try {
-        await db.collection('schools').doc(schoolId)
-          .collection('years').doc(targetYear)
-          .set({ name: targetYear }, { merge: true });
-
-        localStorage.setItem('sp_selectedYear', targetYear);
-        academicYear = targetYear;
+        </form>
+      `;
+      showPopup(html, 'yearForm', function (e) {
+        e.preventDefault();
+        const sel = e.target.yearSel.value;
+        localStorage.setItem('sp_selectedYear', sel);
+        academicYear = sel;
         document.getElementById('header-exam').textContent = academicYear;
-
         closePopup();
         renderClassList();
-      } catch (err) {
-        alert('Failed to save year: ' + err.message);
-      }
+      });
     });
-
-    // FINAL GUARANTEE: if the select somehow has no options, inject one now
-    setTimeout(() => {
-      const selEl = document.querySelector('#yearForm select[name=yearSel]');
-      if (selEl && selEl.options.length === 0) {
-        console.warn('[Settings] Select was empty; injecting fallback', academicYear);
-        const opt = new Option(academicYear || '2025-26', academicYear || '2025-26', true, true);
-        selEl.add(opt);
-      }
-    }, 0);
-  })
-  .catch(err => {
-    console.error('[Settings] years get() failed:', err);
-    const fallback = academicYear || '2025-26';
-    const html = `
-      <form id="yearForm">
-        <div class="popup-title">Academic Year</div>
-        <div style="color:#c00; margin-bottom:8px;">${err.message}</div>
-        <label>Select Academic Year</label>
-        <select name="yearSel" required
-          style="width:96%;box-sizing:border-box;padding:10px;font-size:1.08em;border-radius:7px;border:1px solid #d2e3fa;margin-bottom:6px;">
-          <option value="${fallback}" selected>${fallback}</option>
-        </select>
-        <div class="popup-btn-row">
-          <button type="button" class="popup-cancel-btn">Cancel</button>
-          <button type="submit" class="popup-action-btn">Save</button>
-        </div>
-      </form>
-    `;
-    showPopup(html, 'yearForm', function (e) {
-      e.preventDefault();
-      const sel = e.target.yearSel.value;
-      localStorage.setItem('sp_selectedYear', sel);
-      academicYear = sel;
-      document.getElementById('header-exam').textContent = academicYear;
-      closePopup();
-      renderClassList();
-    });
-  });
+}
             
 // Attach class add/settings handlers
 document.getElementById('fab').onclick = showAddClassPopup;
@@ -1140,6 +1138,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
