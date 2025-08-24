@@ -559,7 +559,10 @@ renderClassList();
       
       // Load years for dropdown
       db.collection('schools').doc(schoolId)
-  .collection('years').orderBy('name','desc').get().then(snap=>{
+  .collection('years')
+  .orderBy(firebase.firestore.FieldPath.documentId(), 'desc')
+  .get()
+  .then(snap => {
         let years = [];
         snap.forEach(doc=>years.push(doc.id));
         let html = `
@@ -1081,6 +1084,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
