@@ -200,14 +200,14 @@ auth.onAuthStateChanged(async function(user) {
     return;
   }
   try {
-    const udoc = await db.collection('users').doc(user.uid).get();
-    const role = ((udoc.exists && (udoc.data().role ?? '')) + '').trim().toLowerCase();
-isAdmin = role === 'admin';
-console.log('role:', role, 'isAdmin:', isAdmin);
- } catch (e) {
+  const udoc = await db.collection('users').doc(user.uid).get();
+  const role = ((udoc.exists && (udoc.data().role ?? '')) + '').trim().toLowerCase();
+  isAdmin = role === 'admin';
+  console.log('role:', role, 'isAdmin:', isAdmin);
+} catch (e) {
   isAdmin = false;
 }
-// NEW: toggle FAB immediately
+// NEW: toggle FAB immediately based on admin status
 fab.style.display = isAdmin ? 'flex' : 'none';
 
 // Re-evaluate FAB visibility now that isAdmin is known
@@ -408,5 +408,6 @@ try {
   </script>
 </body>
 </html>
+
 
 
