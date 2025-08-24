@@ -201,11 +201,16 @@ auth.onAuthStateChanged(async function(user) {
   }
   try {
     const udoc = await db.collection('users').doc(user.uid).get();
-    isAdmin = !!(udoc.exists && udoc.data().role === 'admin');
-  } catch (e) {
-    isAdmin = false;
-  }
-  // Re-evaluate FAB visibility now that isAdmin is known
+    const role = ((udoc.exists && (udoc.data().role ?? '')) + '').trim().toLowerCase();
+isAdmin = role === 'admin';
+console.log('role:', role, 'isAdmin:', isAdmin);
+ } catch (e) {
+  isAdmin = false;
+}
+// NEW: toggle FAB immediately
+fab.style.display = isAdmin ? 'flex' : 'none';
+
+// Re-evaluate FAB visibility now that isAdmin is known
 if (typeof loadSections === 'function') loadSections();
 });
 
@@ -403,4 +408,5 @@ try {
   </script>
 </body>
 </html>
+
 
