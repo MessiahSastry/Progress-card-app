@@ -248,7 +248,19 @@
      firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-
+// ---- helpers (GLOBAL, single copy) ----
+function toRoll(n) {
+  const r = parseInt(n, 10);
+  return (isNaN(r) || r < 1 || r > 999) ? null : r;
+}
+function normalizePhone(p) {
+  let s = String(p ?? '').replace(/\D/g, '').replace(/^0+/, '');
+  if (s.startsWith('91') && s.length === 12) s = s.slice(2);
+  return s;
+}
+function isValidPhone(s) {
+  return /^\d{10,12}$/.test(String(s || ''));
+}
 // —— multi-school context from dashboard/sections ——
 let schoolData = {};
 try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch {}
@@ -1617,21 +1629,6 @@ setTimeout(() => {
   return `${day}-${month}-${year}`;
 }
 
-// --- new small helpers ---
-function normalizePhone(p) {
-  if (!p && p !== 0) return '';
-  let s = String(p).replace(/\D/g, '').replace(/^0+/, '');
-  // drop India country code if present (91xxxxxxxxxx -> xxxxxxxxxx)
-  if (s.startsWith('91') && s.length === 12) s = s.slice(2);
-  return s;
-}
-function isValidPhone(s) {
-  return /^\d{10,12}$/.test(String(s || ''));
-}
-function toRoll(n) {
-  const r = parseInt(n, 10);
-  return (isNaN(r) || r < 1 || r > 999) ? null : r;
-}
          // Add event handlers for each date button
       setTimeout(() => {
         popupContent.querySelectorAll('button[data-date]').forEach(btn => {
@@ -2107,6 +2104,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
