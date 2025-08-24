@@ -397,7 +397,9 @@ document.getElementById('fab').style.display =
     "11th Class","12th Class"
   ];
 
-  db.collection('years').doc(academicYear).collection('classes')
+  db.collection('schools').doc(schoolId)
+  .collection('years').doc(academicYear)
+  .collection('classes')
     .get()
     .then(snapshot => {
       const items = [];
@@ -1024,6 +1026,7 @@ function handleBulkTeacherUpload() {
 </script>
 </body>
 </html>
+
 
 
 
