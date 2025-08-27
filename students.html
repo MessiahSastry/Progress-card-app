@@ -318,8 +318,10 @@ function getClassGroupName(className) {
       
       // --- Only render UI after authentication ---
       let isAdmin = false;
+    let signedInUser = null;
     auth.onAuthStateChanged(function(user) {
       if (user) {
+        signedInUser = user;
         isAdmin = (user.email === "messiah.sastry@stpatricksschool.com");
         fab.onclick = showAddStudentPopup;
         fab.style.display = "flex";
@@ -520,7 +522,7 @@ function openCertificateStudio() {
     const base64  = dataUrl.split(',')[1];
     const bytes   = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
     const page = pdf.addPage([842, 595]); // A4 landscape
-    const img  = await pdf.embedJpg(imgBytes);
+    const img  = await pdf.embedJpg(bytes);
     const s = Math.min(842/img.width, 595/img.height);
     page.drawImage(img, { x:(842-img.width*s)/2, y:(595-img.height*s)/2, width:img.width*s, height:img.height*s });
     const pdfBytes = await pdf.save();
@@ -698,7 +700,22 @@ if (!isValidPhone(parentPhone)) { alert('Please enter a valid 10–12 digit pare
 };
 }
 // ========== EXAM SETTINGS ===========
-function showExamSettingsPopup() {
+async function showExamSettingsPopup() {
+    // read class-level permission and compute canManageExams
+  const classDoc = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
+    .collection('classes').doc(currentClassId).get();
+
+  const cd = classDoc.exists ? (classDoc.data() || {}) : {};
+  const allowExamAdd = !!cd.allowExamAdd;
+  const examManagers = Array.isArray(cd.examManagers) ? cd.examManagers : [];
+
+  const meEmail = (signedInUser?.email || '').toLowerCase();
+  const meUid   = signedInUser?.uid || '';
+
+  const normalizedManagers = examManagers.map(x => String(x || '').toLowerCase());
+  const canUserFromList = normalizedManagers.includes(meEmail) || examManagers.includes(meUid);
+
+  const canManageExams = isAdmin || allowExamAdd || canUserFromList;
   const classGroup = getClassGroupName(currentClassName);
   // Fetch all exams for this group
   db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
@@ -716,7 +733,7 @@ function showExamSettingsPopup() {
             : exams.map((exam, idx) => `
                 <div style="border-bottom:1px solid #f1f1f1;margin-bottom:7px;padding-bottom:7px;">
                   <strong>${exam.name}</strong>
-                  ${isAdmin ? `<button type="button" class="popup-action-btn" data-edit="${exam.id}" style="margin-left:10px;padding:2px 8px;font-size:0.9em;">Edit</button>` : ''}
+                ${canManageExams ? `<button type="button" class="popup-action-btn" data-edit="${exam.id}">Edit</button>` : ''}
                   <div style="margin-top:6px;margin-left:8px;font-size:0.99em;">
                     ${Array.isArray(exam.subjects) && exam.subjects.length > 0
                       ? exam.subjects.map(subj => `${subj.name} <span style="color:#888;">(Max: ${subj.max})</span>`).join(', ')
@@ -726,7 +743,7 @@ function showExamSettingsPopup() {
                 </div>
               `).join('')}
         </div>
-        ${isAdmin ? `
+        ${canManageExams ? `
       <form id="addExamForm" style="display:flex; flex-direction:column; max-height:58vh;">
         <div style="flex:1; overflow-y:auto; padding-right:4px;">
           <label>Exam Name</label>
@@ -774,9 +791,9 @@ function showExamSettingsPopup() {
         }
         // Check for duplicates before adding
         db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-          .collection('exams').doc('classGroups')
-          .collection(classGroup)
-          .where('nameKey', '==', nameKey)
+        .collection('exams').doc('classGroups')
+        .collection(classGroup)
+        .where('nameKey', '==', nameKey)
           .get()
           .then(dupSnap => {
             if (!dupSnap.empty) {
@@ -785,9 +802,9 @@ function showExamSettingsPopup() {
             }
             // If not duplicate, add
             db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-              .collection('exams').doc('classGroups')
-              .collection(classGroup)
-              .add({ name, nameKey, subjects })
+            .collection('exams').doc('classGroups')
+            .collection(classGroup)
+            .add({ name, nameKey, subjects })
               .then(() => { closePopup(); showExamSettingsPopup(); });
           });
       });
@@ -824,104 +841,121 @@ function showExamSettingsPopup() {
 }
 
 // ----------- EDIT EXAM -------------
-function showEditExamPopup(examId) {
-  const classGroup = getClassGroupName(currentClassName);
-  db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-    .collection('exams').doc('classGroups')
-    .collection(classGroup).doc(examId)
-    .get()
-    .then(doc => {
-      if (!doc.exists) return alert("Exam not found!");
-      const exam = doc.data();
-      showPopup(`
-        <form id="editExamForm" style="display:flex; flex-direction:column; max-height:75vh;">
-      <div style="flex:1; overflow-y:auto; padding-right:4px;">
-          <div class="popup-title">Edit Exam</div>
-          <label>Exam Name</label>
-          <input name="examName" maxlength="30" required value="${exam.name}">
-          <label>Subjects</label>
-          <div id="editSubjectsContainer"></div>
-          <button type="button" id="editAddSubjectBtn"
-            style="margin:6px 0 14px 0; background:#1762a7;color:#fff;
-                   padding:7px 13px;border:none;border-radius:7px;font-weight:600;">
-            + Add Subject
-          </button>
-          <div class="popup-btn-row" style="margin-top:10px;">
-            <button type="button" class="popup-cancel-btn">Cancel</button>
-            <button type="submit" class="popup-action-btn">Save Changes</button>
-          </div>
-        </form>
-      `, 'editExamForm', function (e) {
-        e.preventDefault();
-        const name = e.target.examName.value.trim();
-        const nameKey = normalizeExamName(name);
-        let subjects = [];
-        const container = popupContent.querySelector('#editSubjectsContainer');
-        if (container) {
-          const subjectDivs = container.querySelectorAll('div[data-subject-row]');
-          subjectDivs.forEach(div => {
-            const subjInput = div.querySelector('input[type="text"]');
-            const marksInput = div.querySelector('input[type="number"]');
-            const subjName = subjInput ? subjInput.value.trim() : '';
-            const maxMarks = marksInput ? parseInt(marksInput.value.trim()) : 0;
-            if (subjName && maxMarks) {
-              subjects.push({ name: subjName, max: maxMarks });
-            }
-          });
-        }
-        if (!name || !subjects.length) {
-          alert("Please enter exam name and at least one subject!");
-          return;
-        }
-        // Check for duplicates (but exclude this examId itself)
-        db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-          .collection('exams').doc('classGroups')
-          .collection(classGroup)
-          .where('nameKey', '==', nameKey)
-          .get()
-          .then(dupSnap => {
-            let isDuplicate = false;
-            if (!dupSnap.empty) {
-              dupSnap.forEach(doc => {
-                if (doc.id !== examId) isDuplicate = true;
-              });
-              if (isDuplicate) {
-                alert("Another exam with this (or very similar) name already exists!");
-                return;
-              }
-            }
-            // If not duplicate, update
-            db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-              .collection('exams').doc('classGroups')
-              .collection(classGroup).doc(examId)
-              .update({ name, nameKey, subjects })
-              .then(() => { 
-                closePopup(); 
-                showExamSettingsPopup(); 
-              });
-          });
-      });
+// ----------- EDIT EXAM (with permission gate for admins or allowed users) -------------
+async function showEditExamPopup(examId) {
+  // 1) PERMISSION CHECK (admin OR class-allowed user)
+  const classDoc = await db.collection('schools').doc(schoolId)
+    .collection('years').doc(academicYear)
+    .collection('classes').doc(currentClassId)
+    .get();
 
-      // --- Subject Fields Logic for Edit ---
-      const subjectsContainer = popupContent.querySelector('#editSubjectsContainer');
-      const addSubjectBtn = popupContent.querySelector('#editAddSubjectBtn');
-      function addSubjectField(name = '', max = '') {
-        const idx = subjectsContainer.children.length;
-        const div = document.createElement('div');
-        div.setAttribute("data-subject-row", "");
-        div.style = "display:flex;align-items:center;gap:8px;margin-bottom:7px;";
-        div.innerHTML = `
-         <input type="text" name="subjectName_${idx}" placeholder="Subject Name" value="${name}" required style="width:80%; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd; margin-right:7px;" />
-         <input type="number" name="maxMarks_${idx}" placeholder="Max Marks" min="1" max="200" value="${max}" required style="width:25%; padding: 8px; border-radius: 6px; border: 1px solid #c7d7ea; background: #f7fafd;" />
-         ${isAdmin ? `<button type="button" class="option-btn" style="width: 70px; padding: 5px;" onclick="this.parentNode.remove()">Remove</button>` : ''}
-        `;
-        subjectsContainer.appendChild(div);
-      }
-      if (exam.subjects && Array.isArray(exam.subjects)) {
-        exam.subjects.forEach(subj => addSubjectField(subj.name, subj.max));
-      }
-      addSubjectBtn.onclick = () => addSubjectField();
-    });
+  const cd = classDoc.exists ? (classDoc.data() || {}) : {};
+  const allowExamAdd  = !!cd.allowExamAdd;                                   // boolean
+  const examManagers  = Array.isArray(cd.examManagers) ? cd.examManagers : []; // [emails or UIDs]
+
+  const me = auth.currentUser;
+  const meEmail = (me?.email || '').toLowerCase();
+  const meUid   = me?.uid || '';
+  const normalizedManagers = examManagers.map(x => String(x || '').toLowerCase());
+  const canUserFromList = normalizedManagers.includes(meEmail) || examManagers.includes(meUid);
+
+  const canManageExams = isAdmin || allowExamAdd || canUserFromList;
+  if (!canManageExams) { alert('You do not have permission to edit exams.'); return; }
+
+  // 2) LOAD THE EXAM (current storage on classGroups path)
+  const classGroup = getClassGroupName(currentClassName);
+  const examRef = db.collection('schools').doc(schoolId)
+    .collection('years').doc(academicYear)
+    .collection('exams').doc('classGroups')
+    .collection(classGroup)
+    .doc(examId);
+
+  const examDoc = await examRef.get();
+  if (!examDoc.exists) { alert("Exam not found!"); return; }
+  const exam = examDoc.data();
+
+  // 3) UI
+  showPopup(`
+    <form id="editExamForm" style="display:flex; flex-direction:column; max-height:75vh;">
+      <div style="flex:1; overflow-y:auto; padding-right:4px;">
+        <div class="popup-title">Edit Exam</div>
+        <label>Exam Name</label>
+        <input name="examName" maxlength="30" required value="${exam.name}">
+        <label>Subjects</label>
+        <div id="editSubjectsContainer"></div>
+        <button type="button" id="editAddSubjectBtn"
+          style="margin:6px 0 14px 0; background:#1762a7;color:#fff;
+                 padding:7px 13px;border:none;border-radius:7px;font-weight:600;">
+          + Add Subject
+        </button>
+        <div class="popup-btn-row" style="margin-top:10px;">
+          <button type="button" class="popup-cancel-btn">Cancel</button>
+          <button type="submit" class="popup-action-btn">Save Changes</button>
+        </div>
+      </div>
+    </form>
+  `, 'editExamForm', function (e) {
+    e.preventDefault();
+    const name = e.target.examName.value.trim();
+    const nameKey = normalizeExamName(name);
+
+    let subjects = [];
+    const container = popupContent.querySelector('#editSubjectsContainer');
+    if (container) {
+      const subjectDivs = container.querySelectorAll('div[data-subject-row]');
+      subjectDivs.forEach(div => {
+        const subjInput  = div.querySelector('input[type="text"]');
+        const marksInput = div.querySelector('input[type="number"]');
+        const subjName   = subjInput ? subjInput.value.trim() : '';
+        const maxMarks   = marksInput ? parseInt(marksInput.value.trim()) : 0;
+        if (subjName && maxMarks) subjects.push({ name: subjName, max: maxMarks });
+      });
+    }
+    if (!name || !subjects.length) {
+      alert("Please enter exam name and at least one subject!");
+      return;
+    }
+
+    // Duplicate check (keep on classGroups path for now)
+    db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
+      .collection('exams').doc('classGroups')
+      .collection(classGroup)
+      .where('nameKey', '==', nameKey)
+      .get()
+      .then(dupSnap => {
+        let isDuplicate = false;
+        if (!dupSnap.empty) {
+          dupSnap.forEach(d => { if (d.id !== examId) isDuplicate = true; });
+        }
+        if (isDuplicate) { alert("Another exam with this (or very similar) name already exists!"); return; }
+
+        // Update
+        return examRef.update({ name, nameKey, subjects })
+          .then(() => { closePopup(); showExamSettingsPopup(); });
+      });
+  });
+
+  // 4) Subject field helpers
+  const subjectsContainer = popupContent.querySelector('#editSubjectsContainer');
+  const addSubjectBtn     = popupContent.querySelector('#editAddSubjectBtn');
+
+  function addSubjectField(name = '', max = '') {
+    const idx = subjectsContainer.children.length;
+    const div = document.createElement('div');
+    div.setAttribute("data-subject-row", "");
+    div.style = "display:flex;align-items:center;gap:8px;margin-bottom:7px;";
+    div.innerHTML = `
+      <input type="text"   name="subjectName_${idx}" placeholder="Subject Name" value="${name}"
+             required style="width:80%; padding: 8px; border-radius: 6px; border: 1.3px solid #c7d7ea; background: #f7fafd; margin-right:7px;" />
+      <input type="number" name="maxMarks_${idx}"    placeholder="Max Marks" min="1" max="200" value="${max}"
+             required style="width:25%; padding: 8px; border-radius: 6px; border: 1.3px solid #c7d7ea; background: #f7fafd;" />
+      <button type="button" class="option-btn" style="width: 70px; padding: 5px;" onclick="this.parentNode.remove()">Remove</button>
+    `;
+    subjectsContainer.appendChild(div);
+  }
+
+  (Array.isArray(exam.subjects) ? exam.subjects : []).forEach(s => addSubjectField(s.name, s.max));
+  addSubjectBtn.onclick = () => addSubjectField();
 }
 
    // ============= ENTER MARKS ===============
@@ -2104,6 +2138,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
