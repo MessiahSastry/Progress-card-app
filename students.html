@@ -322,7 +322,8 @@ function getClassGroupName(className) {
     auth.onAuthStateChanged(function(user) {
       if (user) {
         signedInUser = user;
-        isAdmin = (user.email === "messiah.sastry@stpatricksschool.com");
+        isAdmin = ["messiah.sastry@stpatricksschool.com","messiahsastry@yahoo.com"]
+        .includes((user.email || "").toLowerCase());
         fab.onclick = showAddStudentPopup;
         fab.style.display = "flex";
         settingsBtn.onclick = showSettingsPopup;
@@ -715,7 +716,11 @@ async function showExamSettingsPopup() {
   const normalizedManagers = examManagers.map(x => String(x || '').toLowerCase());
   const canUserFromList = normalizedManagers.includes(meEmail) || examManagers.includes(meUid);
 
-  const canManageExams = isAdmin || allowExamAdd || canUserFromList;
+  const canManageExams =
+  isAdmin ||
+  allowExamAdd ||
+  canUserFromList ||
+  (!('allowExamAdd' in cd) && !('examManagers' in cd)); // default allow if not configured
   const classGroup = getClassGroupName(currentClassName);
   // Fetch all exams for this group
   db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
@@ -2141,6 +2146,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
