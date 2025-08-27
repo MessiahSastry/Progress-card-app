@@ -724,8 +724,8 @@ async function showExamSettingsPopup() {
   const classGroup = getClassGroupName(currentClassName);
   // Fetch all exams for this group
   db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-    .collection('exams').doc('classGroups')
-    .collection(classGroup)
+    .collection('classes').doc(currentClassId)
+.collection('exams')
     .get()
     .then(snap => {
       let exams = [];
@@ -796,8 +796,8 @@ async function showExamSettingsPopup() {
         }
         // Check for duplicates before adding
         db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-        .collection('exams').doc('classGroups')
-        .collection(classGroup)
+        .collection('classes').doc(currentClassId)
+        .collection('exams')
         .where('nameKey', '==', nameKey)
           .get()
           .then(dupSnap => {
@@ -873,11 +873,10 @@ async function showEditExamPopup(examId) {
   // 2) LOAD THE EXAM (current storage on classGroups path)
   const classGroup = getClassGroupName(currentClassName);
   const examRef = db.collection('schools').doc(schoolId)
-    .collection('years').doc(academicYear)
-    .collection('exams').doc('classGroups')
-    .collection(classGroup)
-    .doc(examId);
-
+  .collection('years').doc(academicYear)
+  .collection('classes').doc(currentClassId)
+  .collection('exams')
+  .doc(examId);
   const examDoc = await examRef.get();
   if (!examDoc.exists) { alert("Exam not found!"); return; }
   const exam = examDoc.data();
@@ -2146,6 +2145,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
