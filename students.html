@@ -1970,9 +1970,9 @@ function closeAbsenteesModal() {
     if (e.target === this) closeAbsenteesModal();
   };
         function showBulkMarksUploadPopup() {
-  db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-    .collection('exams').doc('classGroups')
-    .collection(getClassGroupName(currentClassName)).orderBy('name').get()
+    db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
+  .collection('classes').doc(currentClassId)
+  .collection('exams').orderBy('name').get()
     .then(examSnap => {
       let exams = [];
       examSnap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
@@ -2145,6 +2145,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
