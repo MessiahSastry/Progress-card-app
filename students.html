@@ -1794,6 +1794,24 @@ async function generateCertificatesForExam(
 
     <canvas id="certCanvas" width="2480" height="1754" style="display:none;"></canvas>
   `);
+  setTimeout(() => {
+  const onePdfBtn = document.getElementById("certOnePdfBtn");
+  const sepPdfBtn = document.getElementById("certSeparateBtn");
+
+  if (onePdfBtn) {
+    onePdfBtn.onclick = async () => {
+      console.log("Generate one PDF clicked");
+      // TODO: add call to your one-PDF function here
+    };
+  }
+
+  if (sepPdfBtn) {
+    sepPdfBtn.onclick = async () => {
+      console.log("Generate separate PDFs clicked");
+      // TODO: add call to your separate-PDF function here
+    };
+  }
+}, 0);
 
   // 🔹 Attach handlers *after* popup is created
   document.getElementById("certOnePdfBtn").onclick = async () => {
@@ -2288,6 +2306,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
