@@ -1803,10 +1803,7 @@ async function generateCertificatesForExam(classId, className, sectionId, sectio
 
   const canvas = document.getElementById('certCanvas');
   const ctx = canvas.getContext('2d');
-
-  let bgImg=new Image(), directorImg=new Image(), teacherImg=new Image();
-  bgImg.crossOrigin=directorImg.crossOrigin=teacherImg.crossOrigin="anonymous";
-  bgImg.src=bgUrl; directorImg.src=directorUrl; teacherImg.src=teacherUrl;
+  const bgUrl = certUrl; 
 // Rank badge images (ADD THESE)
 const rank1Img = new Image();
 const rank2Img = new Image();
@@ -2257,6 +2254,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
