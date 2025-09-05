@@ -1812,9 +1812,18 @@ async function generateCertificatesForExam(students, certUrl) {
     const page = pdfDoc.addPage([2480, 1754]);
     page.drawImage(bgImg, { x: 0, y: 0, width: 2480, height: 1754 });
 
-    page.drawText(`${academicYear}`, { x: 1211, y: 549, size: 36, color: rgb(0,0,0) });
-    page.drawText(stu.name || '', { x: 1223, y: 751, size: 42, color: rgb(0.06,0.24,0.42) });
-    page.drawText(`(${className} / ${sectionName})`, { x: 1214, y: 800, size: 32, color: rgb(0,0,0) });
+    // Academic Year
+page.drawText(`${academicYear}`, { x: 1210, y: 540, size: 36, color: rgb(0,0,0) });
+
+// Student Name (centered more clearly)
+page.drawText(stu.name || '', { x: 1210, y: 820, size: 48, color: rgb(0.06,0.24,0.42) });
+
+// Class + Section
+page.drawText(`${className} / ${sectionName}`, { x: 1210, y: 770, size: 32, color: rgb(0,0,0) });
+
+// Exam Name (NEW: from dropdown text, not ID)
+const examName = document.getElementById('examSelected')?.textContent || "";
+page.drawText(examName, { x: 1210, y: 600, size: 36, color: rgb(0,0,0) });
 
    // rank badge (using PNG images instead of emoji)
     let img = rank1Img;
@@ -2231,6 +2240,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
