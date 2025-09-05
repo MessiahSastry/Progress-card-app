@@ -1817,10 +1817,10 @@ const rank2Img = new Image();
 const rank3Img = new Image();
 [rank1Img, rank2Img, rank3Img].forEach(i => (i.crossOrigin = "anonymous"));
 
-// 👉 Change these URLs if your badge files live somewhere else
-rank1Img.src = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/rank1.png";
-rank2Img.src = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/rank2.png";
-rank3Img.src = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/rank3.png";
+// If the files are in the same repo/folder as certificate.png:
+rank1Img.src = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/rank-1.png";
+rank2Img.src = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/rank-2.png";
+rank3Img.src = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/rank-3.png";
 
   function drawCertificate(stu, rank){
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -1845,13 +1845,11 @@ if (rank === 1) rankImg = rank1Img;
 else if (rank === 2) rankImg = rank2Img;
 else if (rank === 3) rankImg = rank3Img;
 
-if (rankImg) {
+if (rankImg && rankImg.complete && rankImg.naturalWidth > 0) {
   const w = 220; // badge width
-  const h = (rankImg.height / rankImg.width) * w; // keep aspect ratio
+  const h = (rankImg.naturalHeight / rankImg.naturalWidth) * w; // keep aspect ratio
   ctx.drawImage(rankImg, 2000, 700, w, h); // adjust X/Y for placement
 }
-
-
     // Director signature
     if(directorImg.complete && directorImg.naturalWidth>0){
       const w=220,h=directorImg.height/directorImg.width*220;
@@ -2263,6 +2261,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
