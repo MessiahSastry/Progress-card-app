@@ -1773,7 +1773,9 @@ async function openCertificateGenerator() {
       };
     }
   // ======================= ACTUAL CERTIFICATE GENERATION =========================
-async function generateCertificatesForExam(classId, className, sectionId, sectionName, examId, examName) {
+async function generateCertificatesForExam(
+  classId, className, sectionId, sectionName, examId, examName, students, certUrl
+) {
   showPopup(`
     <div class="popup-title">Certificates: ${examName}</div>
     <div style="margin-bottom:12px;color:#555;">
@@ -2254,6 +2256,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
