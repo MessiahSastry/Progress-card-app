@@ -1811,6 +1811,16 @@ async function generateCertificatesForExam(classId, className, sectionId, sectio
   let bgImg=new Image(), directorImg=new Image(), teacherImg=new Image();
   bgImg.crossOrigin=directorImg.crossOrigin=teacherImg.crossOrigin="anonymous";
   bgImg.src=bgUrl; directorImg.src=directorUrl; teacherImg.src=teacherUrl;
+// Rank badge images (ADD THESE)
+const rank1Img = new Image();
+const rank2Img = new Image();
+const rank3Img = new Image();
+[rank1Img, rank2Img, rank3Img].forEach(i => (i.crossOrigin = "anonymous"));
+
+// 👉 Change these URLs if your badge files live somewhere else
+rank1Img.src = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/rank1.png";
+rank2Img.src = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/rank2.png";
+rank3Img.src = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/rank3.png";
 
   function drawCertificate(stu, rank){
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -1854,7 +1864,7 @@ if (rankImg) {
       ctx.drawImage(teacherImg,1759-w/2,1412-h/2,w,h);
     }
   }
-
+}
 // View attendance for one date
 function showAttendanceForDate(date) {
   // Load student list
@@ -2253,6 +2263,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
