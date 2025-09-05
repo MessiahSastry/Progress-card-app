@@ -1840,12 +1840,11 @@ async function generateCertificatesForExam(
     // Rank badge
     let rankImg = rank === 1 ? rank1Img : rank === 2 ? rank2Img : rank === 3 ? rank3Img : null;
     if (rankImg && rankImg.complete && rankImg.naturalWidth > 0) {
-      const w = 220;
+      const w = 300;  // increase badge width
       const h = (rankImg.naturalHeight / rankImg.naturalWidth) * w;
-      ctx.drawImage(rankImg, 2000, 700, w, h);
+      ctx.drawImage(rankImg, 1850, 600, w, h); 
     }
   }
-
   const onePdfBtn = document.getElementById("certOnePdfBtn");
   const sepPdfBtn = document.getElementById("certSeparateBtn");
   const downloading = document.getElementById("downloadStatus");
@@ -2284,6 +2283,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
