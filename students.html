@@ -1787,74 +1787,70 @@ async function generateCertificatesForExam(
       <button class="popup-cancel-btn">Close</button>
     </div>
 
-    <!-- Download status area -->
     <div id="downloadStatus" style="margin-top:15px; text-align:center; font-size:1.1em; color:#0f3d6b; display:none;">
       <div id="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #0f3d6b; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 0 auto 8px;"></div>
       <div id="statusText">Preparing download...</div>
     </div>
 
     <canvas id="certCanvas" width="2480" height="1754" style="display:none;"></canvas>
-
-    <style>
-    @keyframes spin { 
-      0% { transform: rotate(0deg); } 
-      100% { transform: rotate(360deg); } 
-    }
-    </style>
   `);
 
+  // 🔹 Attach handlers *after* popup is created
+  document.getElementById("certOnePdfBtn").onclick = async () => {
+    console.log("Generate one PDF clicked");
+    // TODO: call your function to generate single combined PDF
+  };
+
+  document.getElementById("certSeparateBtn").onclick = async () => {
+    console.log("Generate separate PDFs clicked");
+    // TODO: call your function to generate separate PDFs
+  };
+
+  // 🔹 Continue with your canvas setup & drawing logic
   const canvas = document.getElementById('certCanvas');
   const ctx = canvas.getContext('2d');
-  const bgUrl = certUrl; 
-// Rank badge images (ADD THESE)
-const rank1Img = new Image();
-const rank2Img = new Image();
-const rank3Img = new Image();
-[rank1Img, rank2Img, rank3Img].forEach(i => (i.crossOrigin = "anonymous"));
 
-// If the files are in the same repo/folder as certificate.png:
-rank1Img.src = "https://raw.githubusercontent.com/MessiahSastry/Progress-card-app/main/rank-1.png";
-rank2Img.src = "https://raw.githubusercontent.com/MessiahSastry/Progress-card-app/main/rank-2.png";
-rank3Img.src = "https://raw.githubusercontent.com/MessiahSastry/Progress-card-app/main/rank-3.png";
+  const bgImg = new Image();
+  bgImg.crossOrigin = "anonymous";
+  bgImg.src = certUrl;
 
-  function drawCertificate(stu, rank){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(bgImg,0,0,canvas.width,canvas.height);
-    ctx.fillStyle="#000"; ctx.textAlign="center";
+  // Rank images
+  const rank1Img = new Image(), rank2Img = new Image(), rank3Img = new Image();
+  [rank1Img, rank2Img, rank3Img].forEach(i => (i.crossOrigin = "anonymous"));
+  rank1Img.src = "https://raw.githubusercontent.com/MessiahSastry/Progress-card-app/main/rank-1.png";
+  rank2Img.src = "https://raw.githubusercontent.com/MessiahSastry/Progress-card-app/main/rank-2.png";
+  rank3Img.src = "https://raw.githubusercontent.com/MessiahSastry/Progress-card-app/main/rank-3.png";
+
+  function drawCertificate(stu, rank) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#000";
+    ctx.textAlign = "center";
 
     // Exam name
-    ctx.font="64px Segoe UI Bold";
-    ctx.fillText(examName,1211,600);
+    ctx.font = "64px Segoe UI Bold";
+    ctx.fillText(examName, 1211, 600);
 
     // Student Name
-    ctx.font="72px Segoe Script";
-    ctx.fillStyle="#0f3d6b";
-    ctx.fillText(stu.name,1223,800);
+    ctx.font = "72px Segoe Script";
+    ctx.fillStyle = "#0f3d6b";
+    ctx.fillText(stu.name, 1223, 800);
 
     // Class & Section
-    ctx.font="46px Segoe UI";
-    ctx.fillText(`(${className} / ${sectionName})`,1214,880);
+    ctx.font = "46px Segoe UI";
+    ctx.fillText(`(${className} / ${sectionName})`, 1214, 880);
 
-   let rankImg = null;
-if (rank === 1) rankImg = rank1Img;
-else if (rank === 2) rankImg = rank2Img;
-else if (rank === 3) rankImg = rank3Img;
+    // Rank badge
+    let rankImg = null;
+    if (rank === 1) rankImg = rank1Img;
+    else if (rank === 2) rankImg = rank2Img;
+    else if (rank === 3) rankImg = rank3Img;
 
-if (rankImg && rankImg.complete && rankImg.naturalWidth > 0) {
-  const w = 220; // badge width
-  const h = (rankImg.naturalHeight / rankImg.naturalWidth) * w; // keep aspect ratio
-  ctx.drawImage(rankImg, 2000, 700, w, h); // adjust X/Y for placement
-}
-    // Director signature
-    if(directorImg.complete && directorImg.naturalWidth>0){
-      const w=220,h=directorImg.height/directorImg.width*220;
-      ctx.drawImage(directorImg,772-w/2,1400-h/2,w,h);
-    }
-
-    // Teacher signature
-    if(teacherImg.complete && teacherImg.naturalWidth>0){
-      const w=220,h=teacherImg.height/teacherImg.width*220;
-      ctx.drawImage(teacherImg,1759-w/2,1412-h/2,w,h);
+    if (rankImg && rankImg.complete && rankImg.naturalWidth > 0) {
+      const w = 220;
+      const h = (rankImg.naturalHeight / rankImg.naturalWidth) * w;
+      ctx.drawImage(rankImg, 2000, 700, w, h);
     }
   }
 }
@@ -2292,6 +2288,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
