@@ -1773,6 +1773,13 @@ async function generateCertificatesForExam(students, certUrl) {
   const pdfDoc = await PDFDocument.create();
   const bgBytes = await fetch(certUrl).then(r => r.arrayBuffer());
   const bgImg = await pdfDoc.embedPng(bgBytes);
+   // Load rank images
+  const rank1Bytes = await fetch("rank-1.png").then(r => r.arrayBuffer());
+  const rank2Bytes = await fetch("rank-2.png").then(r => r.arrayBuffer());
+  const rank3Bytes = await fetch("rank-3.png").then(r => r.arrayBuffer());
+  const rank1Img = await pdfDoc.embedPng(rank1Bytes);
+  const rank2Img = await pdfDoc.embedPng(rank2Bytes);
+  const rank3Img = await pdfDoc.embedPng(rank3Bytes);
 
   // Get class/section info from dropdowns (not globals)
   const className = document.getElementById('classSelected')?.textContent || "";
@@ -1809,12 +1816,11 @@ async function generateCertificatesForExam(students, certUrl) {
     page.drawText(stu.name || '', { x: 1223, y: 751, size: 42, color: rgb(0.06,0.24,0.42) });
     page.drawText(`(${className} / ${sectionName})`, { x: 1214, y: 800, size: 32, color: rgb(0,0,0) });
 
-    // rank badge (big emoji)
-    let badge = "🥇";
-    if (idx === 1) badge = "🥈";
-    else if (idx === 2) badge = "🥉";
-    page.drawText(badge, { x: 2112, y: 772, size: 120 });
-
+   // rank badge (using PNG images instead of emoji)
+    let img = rank1Img;
+    if (idx === 1) img = rank2Img;
+    else if (idx === 2) img = rank3Img;
+    page.drawImage(img, { x: 2050, y: 720, width: 150, height: 150 });
     page.drawText("Director", { x: 772, y: 1400, size: 24 });
     page.drawText("Teacher", { x: 1759, y: 1412, size: 24 });
   }
@@ -2225,6 +2231,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
