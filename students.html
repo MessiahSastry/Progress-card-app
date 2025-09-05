@@ -1804,10 +1804,6 @@ async function generateCertificatesForExam(classId, className, sectionId, sectio
   const canvas = document.getElementById('certCanvas');
   const ctx = canvas.getContext('2d');
 
-  // Assets
-  const bgUrl = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/certificate.png";
-  const directorUrl = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/director-sign.png";
-  const teacherUrl  = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/teacher-sign.png";
   let bgImg=new Image(), directorImg=new Image(), teacherImg=new Image();
   bgImg.crossOrigin=directorImg.crossOrigin=teacherImg.crossOrigin="anonymous";
   bgImg.src=bgUrl; directorImg.src=directorUrl; teacherImg.src=teacherUrl;
@@ -2261,6 +2257,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
