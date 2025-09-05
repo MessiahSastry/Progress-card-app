@@ -605,7 +605,7 @@ async function showExamSettingsPopup() {
   // Fetch all exams for this group
   db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
     .collection('classes').doc(currentClassId)
-.collection('exams')
+    .collection('exams')
     .get()
     .then(snap => {
       let exams = [];
@@ -687,8 +687,8 @@ async function showExamSettingsPopup() {
             }
             // If not duplicate, add
             db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-            .collection('exams').doc('classGroups')
-            .collection(classGroup)
+            .collection('classes').doc(currentClassId)
+            .collection('exams')
             .add({ name, nameKey, subjects })
               .then(() => { closePopup(); showExamSettingsPopup(); });
           });
@@ -729,7 +729,6 @@ if (canManageExams) {
 }
 
 // ----------- EDIT EXAM -------------
-// ----------- EDIT EXAM (with permission gate for admins or allowed users) -------------
 async function showEditExamPopup(examId) {
   // 1) PERMISSION CHECK (admin OR class-allowed user)
   const classDoc = await db.collection('schools').doc(schoolId)
@@ -805,8 +804,7 @@ async function showEditExamPopup(examId) {
 
     // Duplicate check (keep on classGroups path for now)
     db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-      .collection('exams').doc('classGroups')
-      .collection(classGroup)
+      .collection('exams')
       .where('nameKey', '==', nameKey)
       .get()
       .then(dupSnap => {
@@ -851,8 +849,7 @@ function showEnterMarksPopup() {
   console.log('academicYear:', academicYear);
   const classGroup = getClassGroupName(currentClassName);
 db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-  .collection('exams').doc('classGroups')
-  .collection(classGroup).orderBy('name').get()
+  .collection('exams').orderBy('name').get()
     .then(examSnap => {
       let exams = [];
       examSnap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
@@ -2227,6 +2224,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
