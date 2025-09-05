@@ -412,129 +412,7 @@ function getClassGroupName(className) {
       popupContent.innerHTML = '';
       popupBg.onclick = null;
     }
-  // Inline Certificate Studio (minimal shell). We'll render inside the existing popup.
-function openCertificateStudio() {
-  // Basic shell UI inside the same popup component you already use
-  showPopup(`
-    <div class="popup-title">Certificate Studio</div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div>
-        <label>Background (A4 Landscape)</label>
-        <input type="file" id="cs_bg" accept="image/*">
-      </div>
-      <div>
-        <label>Watermark Logo</label>
-        <input type="file" id="cs_wm" accept="image/*">
-      </div>
-    </div>
-
-    <label>School Name</label>
-    <input id="cs_school" placeholder="${schoolData.name || 'School'}" value="${schoolData.name || ''}">
-
-    <label>Subheading</label>
-    <input id="cs_sub" placeholder="${schoolData.subtitle || ''}" value="${schoolData.subtitle || ''}">
-
-    <label>Certificate Title</label>
-    <input id="cs_title" placeholder="Certificate of Merit">
-
-    <div style="display:flex;gap:8px;align-items:center;margin:8px 0;">
-      <button class="popup-action-btn" id="cs_loadSection">Load Current Section</button>
-      <span style="font-size:.92em;color:#666" id="cs_count_hint"></span>
-    </div>
-
-    <div style="background:#fff;border:1px solid #e6eef7;border-radius:10px;padding:8px;">
-      <canvas id="cs_canvas" width="2480" height="1754" style="width:100%;height:auto;border-radius:8px;"></canvas>
-    </div>
-
-    <div class="popup-btn-row" style="margin-top:10px;">
-      <button type="button" class="popup-cancel-btn">Close</button>
-      <button type="button" class="popup-action-btn" id="cs_generate">Generate PDF</button>
-    </div>
-  `);
-
-  // very light preview wiring (placeholder). Replace with your full studio logic later.
-  const canvas = document.getElementById('cs_canvas');
-  const ctx = canvas.getContext('2d');
-  let bgImg = null, wmImg = null, recips = [];
-
-  function draw() {
-    // white
-    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
-    // bg
-    if (bgImg) {
-      const r = Math.min(canvas.width/bgImg.width, canvas.height/bgImg.height);
-      const w = bgImg.width*r, h = bgImg.height*r;
-      ctx.drawImage(bgImg, (canvas.width-w)/2, (canvas.height-h)/2, w, h);
-    }
-    // wm
-    if (wmImg) {
-      ctx.save();
-      ctx.globalAlpha = 0.12;
-      const h = canvas.height*0.5;
-      const r = h/wmImg.height;
-      const w = wmImg.width*r;
-      ctx.drawImage(wmImg, (canvas.width-w)/2, (canvas.height-h)/2, w, h);
-      ctx.restore();
-    }
-    // headings
-    const school = document.getElementById('cs_school').value.trim();
-    const sub    = document.getElementById('cs_sub').value.trim();
-    const title  = document.getElementById('cs_title').value.trim();
-    ctx.fillStyle = '#0f3d6b'; ctx.textAlign='center';
-    ctx.font = 'bold 56px "Segoe UI", Arial, sans-serif';
-    ctx.fillText(school || (schoolData.name || 'School'), canvas.width/2, 180);
-    ctx.fillStyle = '#1467b7';
-    ctx.font = '500 34px "Segoe UI", Arial, sans-serif';
-    if (sub) ctx.fillText(sub, canvas.width/2, 230);
-    ctx.fillStyle = '#0f3d6b';
-    ctx.font = 'bold 46px "Segoe UI", Arial, sans-serif';
-    if (title) ctx.fillText(title, canvas.width/2, 300);
-  }
-
-  function readImg(file){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=URL.createObjectURL(file); }); }
-  document.getElementById('cs_bg').onchange = async e => { if (e.target.files[0]) { bgImg = await readImg(e.target.files[0]); draw(); } };
-  document.getElementById('cs_wm').onchange = async e => { if (e.target.files[0]) { wmImg = await readImg(e.target.files[0]); draw(); } };
-  ['cs_school','cs_sub','cs_title'].forEach(id => document.getElementById(id).oninput = draw);
-
-  // Load recipients from the current section
-  document.getElementById('cs_loadSection').onclick = async () => {
-    const hint = document.getElementById('cs_count_hint');
-    if (!academicYear || !currentClassId || !currentSectionId) {
-      alert('Class/Section not selected.'); return;
-    }
-    const snap = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-      .collection('classes').doc(currentClassId)
-      .collection('sections').doc(currentSectionId)
-      .collection('students').orderBy('roll').get();
-    recips = [];
-    snap.forEach(d => { const x = d.data(); if (!x.isDeleted) recips.push({name:x.name, father:x.father, cls:currentClassName, sec:currentSectionName}); });
-    hint.textContent = recips.length ? `${recips.length} students loaded` : 'No students';
-  };
-
-  // Very simple PDF (image of canvas) — replace later with your full per-student draw
-  document.getElementById('cs_generate').onclick = async () => {
-    if (!window.PDFLib) { alert('pdf-lib not loaded on this page. Add it to this page if you need PDF.'); return; }
-    const { PDFDocument } = PDFLib;
-    const pdf = await PDFDocument.create();
-    // at least one page with headings/background to prove flow
-    draw();
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-    const base64  = dataUrl.split(',')[1];
-    const bytes   = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-    const page = pdf.addPage([842, 595]); // A4 landscape
-    const img  = await pdf.embedJpg(bytes);
-    const s = Math.min(842/img.width, 595/img.height);
-    page.drawImage(img, { x:(842-img.width*s)/2, y:(595-img.height*s)/2, width:img.width*s, height:img.height*s });
-    const pdfBytes = await pdf.save();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([pdfBytes], {type:'application/pdf'}));
-    a.download = 'Certificate.pdf';
-    a.click();
-  };
-
-  draw();
-}
+  
     // =========== ADD/EDIT STUDENT POPUP =========================
     function showAddStudentPopup() {
       showPopup(`
@@ -692,7 +570,9 @@ if (!isValidPhone(parentPhone)) { alert('Please enter a valid 10–12 digit pare
   window.location.href = "performance.html";
 };
   document.getElementById('showDeletedBtn').onclick = showDeletedStudentsPopup;
-      document.getElementById('createCertificateBtn').onclick = openCertificateStudio;  // inline studio
+      document.getElementById('createCertificateBtn').onclick = function() {
+  openCertificateGenerator();
+};
     document.getElementById('yearPlanBtn').onclick = function() {
     window.location.href = "year-plan.html";
 };
@@ -1747,6 +1627,119 @@ let html = `
       });
     });
 }
+    // ================= CERTIFICATE GENERATOR ==================
+async function openCertificateGenerator() {
+  showPopup(`
+    <div class="popup-title">Generate Certificates</div>
+    <label>Select Exam</label>
+    <div class="custom-dropdown" id="examDropdown" tabindex="0">
+      <div class="dropdown-selected" id="examSelected" data-value="">--Select--</div>
+      <div class="dropdown-list" id="examList" style="display:none;"></div>
+    </div>
+    <div class="popup-btn-row" style="margin-top:12px;">
+      <button type="button" class="popup-cancel-btn">Cancel</button>
+      <button type="button" class="popup-action-btn" id="generateCertificatesBtn">Generate</button>
+    </div>
+  `);
+
+ // Fetch certificate URL from Firestore field
+let certUrl = '';
+const schoolDoc = await db.collection('schools').doc(schoolId).get();
+if (schoolDoc.exists && schoolDoc.data().certificateUrl) {
+  certUrl = schoolDoc.data().certificateUrl;
+} else {
+  alert("Certificate template not uploaded in Firestore!");
+  return;
+}
+  // Load exams for dropdown
+  const examSnap = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
+    .collection('classes').doc(currentClassId)
+    .collection('exams').orderBy('name').get();
+  let exams = [];
+  examSnap.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
+  const examList = document.getElementById('examList');
+  examList.innerHTML = exams.map(e => `<div class="dropdown-option" data-id="${e.id}">${e.name}</div>`).join('');
+  const examSelected = document.getElementById('examSelected');
+  examSelected.onclick = () => {
+    examList.style.display = examList.style.display === 'none' ? 'block' : 'none';
+  };
+  examList.querySelectorAll('.dropdown-option').forEach(opt => {
+    opt.onclick = () => {
+      examSelected.textContent = opt.textContent;
+      examSelected.dataset.value = opt.dataset.id;
+      examList.style.display = 'none';
+    };
+  });
+
+  document.getElementById('generateCertificatesBtn').onclick = async () => {
+    const examId = examSelected.dataset.value;
+    if (!examId) return alert("Please select an exam!");
+    const stuSnap = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
+      .collection('classes').doc(currentClassId)
+      .collection('sections').doc(currentSectionId)
+      .collection('students').orderBy('roll').get();
+    let students = [];
+    stuSnap.forEach(doc => {
+      const s = doc.data();
+      if (!s.isDeleted) students.push({ id: doc.id, ...s });
+    });
+    if (!students.length) return alert("No students found!");
+    await generateCertificatesForExam(students, certUrl);
+  };
+}
+
+async function generateCertificatesForExam(students, certUrl) {
+  const { PDFDocument } = PDFLib;
+  const pdfDoc = await PDFDocument.create();
+  const bgBytes = await fetch(certUrl).then(r => r.arrayBuffer());
+  const bgImg = await pdfDoc.embedPng(bgBytes);
+
+  // --- Top 3 students only (with ties) ---
+  const marksPromises = students.map(async stu => {
+    let marksSnap = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
+      .collection('classes').doc(currentClassId)
+      .collection('sections').doc(currentSectionId)
+      .collection('students').doc(stu.id)
+      .collection('marks').get();
+    let total = 0;
+    marksSnap.forEach(m => {
+      Object.values(m.data()).forEach(v => total += Number(v) || 0);
+    });
+    return { ...stu, total };
+  });
+  const withMarks = await Promise.all(marksPromises);
+  withMarks.sort((a, b) => b.total - a.total);
+
+  // compute top 3 (including ties)
+  let cutoff = 0;
+  if (withMarks.length > 0) cutoff = withMarks[Math.min(2, withMarks.length - 1)].total;
+  const winners = withMarks.filter(s => s.total >= cutoff);
+
+  for (let [idx, stu] of winners.entries()) {
+    const page = pdfDoc.addPage([2480, 1754]);
+    page.drawImage(bgImg, { x: 0, y: 0, width: 2480, height: 1754 });
+    page.drawText(`${academicYear}`, { x: 1211, y: 549, size: 36, color: rgb(0,0,0) });
+    page.drawText(stu.name || '', { x: 1223, y: 751, size: 42, color: rgb(0.06,0.24,0.42) });
+    page.drawText(`(${currentClassName} / ${currentSectionName})`, { x: 1214, y: 800, size: 32, color: rgb(0,0,0) });
+
+    // rank badge (big emoji)
+    let badge = "🥇";
+    if (idx === 1) badge = "🥈";
+    else if (idx === 2) badge = "🥉";
+    page.drawText(badge, { x: 2112, y: 772, size: 120 });
+
+    page.drawText("Director", { x: 772, y: 1400, size: 24 });
+    page.drawText("Teacher", { x: 1759, y: 1412, size: 24 });
+  }
+
+  const pdfBytes = await pdfDoc.save();
+  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "Certificates.pdf";
+  a.click();
+}
 // View attendance for one date
 function showAttendanceForDate(date) {
   // Load student list
@@ -2145,6 +2138,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
