@@ -1625,8 +1625,7 @@ let html = `
       });
     });
 }
-    // ================= CERTIFICATE GENERATOR ==================
-// ================= CERTIFICATE GENERATOR ==================
+   // ================= CERTIFICATE GENERATOR ==================
 async function openCertificateGenerator() {
   showPopup(`
     <div class="popup-title">Generate Certificates</div>
@@ -1765,83 +1764,97 @@ async function openCertificateGenerator() {
     });
 
     if (!students.length) return alert("No students found!");
-    await generateCertificatesForExam(students, certUrl);
+    const className = document.getElementById('classSelected')?.textContent || "";
+const sectionName = document.getElementById('sectionSelected')?.textContent || "";
+const examName = document.getElementById('examSelected')?.textContent || "";
+const examId = document.getElementById('examSelected')?.dataset.id || "";
+
+await generateCertificatesForExam(classId, className, sectionId, sectionName, examId, examName, students, certUrl);
   };
 }
-async function generateCertificatesForExam(students, certUrl) {
-  const { PDFDocument, rgb } = PDFLib;
-  const pdfDoc = await PDFDocument.create();
-  const bgBytes = await fetch(certUrl).then(r => r.arrayBuffer());
-  const bgImg = await pdfDoc.embedPng(bgBytes);
-   // Load rank images
-  const rank1Bytes = await fetch("rank-1.png").then(r => r.arrayBuffer());
-  const rank2Bytes = await fetch("rank-2.png").then(r => r.arrayBuffer());
-  const rank3Bytes = await fetch("rank-3.png").then(r => r.arrayBuffer());
-  const rank1Img = await pdfDoc.embedPng(rank1Bytes);
-  const rank2Img = await pdfDoc.embedPng(rank2Bytes);
-  const rank3Img = await pdfDoc.embedPng(rank3Bytes);
+  // ======================= ACTUAL CERTIFICATE GENERATION =========================
+async function generateCertificatesForExam(classId, className, sectionId, sectionName, examId, examName) {
+  showPopup(`
+    <div class="popup-title">Certificates: ${examName}</div>
+    <div style="margin-bottom:12px;color:#555;">
+      Certificates will be generated only for the <b>first three ranks</b> (including ties).
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="popup-action-btn" id="certOnePdfBtn">Generate One PDF (All Rankers)</button>
+      <button class="popup-action-btn" id="certSeparateBtn">Generate Separate PDFs</button>
+      <button class="popup-cancel-btn">Close</button>
+    </div>
 
-  // Get class/section info from dropdowns (not globals)
-  const className = document.getElementById('classSelected')?.textContent || "";
-  const sectionName = document.getElementById('sectionSelected')?.textContent || "";
+    <!-- Download status area -->
+    <div id="downloadStatus" style="margin-top:15px; text-align:center; font-size:1.1em; color:#0f3d6b; display:none;">
+      <div id="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #0f3d6b; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 0 auto 8px;"></div>
+      <div id="statusText">Preparing download...</div>
+    </div>
 
-  // --- Top 3 students only (with ties) ---
-  const marksPromises = students.map(async stu => {
-    let marksSnap = await db.collection('schools').doc(schoolId).collection('years').doc(academicYear)
-      .collection('classes').doc(document.getElementById('classSelected').dataset.id)
-      .collection('sections').doc(document.getElementById('sectionSelected').dataset.id)
-      .collection('students').doc(stu.id)
-      .collection('marks').get();
+    <canvas id="certCanvas" width="2480" height="1754" style="display:none;"></canvas>
 
-    let total = 0;
-    marksSnap.forEach(m => {
-      Object.values(m.data()).forEach(v => total += Number(v) || 0);
-    });
-    return { ...stu, total };
-  });
+    <style>
+    @keyframes spin { 
+      0% { transform: rotate(0deg); } 
+      100% { transform: rotate(360deg); } 
+    }
+    </style>
+  `);
 
-  const withMarks = await Promise.all(marksPromises);
-  withMarks.sort((a, b) => b.total - a.total);
+  const canvas = document.getElementById('certCanvas');
+  const ctx = canvas.getContext('2d');
 
-  // compute top 3 (including ties)
-  let cutoff = 0;
-  if (withMarks.length > 0) cutoff = withMarks[Math.min(2, withMarks.length - 1)].total;
-  const winners = withMarks.filter(s => s.total >= cutoff);
+  // Assets
+  const bgUrl = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/certificate.png";
+  const directorUrl = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/director-sign.png";
+  const teacherUrl  = "https://raw.githubusercontent.com/MessiahSastry/Question-Bank/main/teacher-sign.png";
+  let bgImg=new Image(), directorImg=new Image(), teacherImg=new Image();
+  bgImg.crossOrigin=directorImg.crossOrigin=teacherImg.crossOrigin="anonymous";
+  bgImg.src=bgUrl; directorImg.src=directorUrl; teacherImg.src=teacherUrl;
 
-  for (let [idx, stu] of winners.entries()) {
-    const page = pdfDoc.addPage([2480, 1754]);
-    page.drawImage(bgImg, { x: 0, y: 0, width: 2480, height: 1754 });
+  function drawCertificate(stu, rank){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(bgImg,0,0,canvas.width,canvas.height);
+    ctx.fillStyle="#000"; ctx.textAlign="center";
 
-    // Academic Year
-page.drawText(`${academicYear}`, { x: 1210, y: 540, size: 36, color: rgb(0,0,0) });
+    // Exam name
+    ctx.font="64px Segoe UI Bold";
+    ctx.fillText(examName,1211,600);
 
-// Student Name (centered more clearly)
-page.drawText(stu.name || '', { x: 1210, y: 820, size: 48, color: rgb(0.06,0.24,0.42) });
+    // Student Name
+    ctx.font="72px Segoe Script";
+    ctx.fillStyle="#0f3d6b";
+    ctx.fillText(stu.name,1223,800);
 
-// Class + Section
-page.drawText(`${className} / ${sectionName}`, { x: 1210, y: 770, size: 32, color: rgb(0,0,0) });
+    // Class & Section
+    ctx.font="46px Segoe UI";
+    ctx.fillText(`(${className} / ${sectionName})`,1214,880);
 
-// Exam Name (NEW: from dropdown text, not ID)
-const examName = document.getElementById('examSelected')?.textContent || "";
-page.drawText(examName, { x: 1210, y: 600, size: 36, color: rgb(0,0,0) });
+   let rankImg = null;
+if (rank === 1) rankImg = rank1Img;
+else if (rank === 2) rankImg = rank2Img;
+else if (rank === 3) rankImg = rank3Img;
 
-   // rank badge (using PNG images instead of emoji)
-    let img = rank1Img;
-    if (idx === 1) img = rank2Img;
-    else if (idx === 2) img = rank3Img;
-    page.drawImage(img, { x: 2050, y: 720, width: 150, height: 150 });
-    page.drawText("Director", { x: 772, y: 1400, size: 24 });
-    page.drawText("Teacher", { x: 1759, y: 1412, size: 24 });
+if (rankImg) {
+  const w = 220; // badge width
+  const h = (rankImg.height / rankImg.width) * w; // keep aspect ratio
+  ctx.drawImage(rankImg, 2000, 700, w, h); // adjust X/Y for placement
+}
+
+
+    // Director signature
+    if(directorImg.complete && directorImg.naturalWidth>0){
+      const w=220,h=directorImg.height/directorImg.width*220;
+      ctx.drawImage(directorImg,772-w/2,1400-h/2,w,h);
+    }
+
+    // Teacher signature
+    if(teacherImg.complete && teacherImg.naturalWidth>0){
+      const w=220,h=teacherImg.height/teacherImg.width*220;
+      ctx.drawImage(teacherImg,1759-w/2,1412-h/2,w,h);
+    }
   }
 
-  const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "Certificates.pdf";
-  a.click();
-}
 // View attendance for one date
 function showAttendanceForDate(date) {
   // Load student list
@@ -2240,6 +2253,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
