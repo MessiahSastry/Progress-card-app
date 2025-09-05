@@ -1858,6 +1858,42 @@ if (rankImg && rankImg.complete && rankImg.naturalWidth > 0) {
     }
   }
 }
+    // === Button Handlers ===
+document.getElementById("certOnePdfBtn").onclick = async () => {
+  document.getElementById("downloadStatus").style.display = "block";
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
+
+  for (let i = 0; i < Math.min(3, students.length); i++) {
+    const stu = students[i];
+    drawCertificate(stu, i + 1);
+
+    const imgData = canvas.toDataURL("image/png");
+    if (i > 0) pdf.addPage();
+    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+  }
+
+  pdf.save(`Certificates_${examName}.pdf`);
+  document.getElementById("downloadStatus").style.display = "none";
+};
+
+document.getElementById("certSeparateBtn").onclick = async () => {
+  document.getElementById("downloadStatus").style.display = "block";
+
+  for (let i = 0; i < Math.min(3, students.length); i++) {
+    const stu = students[i];
+    drawCertificate(stu, i + 1);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
+    const imgData = canvas.toDataURL("image/png");
+    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    pdf.save(`Certificate_${stu.name}_${examName}.pdf`);
+  }
+
+  document.getElementById("downloadStatus").style.display = "none";
+};
+
 // View attendance for one date
 function showAttendanceForDate(date) {
   // Load student list
@@ -2256,6 +2292,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
