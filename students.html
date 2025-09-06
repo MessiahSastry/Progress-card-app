@@ -1854,18 +1854,30 @@ async function generateCertificatesForExam(
     downloading.style.display = "block";
 
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
+const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
 
-    const count = Math.min(3, students.length); // TODO: replace with real rankers
-    for (let i = 0; i < count; i++) {
-      drawCertificate(students[i], i + 1);
-      const imgData = canvas.toDataURL("image/png");
-      if (i > 0) pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-    }
+const count = Math.min(3, students.length); // TODO: replace with real rankers
+for (let i = 0; i < count; i++) {
+  // Show progress
+  downloading.style.display = "block";
+  document.getElementById("statusText").textContent =
+    `Adding ${i + 1} of ${count} certificates...`;
 
-    pdf.save(`Certificates_${examName}.pdf`);
-    downloading.style.display = "none";
+  drawCertificate(students[i], i + 1);
+  const imgData = canvas.toDataURL("image/png");
+  if (i > 0) pdf.addPage();
+  pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+}
+// Save file
+pdf.save(`Certificates_${className}_${sectionName}_${examName}.pdf`);
+
+// ✅ After loop ends
+document.getElementById("statusText").textContent = "Download complete!";
+setTimeout(() => {
+  downloading.style.display = "none";
+  document.getElementById("statusText").textContent = "Preparing download...";
+}, 2000);
+ downloading.style.display = "none";
   };
 
   sepPdfBtn.onclick = async () => {
@@ -1881,7 +1893,13 @@ async function generateCertificatesForExam(
       pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
       pdf.save(`Certificate_${students[i].name}_${examName}.pdf`);
     }
-
+// ✅ After loop ends
+  document.getElementById("statusText").textContent = "Download complete!";
+  setTimeout(() => {
+    downloading.style.display = "none";
+    document.getElementById("statusText").textContent = "Preparing download...";
+  }, 2000);
+};
     downloading.style.display = "none";
   };
 }
@@ -2283,6 +2301,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
