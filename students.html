@@ -1770,9 +1770,8 @@ async function openCertificateGenerator() {
     const examName = document.getElementById('examSelected')?.textContent || "";
 
     await generateCertificatesForExam(classId, className, sectionId, sectionName, examId, examName, students, certUrl);
-
-      };
-    }
+ };
+   }  
   // ======================= ACTUAL CERTIFICATE GENERATION =========================
 async function generateCertificatesForExam(
   classId, className, sectionId, sectionName, examId, examName, students, certUrl
@@ -1791,12 +1790,65 @@ async function generateCertificatesForExam(
       <div id="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #0f3d6b; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 0 auto 8px;"></div>
       <div id="statusText">Preparing download...</div>
     </div>
-    <canvas id="certCanvas" width="2480" height="1754" style="display:none;"></canvas>
-  `);
+       <canvas id="certCanvas" width="2480" height="1754" style="display:none;"></canvas>
 
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  `);
   const canvas = document.getElementById('certCanvas');
   const ctx = canvas.getContext('2d');
+// spinner + timing helpers (same behavior as single-school)
+const statusEl   = document.getElementById("downloadStatus");
+const statusText = document.getElementById("statusText");
+const nextFrame  = () => new Promise(r => requestAnimationFrame(() => r()));
+const sleep      = (ms) => new Promise(r => setTimeout(r, ms));
 
+// compute top-3 rankers (including ties) for this class/section/exam
+async function computeTopRankers() {
+  // fetch exam definition (subjects list) from multi-school path
+  const examDoc = await db.collection('schools').doc(schoolId)
+    .collection('years').doc(academicYear)
+    .collection('classes').doc(classId)
+    .collection('exams').doc(examId).get();
+
+  const exam = examDoc.exists ? examDoc.data() : { subjects: [] };
+
+  // totals per student from marks/{examId}
+  for (const stu of students) {
+    const mDoc = await db.collection('schools').doc(schoolId)
+      .collection('years').doc(academicYear)
+      .collection('classes').doc(classId)
+      .collection('sections').doc(sectionId)
+      .collection('students').doc(stu.id)
+      .collection('marks').doc(examId).get();
+
+    const marks = mDoc.exists ? mDoc.data() : {};
+    let total = 0;
+
+    // support subjects as array of strings or {name: "..."}
+    (exam.subjects || []).forEach(s => {
+      const name = typeof s === 'string' ? s : (s && s.name) ? s.name : '';
+      if (name) total += Number(marks[name] || 0);
+    });
+
+    stu.total = total;
+  }
+
+  // sort & assign ranks with ties
+  students.sort((a, b) => b.total - a.total);
+  let rank = 1;
+  for (let i = 0; i < students.length; i++) {
+    if (i > 0 && students[i].total < students[i - 1].total) rank = i + 1;
+    students[i].rank = rank;
+  }
+
+  // top 3 including ties
+  return students.filter(s => s.rank <= 3);
+}
   // Background from Firestore (your certificate template)
   const bgImg = new Image();
   bgImg.crossOrigin = "anonymous";
@@ -1809,100 +1861,240 @@ async function generateCertificatesForExam(
   rank2Img.src = "https://raw.githubusercontent.com/MessiahSastry/Progress-card-app/main/rank-2.png";
   rank3Img.src = "https://raw.githubusercontent.com/MessiahSastry/Progress-card-app/main/rank-3.png";
 
-  // Wait for background to load so first draw doesn’t fail
-  await new Promise(res => {
-    if (bgImg.complete && bgImg.naturalWidth) return res();
-    bgImg.onload = res;
-    bgImg.onerror = res; // let it continue even if badge fails
-  });
+  // ===== Preload all assets (same approach as single-school) =====
+const decodeImg = (img) =>
+  ("decode" in img)
+    ? img.decode()
+    : new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+
+const withTimeout = (p, ms) =>
+  Promise.race([ p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms)) ]);
+
+const assetsReady = Promise.allSettled([
+  withTimeout(decodeImg(bgImg),    8000),
+  withTimeout(decodeImg(rank1Img), 4000),
+  withTimeout(decodeImg(rank2Img), 4000),
+  withTimeout(decodeImg(rank3Img), 4000),
+]);
+
+await assetsReady;
 
   function drawCertificate(stu, rank) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Safe background fallback (parity with single-school)
+  if (bgImg && bgImg.naturalWidth > 0) {
     ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "#000";
-    ctx.textAlign = "center";
-
-    // Exam name
-    ctx.font = "64px Segoe UI Bold";
-    ctx.fillText(examName, 1211, 600);
-
-    // Student Name
-    ctx.font = "72px Segoe Script";
-    ctx.fillStyle = "#0f3d6b";
-    ctx.fillText(stu.name, 1223, 800);
-
-    // Class & Section
-    ctx.font = "46px Segoe UI";
-    ctx.fillStyle = "#000";
-    ctx.fillText(`(${className} / ${sectionName})`, 1214, 880);
-
-    // Rank badge
-    let rankImg = rank === 1 ? rank1Img : rank === 2 ? rank2Img : rank === 3 ? rank3Img : null;
-    if (rankImg && rankImg.complete && rankImg.naturalWidth > 0) {
-      const w = 300;  // increase badge width
-      const h = (rankImg.naturalHeight / rankImg.naturalWidth) * w;
-      ctx.drawImage(rankImg, 1850, 600, w, h); 
-    }
+  } else {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
+
+  ctx.textAlign = "center";
+
+  // Exam name
+  ctx.fillStyle = "#000";
+  ctx.font = "bold 64px 'Segoe UI'";
+  ctx.fillText(examName, 1211, 600);
+
+  // Student Name
+  ctx.font = "72px 'Segoe Script'";
+  ctx.fillStyle = "#0f3d6b";
+  ctx.fillText(stu.name, 1223, 800);
+
+  // Class & Section
+  ctx.font = "46px 'Segoe UI'";
+  ctx.fillStyle = "#000";
+  ctx.fillText(`(${className} / ${sectionName})`, 1214, 880);
+
+  // Rank badge (only if loaded)
+  let rankImg = rank === 1 ? rank1Img : rank === 2 ? rank2Img : rank === 3 ? rank3Img : null;
+  if (rankImg && rankImg.complete && rankImg.naturalWidth > 0) {
+    const w = 300;
+    const h = (rankImg.naturalHeight / rankImg.naturalWidth) * w;
+    ctx.drawImage(rankImg, 1850, 600, w, h);
+  }
+}
   const onePdfBtn = document.getElementById("certOnePdfBtn");
   const sepPdfBtn = document.getElementById("certSeparateBtn");
-  const downloading = document.getElementById("downloadStatus");
+ 
 
-  onePdfBtn.onclick = async () => {
-    console.log("Generate one PDF clicked");
-    downloading.style.display = "block";
+ onePdfBtn.onclick = async () => {
+  // show spinner (like single-school)
+  statusEl.style.display = "block";
+  statusText.textContent = "Preparing download...";
+  await nextFrame(); // paint spinner
+  statusText.textContent = "Loading certificate assets...";
+  await nextFrame();
+  await assetsReady;
+  await nextFrame();
 
-    const { jsPDF } = window.jspdf;
-const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
+  // compute rankers (top 3 incl. ties)
+  statusText.textContent = "Calculating ranks…";
+  await nextFrame();
+  const rankers = await computeTopRankers();
+  if (!rankers.length) {
+    statusText.textContent = "No rankers found.";
+    await sleep(1200);
+    statusEl.style.display = "none";
+    statusText.textContent = "Preparing download...";
+    return;
+  }
 
-const count = Math.min(3, students.length); // TODO: replace with real rankers
-for (let i = 0; i < count; i++) {
-  // Show progress
-  downloading.style.display = "block";
-  document.getElementById("statusText").textContent =
-    `Adding ${i + 1} of ${count} certificates...`;
+  // prefer PDFLib (same as single-school); fallback to jsPDF
+  const hasPDFLib = !!(window.PDFLib && window.PDFLib.PDFDocument);
 
-  drawCertificate(students[i], i + 1);
-  const imgData = canvas.toDataURL("image/png");
-  if (i > 0) pdf.addPage();
-  pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-}
-// Save file
-pdf.save(`Certificates_${className}_${sectionName}_${examName}.pdf`);
+  try {
+    if (hasPDFLib) {
+      const { PDFDocument } = window.PDFLib;
+      const pdf = await PDFDocument.create();
 
-// ✅ After loop ends
-document.getElementById("statusText").textContent = "Download complete!";
-setTimeout(() => {
-  downloading.style.display = "none";
-  document.getElementById("statusText").textContent = "Preparing download...";
-}, 2000);
- downloading.style.display = "none";
-  };
+      for (let i = 0; i < rankers.length; i++) {
+        const stu = rankers[i];
+        statusText.textContent = `Generating ${i + 1} of ${rankers.length}…`;
+        await nextFrame();
 
-  sepPdfBtn.onclick = async () => {
-    console.log("Generate separate PDFs clicked");
-    downloading.style.display = "block";
+        drawCertificate(stu, stu.rank);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+        const imgBytes = Uint8Array.from(atob(dataUrl.split(",")[1]), c => c.charCodeAt(0));
+        const jpg = await pdf.embedJpg(imgBytes);
 
-    const { jsPDF } = window.jspdf;
-    const count = Math.min(3, students.length); // TODO: replace with real rankers
-    for (let i = 0; i < count; i++) {
-      drawCertificate(students[i], i + 1);
-      const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
-      const imgData = canvas.toDataURL("image/png");
-      pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-      pdf.save(`Certificate_${students[i].name}_${examName}.pdf`);
+        // A4 landscape: 842 x 595 (same scale logic as single-school)
+        const page = pdf.addPage([842, 595]);
+        const s = Math.min(842 / jpg.width, 595 / jpg.height);
+        page.drawImage(jpg, {
+          x: (842 - jpg.width * s) / 2,
+          y: (595 - jpg.height * s) / 2,
+          width:  jpg.width * s,
+          height: jpg.height * s
+        });
+      }
+
+      statusText.textContent = "Generating all certificates…";
+      await nextFrame();
+      const bytes = await pdf.save();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+      a.download = `Certificates_${className}_${sectionName}_${examName}.pdf`;
+      a.click();
+
+      statusText.textContent = "Download complete!";
+      await sleep(1200);
+      statusEl.style.display = "none";
+      statusText.textContent = "Preparing download...";
+      return;
     }
-// ✅ After loop ends
-  document.getElementById("statusText").textContent = "Download complete!";
-  setTimeout(() => {
-    downloading.style.display = "none";
-    document.getElementById("statusText").textContent = "Preparing download...";
-  }, 2000);
+
+    // ===== Fallback to jsPDF if PDFLib is not present =====
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
+
+    for (let i = 0; i < rankers.length; i++) {
+      const stu = rankers[i];
+      statusText.textContent = `Adding ${i + 1} of ${rankers.length} certificates…`;
+      await nextFrame();
+
+      drawCertificate(stu, stu.rank);
+      const imgData = canvas.toDataURL("image/png");
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    }
+
+    pdf.save(`Certificates_${className}_${sectionName}_${examName}.pdf`);
+    statusText.textContent = "Download complete!";
+    await sleep(1200);
+  } catch (err) {
+    console.error(err);
+    statusText.textContent = "Something went wrong. Please try again.";
+    await sleep(1200);
+  } finally {
+    statusEl.style.display = "none";
+    statusText.textContent = "Preparing download...";
+  }
 };
-    downloading.style.display = "none";
-  };
 }
+ sepPdfBtn.onclick = async () => {
+  // show spinner (same UX as single-school)
+  statusEl.style.display = "block";
+  statusText.textContent = "Preparing download...";
+  await nextFrame(); // paint spinner
+  statusText.textContent = "Loading certificate assets...";
+  await nextFrame();
+  await assetsReady;
+  await nextFrame();
+
+  // compute rankers (top 3 incl. ties)
+  statusText.textContent = "Calculating ranks…";
+  await nextFrame();
+  const rankers = await computeTopRankers();
+  if (!rankers.length) {
+    statusText.textContent = "No rankers found.";
+    await sleep(1200);
+    statusEl.style.display = "none";
+    statusText.textContent = "Preparing download...";
+    return;
+  }
+
+  try {
+    const hasPDFLib = !!(window.PDFLib && window.PDFLib.PDFDocument);
+
+    for (let i = 0; i < rankers.length; i++) {
+      const stu = rankers[i];
+
+      statusText.textContent = `Generating ${i + 1} of ${rankers.length}…`;
+      await nextFrame();
+
+      drawCertificate(stu, stu.rank);
+
+      if (hasPDFLib) {
+        // Use PDFLib like single-school (A4 landscape 842x595)
+        const { PDFDocument } = window.PDFLib;
+        const one = await PDFDocument.create();
+        const dataUrl  = canvas.toDataURL("image/jpeg", 0.95);
+        const imgBytes = Uint8Array.from(atob(dataUrl.split(",")[1]), c => c.charCodeAt(0));
+        const jpg      = await one.embedJpg(imgBytes);
+
+        const page = one.addPage([842, 595]);
+        const s = Math.min(842 / jpg.width, 595 / jpg.height);
+        page.drawImage(jpg, {
+          x: (842 - jpg.width * s) / 2,
+          y: (595 - jpg.height * s) / 2,
+          width:  jpg.width * s,
+          height: jpg.height * s
+        });
+
+        statusText.textContent = "Saving certificate…";
+        await nextFrame();
+        const bytes = await one.save();
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+        a.download = `Certificate_${stu.name}_${className}_${sectionName}_${examName}.pdf`;
+        a.click();
+      } else {
+        // Fallback: jsPDF
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
+        const imgData = canvas.toDataURL("image/png");
+        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+
+        statusText.textContent = "Saving certificate…";
+        await nextFrame();
+        pdf.save(`Certificate_${stu.name}_${className}_${sectionName}_${examName}.pdf`);
+      }
+    }
+
+    statusText.textContent = "All certificates saved!";
+    await sleep(1200);
+  } catch (err) {
+    console.error(err);
+    statusText.textContent = "Something went wrong. Please try again.";
+    await sleep(1200);
+  } finally {
+    statusEl.style.display = "none";
+    statusText.textContent = "Preparing download...";
+  }
+};
+  }
 // View attendance for one date
 function showAttendanceForDate(date) {
   // Load student list
@@ -2301,6 +2493,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
