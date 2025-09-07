@@ -1915,186 +1915,185 @@ await assetsReady;
     ctx.drawImage(rankImg, 1850, 600, w, h);
   }
 }
-  const onePdfBtn = document.getElementById("certOnePdfBtn");
+    const onePdfBtn = document.getElementById("certOnePdfBtn");
   const sepPdfBtn = document.getElementById("certSeparateBtn");
- 
 
- onePdfBtn.onclick = async () => {
-  // show spinner (like single-school)
-  statusEl.style.display = "block";
-  statusText.textContent = "Preparing download...";
-  await nextFrame(); // paint spinner
-  statusText.textContent = "Loading certificate assets...";
-  await nextFrame();
-  await assetsReady;
-  await nextFrame();
-
-  // compute rankers (top 3 incl. ties)
-  statusText.textContent = "Calculating ranks…";
-  await nextFrame();
-  const rankers = await computeTopRankers();
-  if (!rankers.length) {
-    statusText.textContent = "No rankers found.";
-    await sleep(1200);
-    statusEl.style.display = "none";
+  onePdfBtn.onclick = async () => {
+    // show spinner (like single-school)
+    statusEl.style.display = "block";
     statusText.textContent = "Preparing download...";
-    return;
-  }
+    await nextFrame(); // paint spinner
+    statusText.textContent = "Loading certificate assets...";
+    await nextFrame();
+    await assetsReady;
+    await nextFrame();
 
-  // prefer PDFLib (same as single-school); fallback to jsPDF
-  const hasPDFLib = !!(window.PDFLib && window.PDFLib.PDFDocument);
-
-  try {
-    if (hasPDFLib) {
-      const { PDFDocument } = window.PDFLib;
-      const pdf = await PDFDocument.create();
-
-      for (let i = 0; i < rankers.length; i++) {
-        const stu = rankers[i];
-        statusText.textContent = `Generating ${i + 1} of ${rankers.length}…`;
-        await nextFrame();
-
-        drawCertificate(stu, stu.rank);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
-        const imgBytes = Uint8Array.from(atob(dataUrl.split(",")[1]), c => c.charCodeAt(0));
-        const jpg = await pdf.embedJpg(imgBytes);
-
-        // A4 landscape: 842 x 595 (same scale logic as single-school)
-        const page = pdf.addPage([842, 595]);
-        const s = Math.min(842 / jpg.width, 595 / jpg.height);
-        page.drawImage(jpg, {
-          x: (842 - jpg.width * s) / 2,
-          y: (595 - jpg.height * s) / 2,
-          width:  jpg.width * s,
-          height: jpg.height * s
-        });
-      }
-
-      statusText.textContent = "Generating all certificates…";
-      await nextFrame();
-      const bytes = await pdf.save();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
-      a.download = `Certificates_${className}_${sectionName}_${examName}.pdf`;
-      a.click();
-
-      statusText.textContent = "Download complete!";
+    // compute rankers (top 3 incl. ties)
+    statusText.textContent = "Calculating ranks…";
+    await nextFrame();
+    const rankers = await computeTopRankers();
+    if (!rankers.length) {
+      statusText.textContent = "No rankers found.";
       await sleep(1200);
       statusEl.style.display = "none";
       statusText.textContent = "Preparing download...";
       return;
     }
 
-    // ===== Fallback to jsPDF if PDFLib is not present =====
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
-
-    for (let i = 0; i < rankers.length; i++) {
-      const stu = rankers[i];
-      statusText.textContent = `Adding ${i + 1} of ${rankers.length} certificates…`;
-      await nextFrame();
-
-      drawCertificate(stu, stu.rank);
-      const imgData = canvas.toDataURL("image/png");
-      if (i > 0) pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-    }
-
-    pdf.save(`Certificates_${className}_${sectionName}_${examName}.pdf`);
-    statusText.textContent = "Download complete!";
-    await sleep(1200);
-  } catch (err) {
-    console.error(err);
-    statusText.textContent = "Something went wrong. Please try again.";
-    await sleep(1200);
-  } finally {
-    statusEl.style.display = "none";
-    statusText.textContent = "Preparing download...";
-  }
-};
-}
- sepPdfBtn.onclick = async () => {
-  // show spinner (same UX as single-school)
-  statusEl.style.display = "block";
-  statusText.textContent = "Preparing download...";
-  await nextFrame(); // paint spinner
-  statusText.textContent = "Loading certificate assets...";
-  await nextFrame();
-  await assetsReady;
-  await nextFrame();
-
-  // compute rankers (top 3 incl. ties)
-  statusText.textContent = "Calculating ranks…";
-  await nextFrame();
-  const rankers = await computeTopRankers();
-  if (!rankers.length) {
-    statusText.textContent = "No rankers found.";
-    await sleep(1200);
-    statusEl.style.display = "none";
-    statusText.textContent = "Preparing download...";
-    return;
-  }
-
-  try {
+    // prefer PDFLib (same as single-school); fallback to jsPDF
     const hasPDFLib = !!(window.PDFLib && window.PDFLib.PDFDocument);
 
-    for (let i = 0; i < rankers.length; i++) {
-      const stu = rankers[i];
-
-      statusText.textContent = `Generating ${i + 1} of ${rankers.length}…`;
-      await nextFrame();
-
-      drawCertificate(stu, stu.rank);
-
+    try {
       if (hasPDFLib) {
-        // Use PDFLib like single-school (A4 landscape 842x595)
         const { PDFDocument } = window.PDFLib;
-        const one = await PDFDocument.create();
-        const dataUrl  = canvas.toDataURL("image/jpeg", 0.95);
-        const imgBytes = Uint8Array.from(atob(dataUrl.split(",")[1]), c => c.charCodeAt(0));
-        const jpg      = await one.embedJpg(imgBytes);
+        const pdf = await PDFDocument.create();
 
-        const page = one.addPage([842, 595]);
-        const s = Math.min(842 / jpg.width, 595 / jpg.height);
-        page.drawImage(jpg, {
-          x: (842 - jpg.width * s) / 2,
-          y: (595 - jpg.height * s) / 2,
-          width:  jpg.width * s,
-          height: jpg.height * s
-        });
+        for (let i = 0; i < rankers.length; i++) {
+          const stu = rankers[i];
+          statusText.textContent = `Generating ${i + 1} of ${rankers.length}…`;
+          await nextFrame();
 
-        statusText.textContent = "Saving certificate…";
+          drawCertificate(stu, stu.rank);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+          const imgBytes = Uint8Array.from(atob(dataUrl.split(",")[1]), c => c.charCodeAt(0));
+          const jpg = await pdf.embedJpg(imgBytes);
+
+          // A4 landscape: 842 x 595
+          const page = pdf.addPage([842, 595]);
+          const s = Math.min(842 / jpg.width, 595 / jpg.height);
+          page.drawImage(jpg, {
+            x: (842 - jpg.width * s) / 2,
+            y: (595 - jpg.height * s) / 2,
+            width:  jpg.width * s,
+            height: jpg.height * s
+          });
+        }
+
+        statusText.textContent = "Generating all certificates…";
         await nextFrame();
-        const bytes = await one.save();
+        const bytes = await pdf.save();
         const a = document.createElement("a");
         a.href = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
-        a.download = `Certificate_${stu.name}_${className}_${sectionName}_${examName}.pdf`;
+        a.download = `Certificates_${className}_${sectionName}_${examName}.pdf`;
         a.click();
-      } else {
-        // Fallback: jsPDF
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
-        const imgData = canvas.toDataURL("image/png");
-        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
 
-        statusText.textContent = "Saving certificate…";
-        await nextFrame();
-        pdf.save(`Certificate_${stu.name}_${className}_${sectionName}_${examName}.pdf`);
+        statusText.textContent = "Download complete!";
+        await sleep(1200);
+        statusEl.style.display = "none";
+        statusText.textContent = "Preparing download...";
+        return;
       }
+
+      // ===== Fallback to jsPDF if PDFLib is not present =====
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
+
+      for (let i = 0; i < rankers.length; i++) {
+        const stu = rankers[i];
+        statusText.textContent = `Adding ${i + 1} of ${rankers.length} certificates…`;
+        await nextFrame();
+
+        drawCertificate(stu, stu.rank);
+        const imgData = canvas.toDataURL("image/png");
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+      }
+
+      pdf.save(`Certificates_${className}_${sectionName}_${examName}.pdf`);
+      statusText.textContent = "Download complete!";
+      await sleep(1200);
+    } catch (err) {
+      console.error(err);
+      statusText.textContent = "Something went wrong. Please try again.";
+      await sleep(1200);
+    } finally {
+      statusEl.style.display = "none";
+      statusText.textContent = "Preparing download...";
+    }
+  };
+
+  // ⬇️ NOTE: no extra lone "}" here
+  sepPdfBtn.onclick = async () => {
+    // show spinner (same UX as single-school)
+    statusEl.style.display = "block";
+    statusText.textContent = "Preparing download...";
+    await nextFrame(); // paint spinner
+    statusText.textContent = "Loading certificate assets...";
+    await nextFrame();
+    await assetsReady;
+    await nextFrame();
+
+    // compute rankers (top 3 incl. ties)
+    statusText.textContent = "Calculating ranks…";
+    await nextFrame();
+    const rankers = await computeTopRankers();
+    if (!rankers.length) {
+      statusText.textContent = "No rankers found.";
+      await sleep(1200);
+      statusEl.style.display = "none";
+      statusText.textContent = "Preparing download...";
+      return;
     }
 
-    statusText.textContent = "All certificates saved!";
-    await sleep(1200);
-  } catch (err) {
-    console.error(err);
-    statusText.textContent = "Something went wrong. Please try again.";
-    await sleep(1200);
-  } finally {
-    statusEl.style.display = "none";
-    statusText.textContent = "Preparing download...";
-  }
-};
-  }
+    try {
+      const hasPDFLib = !!(window.PDFLib && window.PDFLib.PDFDocument);
+
+      for (let i = 0; i < rankers.length; i++) {
+        const stu = rankers[i];
+
+        statusText.textContent = `Generating ${i + 1} of ${rankers.length}…`;
+        await nextFrame();
+
+        drawCertificate(stu, stu.rank);
+
+        if (hasPDFLib) {
+          const { PDFDocument } = window.PDFLib;
+          const one = await PDFDocument.create();
+          const dataUrl  = canvas.toDataURL("image/jpeg", 0.95);
+          const imgBytes = Uint8Array.from(atob(dataUrl.split(",")[1]), c => c.charCodeAt(0));
+          const jpg      = await one.embedJpg(imgBytes);
+
+          const page = one.addPage([842, 595]);
+          const s = Math.min(842 / jpg.width, 595 / jpg.height);
+          page.drawImage(jpg, {
+            x: (842 - jpg.width * s) / 2,
+            y: (595 - jpg.height * s) / 2,
+            width:  jpg.width * s,
+            height: jpg.height * s
+          });
+
+          statusText.textContent = "Saving certificate…";
+          await nextFrame();
+          const bytes = await one.save();
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+          a.download = `Certificate_${stu.name}_${className}_${sectionName}_${examName}.pdf`;
+          a.click();
+        } else {
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF("l", "px", [canvas.width, canvas.height]);
+          const imgData = canvas.toDataURL("image/png");
+          pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+
+          statusText.textContent = "Saving certificate…";
+          await nextFrame();
+          pdf.save(`Certificate_${stu.name}_${className}_${sectionName}_${examName}.pdf`);
+        }
+      }
+
+      statusText.textContent = "All certificates saved!";
+      await sleep(1200);
+    } catch (err) {
+      console.error(err);
+      statusText.textContent = "Something went wrong. Please try again.";
+      await sleep(1200);
+    } finally {
+      statusEl.style.display = "none";
+      statusText.textContent = "Preparing download...";
+    }
+  };
+} 
+
 // View attendance for one date
 function showAttendanceForDate(date) {
   // Load student list
@@ -2493,6 +2492,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
