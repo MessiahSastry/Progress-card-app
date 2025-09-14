@@ -227,6 +227,15 @@
 .photo-actions .mini.take { background:#1762a7; color:#fff; }
 .photo-actions .mini.upload { background:#2ba84a; color:#fff; }
 .photo-actions .mini.remove { background:#eee; color:#444; }
+  /* small avatar in student list */
+.stu-avatar{
+  width:34px;height:34px;border-radius:50%;
+  overflow:hidden;display:inline-flex;align-items:center;justify-content:center;
+  background:#e7f1fb;color:#0f3d6b;font-weight:700;margin:0 10px 0 6px;
+  box-shadow:0 0 0 2px #e9f2fb;
+}
+.stu-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+
   </style>
 </head>
 <body>
@@ -435,19 +444,22 @@ function getClassGroupName(className) {
         <div class="student-list">`;
       if (students.length === 0) html += `<div style="color:#888;font-style:italic;">No students found.</div>`;
       students.filter(stu => !stu.isDeleted).forEach(stu => {
-  html += `<div class="student-row"
-    data-student-id="${stu.id}">
-    <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span>
-    <span style="color:#1467b7; font-weight:600;">${(stu.name || '').toUpperCase()}</span>
-    <span style="flex:1"></span>
-    ${
-      stu.parentPhone
-        ? `<a href="tel:${stu.parentPhone.replace(/\D/g, '')}" class="call-icon" title="Call Parent" style="margin-left:14px;color:#27ae60; font-size:1.17em;display:flex;align-items:center;justify-content:center;">
-              <i class="fa fa-phone"></i>
-          </a>`
-        : `<i class="fa fa-phone" style="margin-left:14px;color:#bcbcbc;opacity:0.6; font-size:1.13em;" title="No phone number"></i>`
-    }
-  </div>`;
+  const initials = getInitials(stu.name || '');
+const avatar = stu.photoUrl
+  ? `<span class="stu-avatar"><img src="${stu.photoUrl}" alt="${initials}"></span>`
+  : `<span class="stu-avatar">${initials}</span>`;
+
+html += `<div class="student-row" data-student-id="${stu.id}">
+  <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span>
+  ${avatar}
+  <span style="color:#1467b7; font-weight:600;">${(stu.name || '').toUpperCase()}</span>
+  <span style="flex:1"></span>
+  ${
+    stu.parentPhone
+      ? `<a href="tel:${stu.parentPhone.replace(/\D/g, '')}" class="call-icon" title="Call Parent" style="margin-left:14px;color:#27ae60; font-size:1.17em;display:flex;align-items:center;justify-content:center;"><i class="fa fa-phone"></i></a>`
+      : `<i class="fa fa-phone" style="margin-left:14px;color:#bcbcbc;opacity:0.6; font-size:1.13em;" title="No phone number"></i>`
+  }
+</div>`;
 });
       html += "</div>";
       mainArea.innerHTML = html;
@@ -2852,4 +2864,5 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
