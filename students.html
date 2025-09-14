@@ -235,7 +235,17 @@
   box-shadow:0 0 0 2px #e9f2fb;
 }
 .stu-avatar img{width:100%;height:100%;object-fit:cover;display:block}
-
+/* small avatar used in the list */
+.avatar-img{
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  /* nudge the image so more of the top is visible */
+  object-position: 50% 30%;   /* try 25–40% as you like */
+  /* optional: tiny zoom-out look */
+  /* transform: scale(0.94); */
+}
   </style>
 </head>
 <body>
@@ -2864,6 +2874,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
