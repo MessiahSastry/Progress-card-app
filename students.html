@@ -213,7 +213,20 @@
   color: #218c53 !important;
   text-decoration: none !important;
 }
-   
+   /* Photo UI inside Add/Edit popups */
+.photo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.photo-preview {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: #e7f1fb; display:flex; align-items:center; justify-content:center;
+  color:#0f3d6b; font-weight:700; overflow:hidden; box-shadow: 0 0 0 2px #e9f2fb;
+}
+.photo-preview img { width: 100%; height: 100%; object-fit: cover; display:block; }
+
+.photo-actions { display: flex; flex-direction: column; gap: 6px; }
+.photo-actions .mini { padding: 6px 10px; border-radius: 7px; border:none; font-weight:600; cursor:pointer; }
+.photo-actions .mini.take { background:#1762a7; color:#fff; }
+.photo-actions .mini.upload { background:#2ba84a; color:#fff; }
+.photo-actions .mini.remove { background:#eee; color:#444; }
   </style>
 </head>
 <body>
@@ -415,119 +428,372 @@ function getClassGroupName(className) {
     }
   
     // =========== ADD/EDIT STUDENT POPUP =========================
-    function showAddStudentPopup() {
-      showPopup(`
-        <form id="addStudentForm">
-        <div class="popup-title">Add Student</div>
-        <label>Student Name</label>
-        <input name="studentName" style="text-transform:uppercase" maxlength="40" required>
-        <label>Father's Name</label>
-        <input name="fatherName" style="text-transform:uppercase" maxlength="40" required>
-        <label>Roll Number</label>
-        <input name="rollNo" type="number" min="1" max="999" required>
-        <label>Parent Phone Number</label>
-        <input name="parentPhone" type="tel" maxlength="12" required placeholder="e.g., 9876543210" pattern="[0-9]{10,12}">
-        <div class="popup-btn-row">
-          <button type="button" class="popup-cancel-btn">Cancel</button>
-          <button type="submit" class="popup-action-btn">Add</button>
+   function showAddStudentPopup() {
+  showPopup(`
+    <form id="addStudentForm">
+      <div class="popup-title">Add Student</div>
+
+      <label>Student Name</label>
+      <input name="studentName" style="text-transform:uppercase" maxlength="40" required>
+
+      <label>Father's Name</label>
+      <input name="fatherName" style="text-transform:uppercase" maxlength="40" required>
+
+      <label>Roll Number</label>
+      <input name="rollNo" type="number" min="1" max="999" required>
+
+      <label>Parent Phone Number</label>
+      <input name="parentPhone" type="tel" maxlength="12" required placeholder="e.g., 9876543210" pattern="[0-9]{10,12}">
+
+      <label>Photo (optional)</label>
+      <div class="photo-row">
+        <div class="photo-preview" id="addPhotoPreview">${getInitials('')}</div>
+        <div class="photo-actions">
+          <button type="button" class="mini take" id="btnTakePhoto">Take photo</button>
+          <button type="button" class="mini upload" id="btnUploadPhoto">Upload photo</button>
+          <button type="button" class="mini remove" id="btnRemovePhoto" style="display:none;">Remove photo</button>
+
+          <!-- hidden inputs for camera / file -->
+          <input type="file" id="inputCamera" accept="image/*" capture="environment" style="display:none;" />
+          <input type="file" id="inputFile" accept="image/*" style="display:none;" />
         </div>
-      </form>
-      `, 'addStudentForm', function (e) {
-        e.preventDefault();
-        const name = e.target.studentName.value.trim().toUpperCase();
-const father = e.target.fatherName.value.trim().toUpperCase();
-const roll = toRoll(e.target.rollNo.value);
-let parentPhone = normalizePhone(e.target.parentPhone.value);
+      </div>
 
-if (!name || !father || roll === null) { alert('Please enter a valid name, father name and roll (1–999).'); return; }
-if (!isValidPhone(parentPhone)) { alert('Please enter a valid 10–12 digit parent phone number.'); return; }
-        db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
-          .collection('sections').doc(currentSectionId)
-          .collection('students')
-          .add({ name, father, roll, parentPhone })
-          .then(() => { closePopup(); renderStudentList(); });
-      });
+      <div class="popup-btn-row">
+        <button type="button" class="popup-cancel-btn">Cancel</button>
+        <button type="submit" class="popup-action-btn">Add</button>
+      </div>
+    </form>
+  `, 'addStudentForm', async function (e) {
+    e.preventDefault();
+
+    const name = e.target.studentName.value.trim().toUpperCase();
+    const father = e.target.fatherName.value.trim().toUpperCase();
+    const roll = toRoll(e.target.rollNo.value);
+    let parentPhone = normalizePhone(e.target.parentPhone.value);
+
+    if (!name || !father || roll === null) {
+      alert('Please enter a valid name, father name and roll (1–999).');
+      return;
     }
-    function showStudentActionPopup(studentId) {
-      db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
-        .collection('sections').doc(currentSectionId)
-        .collection('students').doc(studentId)
-        .get().then(doc => {
-          if (!doc.exists) return;
-          const stu = doc.data();
-          showPopup(`
-            <div class="popup-title">Student Actions (${stu.name})</div>
-            <div style="display:flex;flex-direction:column;gap:13px;">
-              <button class="popup-action-btn" id="editStudentBtn">Edit Student</button>
-              ${!stu.isDeleted
-                ? `<button class="popup-action-btn" id="deleteStudentBtn">Delete Student</button>`
-                : `<button class="popup-action-btn" id="restoreStudentBtn">Restore Student</button>`
-              }
-              <button class="popup-cancel-btn">Close</button>
-            </div>
-          `);
-          if (document.getElementById('editStudentBtn')) {
-            document.getElementById('editStudentBtn').onclick = function () {
-              showEditStudentPopup(studentId, stu);
-            }
-          }
-          if (!stu.isDeleted && document.getElementById('deleteStudentBtn')) {
-            document.getElementById('deleteStudentBtn').onclick = function () {
-              db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
-                .collection('sections').doc(currentSectionId)
-                .collection('students').doc(studentId)
-                .update({ isDeleted: true }).then(() => {
-                  closePopup();
-                  renderStudentList();
-                });
-            }
-          }
-          if (stu.isDeleted && document.getElementById('restoreStudentBtn')) {
-            document.getElementById('restoreStudentBtn').onclick = function () {
-              db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
-                .collection('sections').doc(currentSectionId)
-                .collection('students').doc(studentId)
-                .update({ isDeleted: firebase.firestore.FieldValue.delete() }).then(() => {
-                  closePopup();
-                  renderStudentList();
-                });
-            }
-          }
+    if (!isValidPhone(parentPhone)) {
+      alert('Please enter a valid 10–12 digit parent phone number.');
+      return;
+    }
+
+    // 1) Create the student first (without photo)
+    const docRef = await db.collection('schools').doc(schoolId)
+      .collection('years').doc(academicYear)
+      .collection('classes').doc(currentClassId)
+      .collection('sections').doc(currentSectionId)
+      .collection('students')
+      .add({ name, father, roll, parentPhone });
+
+    // 2) If a photo is selected, upload to Storage and save URL in Firestore
+    if (window.__addPhotoBlob) {
+      try {
+        const path = `schools/${schoolId}/years/${academicYear}/classes/${currentClassId}/sections/${currentSectionId}/students/${docRef.id}/profile.jpg`;
+        const ref = storage.ref().child(path);
+
+        await ref.put(window.__addPhotoBlob, {
+          contentType: 'image/jpeg',
+          cacheControl: 'public,max-age=31536000'
         });
-    }
-    function showEditStudentPopup(studentId, stu) {
-      showPopup(`
-        <form id="editStudentForm">
-          <div class="popup-title">Edit Student</div>
-          <label>Student Name</label>
-          <input name="studentName" maxlength="40" required value="${stu.name}">
-          <label>Father's Name</label>
-          <input name="fatherName" maxlength="40" required value="${stu.father}">
-          <label>Roll Number</label>
-          <input name="rollNo" type="number" min="1" max="999" required value="${stu.roll}">
-          <label>Parent Phone Number</label>
-          <input name="parentPhone" maxlength="12" required value="${stu.parentPhone || ''}">
-          <div class="popup-btn-row">
-            <button type="button" class="popup-cancel-btn">Cancel</button>
-            <button type="submit" class="popup-action-btn">Update</button>
-          </div>
-        </form>
-      `, 'editStudentForm', function (e) {
-        e.preventDefault();
-        const name = e.target.studentName.value.trim().toUpperCase();
-const father = e.target.fatherName.value.trim().toUpperCase();
-const roll = toRoll(e.target.rollNo.value);
-let parentPhone = normalizePhone(e.target.parentPhone.value);
 
-if (!name || !father || roll === null) { alert('Please enter a valid name, father name and roll (1–999).'); return; }
-if (!isValidPhone(parentPhone)) { alert('Please enter a valid 10–12 digit parent phone number.'); return; }
-        db.collection('schools').doc(schoolId).collection('years').doc(academicYear).collection('classes').doc(currentClassId)
-          .collection('sections').doc(currentSectionId)
-          .collection('students').doc(studentId)
-          .update({ name, father, roll, parentPhone })
-          .then(() => { closePopup(); renderStudentList(); });
-      });
+        const url = await ref.getDownloadURL();
+        await docRef.update({ photoUrl: url, photoPath: path });
+      } catch (err) {
+        console.error('Photo upload failed:', err);
+        alert('Student saved, but photo upload failed.');
+      }
     }
+
+    closePopup();
+    renderStudentList();
+  });
+
+  // --- Photo controls (scoped to this popup) ---
+  window.__addPhotoBlob = null;
+  const prev   = document.getElementById('addPhotoPreview');
+  const btnCam = document.getElementById('btnTakePhoto');
+  const btnUp  = document.getElementById('btnUploadPhoto');
+  const btnRem = document.getElementById('btnRemovePhoto');
+  const inputCam  = document.getElementById('inputCamera');
+  const inputFile = document.getElementById('inputFile');
+
+  function showPreviewFromDataUrl(dataUrl){
+  prev.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'cover';
+  img.style.borderRadius = '50%';
+  img.style.display = 'block';
+  prev.appendChild(img);
+  btnRem.style.display = 'inline-block';
+}
+
+  async function handleFile(file){
+    if (!file) return;
+    // crop + resize + compress to jpeg (512x512)
+    const { blob, dataUrl } = await processImageFile(file, 512, 0.85);
+    window.__addPhotoBlob = blob;
+    showPreviewFromDataUrl(dataUrl);
+  }
+
+  btnCam.onclick       = () => inputCam.click();
+  btnUp.onclick        = () => inputFile.click();
+  inputCam.onchange    = (e) => handleFile(e.target.files && e.target.files[0]);
+  inputFile.onchange   = (e) => handleFile(e.target.files && e.target.files[0]);
+  btnRem.onclick       = () => {
+    window.__addPhotoBlob = null;
+    prev.textContent = getInitials('');
+    btnRem.style.display = 'none';
+  };
+}
+   function showStudentActionPopup(studentId) {
+  (async () => {
+    const ref = db.collection('schools').doc(schoolId)
+      .collection('years').doc(academicYear)
+      .collection('classes').doc(currentClassId)
+      .collection('sections').doc(currentSectionId)
+      .collection('students').doc(studentId);
+
+    const snap = await ref.get();
+    if (!snap.exists) { alert('Student not found.'); return; }
+    const stu = snap.data() || {};
+
+    const initials = getInitials(stu.name || '');
+    const avatar = stu.photoUrl
+      ? `<img src="${stu.photoUrl}" alt="${initials}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #0f3d6b;">`
+      : `<span style="width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#0f3d6b;color:#fff;font-weight:700;">${initials}</span>`;
+
+    showPopup(`
+      <div class="popup-title">Student Options</div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        ${avatar}
+        <div style="min-width:0;">
+          <div style="font-weight:700;color:#0f3d6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            ${stu.roll ? (stu.roll + '. ') : ''}${stu.name || ''}
+          </div>
+          <div style="color:#666;font-size:.95em;">Father: ${stu.father || '-'}</div>
+          <div style="color:#666;font-size:.9em;">Phone: ${stu.parentPhone || '-'}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button type="button" class="popup-action-btn" id="editStudentBtn">Edit Student</button>
+        ${!stu.isDeleted
+          ? `<button type="button" class="popup-action-btn" id="deleteStudentBtn" style="background:#d43f3a;">Delete Student</button>`
+          : `<button type="button" class="popup-action-btn" id="restoreStudentBtn">Restore Student</button>`
+        }
+      </div>
+
+      <div class="popup-btn-row" style="margin-top:10px;">
+        <button type="button" class="popup-cancel-btn">Close</button>
+      </div>
+    `);
+
+    // Wire actions after popup mounts
+    setTimeout(() => {
+      const editBtn    = document.getElementById('editStudentBtn');
+      const deleteBtn  = document.getElementById('deleteStudentBtn');
+      const restoreBtn = document.getElementById('restoreStudentBtn');
+
+      if (editBtn) {
+        editBtn.onclick = () => {
+          closePopup();
+          showEditStudentPopup(studentId, stu);
+        };
+      }
+
+      if (deleteBtn) {
+        deleteBtn.onclick = async () => {
+          await ref.update({ isDeleted: true });
+          closePopup();
+          renderStudentList();
+        };
+      }
+
+      if (restoreBtn) {
+        restoreBtn.onclick = async () => {
+          await ref.update({ isDeleted: firebase.firestore.FieldValue.delete() });
+          closePopup();
+          renderStudentList();
+        };
+      }
+    }, 0);
+  })();
+}
+    function showEditStudentPopup(studentId, stu) {
+  showPopup(`
+    <form id="editStudentForm">
+      <div class="popup-title">Edit Student</div>
+
+      <label>Student Name</label>
+      <input name="studentName" maxlength="40" required value="${stu.name}">
+
+      <label>Father's Name</label>
+      <input name="fatherName" maxlength="40" required value="${stu.father}">
+
+      <label>Roll Number</label>
+      <input name="rollNo" type="number" min="1" max="999" required value="${stu.roll}">
+
+      <label>Parent Phone Number</label>
+      <input name="parentPhone" maxlength="12" required value="${stu.parentPhone || ''}">
+
+      <label>Photo (optional)</label>
+      <div class="photo-row">
+        <div class="photo-preview" id="editPhotoPreview">${stu.photoUrl ? '' : getInitials(stu.name || '')}</div>
+        <div class="photo-actions">
+          <button type="button" class="mini take" id="btnEditTakePhoto">Take photo</button>
+          <button type="button" class="mini upload" id="btnEditUploadPhoto">Upload photo</button>
+          <button type="button" class="mini remove" id="btnEditRemovePhoto" style="${stu.photoUrl ? '' : 'display:none;'}">${stu.photoUrl ? 'Remove current photo' : 'Remove photo'}</button>
+
+          <!-- hidden inputs for camera / file -->
+          <input type="file" id="inputEditCamera" accept="image/*" capture="environment" style="display:none;" />
+          <input type="file" id="inputEditFile" accept="image/*" style="display:none;" />
+        </div>
+      </div>
+
+      <div class="popup-btn-row">
+        <button type="button" class="popup-cancel-btn">Cancel</button>
+        <button type="submit" class="popup-action-btn">Update</button>
+      </div>
+    </form>
+  `, 'editStudentForm', async function (e) {
+    e.preventDefault();
+
+    const name = e.target.studentName.value.trim().toUpperCase();
+    const father = e.target.fatherName.value.trim().toUpperCase();
+    const roll = toRoll(e.target.rollNo.value);
+    let parentPhone = normalizePhone(e.target.parentPhone.value);
+
+    if (!name || !father || roll === null) { alert('Please enter a valid name, father name and roll (1–999).'); return; }
+    if (!isValidPhone(parentPhone)) { alert('Please enter a valid 10–12 digit parent phone number.'); return; }
+
+    const docRef = db.collection('schools').doc(schoolId)
+      .collection('years').doc(academicYear)
+      .collection('classes').doc(currentClassId)
+      .collection('sections').doc(currentSectionId)
+      .collection('students').doc(studentId);
+
+    // Save basic fields first
+    try {
+      await docRef.update({ name, father, roll, parentPhone });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save. ' + (err && err.message ? err.message : ''));
+      return;
+    }
+
+    // If user chose to REMOVE photo (and did not upload a new one)
+    if (window.__editRemovePhoto === true && !window.__editPhotoBlob) {
+      try {
+        if (stu.photoPath) {
+          await storage.ref().child(stu.photoPath).delete().catch(() => {});
+        }
+        await docRef.update({
+          photoUrl: firebase.firestore.FieldValue.delete(),
+          photoPath: firebase.firestore.FieldValue.delete()
+        });
+      } catch (err) {
+        console.error('Remove photo failed:', err);
+        alert('Details saved, but photo removal failed.');
+      }
+    }
+
+    // If user uploaded/took a new photo
+    if (window.__editPhotoBlob) {
+      try {
+        const path = \`schools/\${schoolId}/years/\${academicYear}/classes/\${currentClassId}/sections/\${currentSectionId}/students/\${studentId}/profile.jpg\`;
+        const sref = storage.ref().child(path);
+
+        await sref.put(window.__editPhotoBlob, {
+          contentType: 'image/jpeg',
+          cacheControl: 'public,max-age=31536000'
+        });
+
+        const url = await sref.getDownloadURL();
+        await docRef.update({ photoUrl: url, photoPath: path });
+      } catch (err) {
+        console.error('Edit photo error:', err);
+        alert('Details updated, but photo change failed. You can try again.');
+      }
+    }
+
+    closePopup();
+    renderStudentList();
+  });
+
+  // --- Photo controls (scoped to this popup) ---
+  window.__editPhotoBlob = null;
+  window.__editRemovePhoto = false;
+
+  const prev    = document.getElementById('editPhotoPreview');
+  const btnCam  = document.getElementById('btnEditTakePhoto');
+  const btnUp   = document.getElementById('btnEditUploadPhoto');
+  const btnRem  = document.getElementById('btnEditRemovePhoto');
+  const inputCam  = document.getElementById('inputEditCamera');
+  const inputFile = document.getElementById('inputEditFile');
+
+  function showPreviewFromUrl(url) {
+  if (!prev) return;
+  prev.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = url;
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'cover';
+  img.style.borderRadius = '50%';
+  img.style.display = 'block';
+  prev.appendChild(img);
+}
+function showPreviewFromDataUrl(dataUrl) {
+  if (!prev) return;
+  prev.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'cover';
+  img.style.borderRadius = '50%';
+  img.style.display = 'block';
+  prev.appendChild(img);
+}
+  function showInitials() {
+    if (!prev) return;
+    prev.textContent = getInitials(stu.name || '');
+  }
+
+  // Initialize preview
+  if (stu.photoUrl) { showPreviewFromUrl(stu.photoUrl); }
+
+  async function handleFile(file) {
+    if (!file) return;
+    const { blob, dataUrl } = await processImageFile(file, 512, 0.85);
+    window.__editPhotoBlob = blob;
+    window.__editRemovePhoto = false; // override remove if new picked
+    showPreviewFromDataUrl(dataUrl);
+    if (btnRem) btnRem.style.display = 'inline-block';
+  }
+
+  if (btnCam) btnCam.onclick = () => inputCam && inputCam.click();
+  if (btnUp)  btnUp.onclick  = () => inputFile && inputFile.click();
+  if (inputCam)  inputCam.onchange  = (e) => handleFile(e.target.files && e.target.files[0]);
+  if (inputFile) inputFile.onchange = (e) => handleFile(e.target.files && e.target.files[0]);
+
+  if (btnRem) {
+    btnRem.onclick = () => {
+      window.__editPhotoBlob = null;
+      window.__editRemovePhoto = true;
+      showInitials();
+      btnRem.style.display = 'none';
+    };
+  }
+}
     // ======================= SETTINGS POPUP =====================
     function showSettingsPopup() {
   showPopup(`
@@ -2522,6 +2788,7 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
 
