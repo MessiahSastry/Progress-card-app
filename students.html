@@ -450,9 +450,9 @@ const avatar = stu.photoUrl
   : `<span class="stu-avatar">${initials}</span>`;
 
 html += `<div class="student-row" data-student-id="${stu.id}">
-  <span class="roll-no">${stu.roll ? stu.roll + '.' : ''}</span>
   ${avatar}
-  <span style="color:#1467b7; font-weight:600;">${(stu.name || '').toUpperCase()}</span>
+  <span class="roll-no" style="margin-left:8px;">${stu.roll ? stu.roll + '.' : ''}</span>
+  <span style="color:#1467b7; font-weight:600; margin-left:6px;">${(stu.name || '').toUpperCase()}</span>
   <span style="flex:1"></span>
   ${
     stu.parentPhone
@@ -2864,5 +2864,6 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
+
 
 
