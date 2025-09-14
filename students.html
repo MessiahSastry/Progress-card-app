@@ -242,6 +242,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -260,8 +261,9 @@
       appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
     };
      firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const storage = firebase.storage();
 // ---- helpers (GLOBAL, single copy) ----
 function toRoll(n) {
   const r = parseInt(n, 10);
@@ -274,6 +276,68 @@ function normalizePhone(p) {
 }
 function isValidPhone(s) {
   return /^\d{10,12}$/.test(String(s || ''));
+}
+
+// --- NEW: initials for avatar placeholders ---
+function getInitials(name) {
+  const parts = String(name || '').trim().toUpperCase().split(/\s+/).filter(Boolean);
+  const first = parts[0]?.[0] || '';
+  const last  = parts.length > 1 ? parts[parts.length - 1][0] : '';
+  return (first + last) || '?';
+}
+
+// --- NEW: crop center-square, resize, compress to JPEG ---
+async function processImageFile(file, size = 512, quality = 0.85) {
+  if (!file || !/^image\//i.test(file.type)) {
+    throw new Error('Not an image file');
+  }
+  const dataUrl = await readFileAsDataURL(file);
+  const img = await loadImage(dataUrl);
+
+  const srcW = img.naturalWidth || img.width;
+  const srcH = img.naturalHeight || img.height;
+  const side = Math.min(srcW, srcH);
+  const sx = Math.floor((srcW - side) / 2);
+  const sy = Math.floor((srcH - side) / 2);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+
+  const outDataUrl = canvas.toDataURL('image/jpeg', quality);
+  const blob = await new Promise((resolve) => {
+    canvas.toBlob((b) => resolve(b || dataURItoBlob(outDataUrl)), 'image/jpeg', quality);
+  });
+  return { blob, dataUrl: outDataUrl };
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result);
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function dataURItoBlob(dataURI) {
+  const byteString = atob(String(dataURI).split(',')[1] || '');
+  const mimeString = (String(dataURI).split(',')[0] || '').split(':')[1]?.split(';')[0] || 'image/jpeg';
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+  return new Blob([ab], { type: mimeString });
 }
 // —— multi-school context from dashboard/sections ——
 let schoolData = {};
@@ -642,8 +706,7 @@ function getClassGroupName(className) {
       <input name="rollNo" type="number" min="1" max="999" required value="${stu.roll}">
 
       <label>Parent Phone Number</label>
-      <input name="parentPhone" maxlength="12" required value="${stu.parentPhone || ''}">
-
+      <input name="parentPhone" type="tel" maxlength="12" required placeholder="e.g., 9876543210" pattern="[0-9]{10,12}" value="${stu.parentPhone || ''}">
       <label>Photo (optional)</label>
       <div class="photo-row">
         <div class="photo-preview" id="editPhotoPreview">${stu.photoUrl ? '' : getInitials(stu.name || '')}</div>
@@ -708,7 +771,7 @@ function getClassGroupName(className) {
     // If user uploaded/took a new photo
     if (window.__editPhotoBlob) {
       try {
-        const path = \`schools/\${schoolId}/years/\${academicYear}/classes/\${currentClassId}/sections/\${currentSectionId}/students/\${studentId}/profile.jpg\`;
+        const path = `schools/${schoolId}/years/${academicYear}/classes/${currentClassId}/sections/${currentSectionId}/students/${studentId}/profile.jpg`;
         const sref = storage.ref().child(path);
 
         await sref.put(window.__editPhotoBlob, {
@@ -2788,38 +2851,3 @@ function closeAbsenteesModal() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
