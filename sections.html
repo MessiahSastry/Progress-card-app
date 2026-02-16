@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Sections – CampusConnect</title>
+  <title>Sections - St. Patrick's Progress Card App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
@@ -165,13 +165,13 @@
 </head>
 <body>
   <div class="fixed-header" id="header">
-    <div class="school-title" id="school-title"></div>
-<div class="subtitle" id="header-subtitle"></div>
+    <div class="school-title">St. Patrick's School</div>
+    <div class="subtitle">IIT & NEET FOUNDATION</div>
     <div class="subtitle" id="header-exam" style="font-weight:600;"></div>
   </div>
   <div id="current-class-title" class="class-title-bar"></div>
   <div class="main-content" id="main-area"></div>
-  <button class="fab" id="fab" style="display:none;"></button>
+  <button class="fab" id="fab"></button>
   <div id="popup-bg">
     <div id="popup-content"></div>
   </div>
@@ -190,71 +190,25 @@
       appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
     };
     firebase.initializeApp(firebaseConfig);
-   const db = firebase.firestore();
-const auth = firebase.auth();
-const fab = document.getElementById('fab'); // moved up so it's defined before use
-
-let isAdmin = false;
-auth.onAuthStateChanged(async function(user) {
-  if (!user) {
-    window.location.replace("index.html");
-    return;
-  }
-  try {
-  const udoc = await db.collection('users').doc(user.uid).get();
-  const role = ((udoc.exists && (udoc.data().role ?? '')) + '').trim().toLowerCase();
-  isAdmin = role === 'admin';
-  console.log('role:', role, 'isAdmin:', isAdmin);
-} catch (e) {
-  isAdmin = false;
-}
-// NEW: toggle FAB immediately based on admin status
-fab.style.display = isAdmin ? 'flex' : 'none';
-fab.disabled = !isAdmin;
-fab.style.opacity = isAdmin ? 1 : 0.5;
-// Always bind; auth controls enabled/disabled & visibility
-fab.addEventListener('click', showAddSectionPopup);
-fab.style.pointerEvents = isAdmin ? 'auto' : 'none';
-// Re-evaluate FAB visibility now that isAdmin is known
-if (typeof loadSections === 'function') loadSections();
-});
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.replace("index.html");
+      }
+    });
 
     // Get year and className from query string
     function getQueryParam(key) {
       const params = new URLSearchParams(window.location.search);
       return params.get(key);
     }
-   const mainArea = document.getElementById("main-area");
-const popupBg = document.getElementById('popup-bg');
-const popupContent = document.getElementById('popup-content');
-const year = getQueryParam('year');
-const className = getQueryParam('className');
-
-// NEW: resolve schoolId for multi-school scoping
-let schoolData = {};
-try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch (e) {}
-const schoolId = schoolData.schoolId;
-if (!schoolId) {
-  alert('School not set. Please sign in again.');
-  window.location.replace('index.html');
-}
-    const schoolTitleEl = document.getElementById('school-title');
-const headerSubtitleEl = document.getElementById('header-subtitle');
-if (schoolTitleEl) schoolTitleEl.textContent = schoolData.name || 'School Name';
-if (headerSubtitleEl) headerSubtitleEl.textContent = schoolData.subtitle || 'CampusConnect';
-// Dynamic document title per school
-document.title = schoolData?.name
-  ? `Sections – ${schoolData.name}`
-  : 'Sections – CampusConnect';
-// Persist current context for downstream pages
-try {
-  localStorage.setItem('sp_context', JSON.stringify({
-    schoolId,
-    year,
-    className: className ? decodeURIComponent(className) : ''
-  }));
-} catch (e) {}
-
+    const mainArea = document.getElementById("main-area");
+    const popupBg = document.getElementById('popup-bg');
+    const popupContent = document.getElementById('popup-content');
+    const fab = document.getElementById('fab');
+    const year = getQueryParam('year');
+    const className = getQueryParam('className');
     // Set academic year in header
       const headerExam = document.getElementById('header-exam');
       if (year) {
@@ -286,7 +240,7 @@ try {
         chip.addEventListener('click', function () {
           const sectionName = this.dataset.sectionName;
           // Query Firestore for class and section IDs
-          db.collection('schools').doc(schoolId).collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+          db.collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
             if (!snap.empty) {
               const classDoc = snap.docs[0];
               classDoc.ref.collection('sections').where('name', '==', decodeURIComponent(sectionName)).get().then(secSnap => {
@@ -297,7 +251,7 @@ try {
                   localStorage.setItem('sp_selectedClassName', decodeURIComponent(className));
                   localStorage.setItem('sp_selectedSectionId', sectionDoc.id);
                   localStorage.setItem('sp_selectedSectionName', decodeURIComponent(sectionName));
-                  window.location.href = `students.html?schoolId=${encodeURIComponent(schoolId)}&year=${encodeURIComponent(year)}&className=${encodeURIComponent(className)}&sectionName=${sectionName}`;
+                  window.location.href = `students.html?year=${encodeURIComponent(year)}&className=${encodeURIComponent(className)}&sectionName=${sectionName}`;
                 } else {
                   alert('Section not found!');
                 }
@@ -310,63 +264,45 @@ try {
       });
     }
 
-   
+    // Disable FAB by default
+    fab.disabled = true;
+    fab.style.opacity = 0.5;
+    fab.onclick = null;
+
     function loadSections() {
       if (!year || !className) {
-  mainArea.innerHTML = "<div style='color:red;'>Invalid URL: year or className missing.</div>";
-  return;
-}
-      console.log("Querying:", "/schools/" + schoolId + "/years/" + year + "/classes/", "Looking for name =", decodeURIComponent(className));
-const label = (className ? decodeURIComponent(className) : '').trim();
-const slug = label.toLowerCase().replace(/\s+/g,'-');
-
-const schoolClasses = db.collection('schools').doc(schoolId).collection('years').doc(year).collection('classes');
-const legacyClasses = db.collection('years').doc(year).collection('classes');
-
-(async () => {
-  try {
-    // 1) Try school path by slug, then by name
-    let doc = await schoolClasses.doc(slug).get();
-    if (!doc.exists) {
-      const byName = await schoolClasses.where('name', '==', label).limit(1).get();
-      if (!byName.empty) doc = byName.docs[0];
-    }
-
-    // 2) Fallback to legacy path; if found, copy to school path
-    if (!doc.exists) {
-      let legacyDoc = await legacyClasses.doc(slug).get();
-      if (!legacyDoc.exists) {
-        const legacyByName = await legacyClasses.where('name','==',label).limit(1).get();
-        if (!legacyByName.empty) legacyDoc = legacyByName.docs[0];
+        mainArea.innerHTML = "<div style='color:red;'>Invalid URL: year or className missing.</div>";
+        fab.disabled = true;
+        fab.style.opacity = 0.5;
+        fab.onclick = null;
+        return;
       }
-      if (legacyDoc && legacyDoc.exists) {
-        const data = legacyDoc.data() || {};
-        await schoolClasses.doc(slug).set(
-          { name: data.name || label, order: (data.order ?? -1) },
-          { merge: true }
-        );
-        doc = await schoolClasses.doc(slug).get();
-      }
-    }
-
-    if (!doc || !doc.exists) {
-      classDocRef = null;
-      renderSectionList([]);
-      console.log("No class found for year and name!");
-      return;
-    }
-
-    classDocRef = doc.ref;
-    console.log("Class found! doc.id:", doc.id, "data:", doc.data());
-
-    const secSnap = await classDocRef.collection('sections').orderBy('name').get();
-    const sections = [];
-    secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
-    renderSectionList(sections);
-  } catch (err) {
-    console.error("Firestore error:", err);
-  }
-})();
+      console.log("Querying:", "/years/" + year + "/classes/", "Looking for name =", decodeURIComponent(className));
+      db.collection('years').doc(year).collection('classes').where('name', '==', decodeURIComponent(className)).get().then(snap => {
+        console.log("Query result size:", snap.size);
+        if (snap.empty) {
+          classDocRef = null;
+          renderSectionList([]);
+          fab.disabled = true;
+          fab.style.opacity = 0.5;
+          fab.onclick = null;
+          console.log("No class found for year and name!");
+          return;
+        }
+        const classDoc = snap.docs[0];
+        classDocRef = classDoc.ref;
+        console.log("Class found! doc.id:", classDoc.id, "data:", classDoc.data());
+        fab.disabled = false;
+        fab.style.opacity = 1;
+        fab.onclick = showAddSectionPopup;
+        classDoc.ref.collection('sections').orderBy('name').get().then(secSnap => {
+          let sections = [];
+          secSnap.forEach(sec => sections.push({ id: sec.id, ...sec.data() }));
+          renderSectionList(sections);
+        });
+      }).catch(err => {
+        console.error("Firestore error:", err);
+      });
     }
     loadSections();
 
@@ -418,39 +354,5 @@ const legacyClasses = db.collection('years').doc(year).collection('classes');
       });
     }
   </script>
-  <style>
-  #cc-alert { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background:#0006; z-index:3000; }
-  #cc-alert .box { width:92vw; max-width:360px; background:#fff; border-radius:14px; box-shadow:0 10px 28px #0f3d6b22; padding:16px; }
-  #cc-alert .title { font-weight:800; color:#0f3d6b; font-size:1.05em; margin-bottom:8px; }
-  #cc-alert .msg { color:#223; margin-bottom:12px; white-space:pre-wrap; }
-  #cc-alert .ok  { width:100%; padding:10px; border:none; border-radius:8px; background:#1762a7; color:#fff; font-weight:700; cursor:pointer; }
-</style>
-
-<div id="cc-alert" role="dialog" aria-modal="true" aria-labelledby="cc-alert-title">
-  <div class="box">
-    <div id="cc-alert-title" class="title">CampusConnect</div>
-    <div id="cc-alert-msg" class="msg"></div>
-    <button class="ok" onclick="document.getElementById('cc-alert').style.display='none'">OK</button>
-  </div>
-</div>
-<script>
-  function ccAlert(message, title = 'CampusConnect') {
-    document.getElementById('cc-alert-title').textContent = title;
-    document.getElementById('cc-alert-msg').textContent = String(message ?? '');
-    document.getElementById('cc-alert').style.display = 'flex';
-  }
-  // Override native alert so all existing alert(...) calls show our branded modal
-  window.alert = (msg) => ccAlert(msg, 'CampusConnect');
-</script>
-
 </body>
 </html>
-
-
-
-
-
-
-
-
-
