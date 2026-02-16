@@ -352,9 +352,18 @@
     
     
     // ====== MULTI-SCHOOL BOOTSTRAP ======
-  let schoolData = {};
+ let schoolData = {};
 try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch(e) {}
-const schoolId = schoolData.schoolId || localStorage.getItem('schoolId') || '';
+
+const schoolId =
+  (schoolData && (schoolData.schoolId || schoolData.id || schoolData.docId)) ||
+  localStorage.getItem('schoolId') ||
+  (schoolData && schoolData.name) ||
+  '';
+
+// TEMP DEBUG (remove later)
+console.log('YEAR-PLAN DEBUG => schoolId:', schoolId, 'schoolData:', schoolData);
+
 
     // If user opened this page without selecting a school
     if (!schoolData || !schoolId) {
@@ -1430,6 +1439,7 @@ if (Array.isArray(d.attachments) && d.attachments.length) {
 
 </body>
 </html>
+
 
 
 
