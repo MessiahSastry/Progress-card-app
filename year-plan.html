@@ -352,8 +352,9 @@
     
     
     // ====== MULTI-SCHOOL BOOTSTRAP ======
-    const schoolData = JSON.parse(localStorage.getItem('schoolData') || 'null');
-    const schoolId = schoolData?.schoolId || '';
+  let schoolData = {};
+try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch(e) {}
+const schoolId = schoolData.schoolId || localStorage.getItem('schoolId') || '';
 
     // If user opened this page without selecting a school
     if (!schoolData || !schoolId) {
@@ -471,8 +472,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Do nothing: If Firestore fails, years will be an empty array
       }
 
+           // Pick last selected year (auto) if available, else latest year
+      const preferredYearRaw = (localStorage.getItem('sp_selectedYear') || '').trim();
+      const preferredYear = (preferredYearRaw && years.includes(preferredYearRaw)) ? preferredYearRaw : (years.length > 0 ? years[0] : "");
+
       // --- YEAR PLAN SECTION ---
-      setupDropdown('year-dropdown', years, years.length > 0 ? years[0] : "");
+      setupDropdown('year-dropdown', years, preferredYear, (v)=>localStorage.setItem('sp_selectedYear', v));
       setupDropdown('class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0], onYearPlanClassChange);
       setupDropdown('exam-dropdown', aiGeneratorConfig.exams, aiGeneratorConfig.exams[0]);
       // subject
@@ -483,12 +488,12 @@ document.addEventListener('DOMContentLoaded', function() {
       onYearPlanClassChange(aiGeneratorConfig.classes[0]);
 
            // --- PDF DOWNLOAD SECTION ---
-      setupDropdown('pdf-year-dropdown', years, years.length > 0 ? years[0] : "");
+            setupDropdown('pdf-year-dropdown', years, preferredYear, (v)=>localStorage.setItem('sp_selectedYear', v));
       setupDropdown('pdf-class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0]);
       setupDropdown('pdf-exam-dropdown', aiGeneratorConfig.exams, aiGeneratorConfig.exams[0]);
 
       // --- HOMEWORK ENTRY ---
-      setupDropdown('hw-year-dropdown', years, years.length > 0 ? years[0] : "");
+            setupDropdown('hw-year-dropdown', years, preferredYear, (v)=>localStorage.setItem('sp_selectedYear', v));
       setupDropdown('hw-class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0], onHWClassChange);
       function onHWClassChange(selClass) {
         const subjects = aiGeneratorConfig.subjectMappings[selClass];
@@ -501,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
       setupDropdown('hwdl-campus-dropdown', CAMPUSES, CAMPUSES[0]);
 
       // --- HOMEWORK DOWNLOAD ---
-      setupDropdown('hwdl-year-dropdown', years, years.length > 0 ? years[0] : "");
+            setupDropdown('hwdl-year-dropdown', years, preferredYear, (v)=>localStorage.setItem('sp_selectedYear', v));
       setupDropdown('hwdl-class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0]);
 
      } 
@@ -1403,5 +1408,6 @@ if (Array.isArray(d.attachments) && d.attachments.length) {
 
 </body>
 </html>
+
 
 
