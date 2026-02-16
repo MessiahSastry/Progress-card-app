@@ -5,7 +5,15 @@
   <title>Year Plan & Syllabus PDF | St. Patrick's School</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <style>
+  <!-- Indic fonts for Telugu/Hindi in PDF -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&family=Noto+Sans+Telugu:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- html2pdf for proper Indic rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+    *, *::before, *::after { box-sizing: border-box; }
     body {
       margin: 0; padding: 0;
       background: #f4f8fc;
@@ -111,7 +119,7 @@
     .dropdown-options div[data-value].selected {
       background: #e0eaff;
     }
-    textarea {
+    textarea { box-sizing: border-box;
       width: 100%;
       min-height: 68px;
       font-size: 1.04em;
@@ -162,9 +170,9 @@
   </style>
 </head>
 <body>
-  <div class="header-bar">Year Plan Entry</div>
+  <div class="header-bar">Homework &amp; Exam Syllabus</div>
   <div class="section-container">
-    <h2><i class="fa-solid fa-calendar"></i> Year Plan Entry</h2>
+    <h2><i class="fa-solid fa-calendar"></i> Exam Syllabus Entry</h2>
     <!-- Academic Year -->
     <label>Academic Year</label>
     <div id="year-dropdown" class="custom-dropdown">
@@ -186,19 +194,126 @@
       <div class="selected-option">Formative Assessment 1</div>
       <div class="dropdown-options"></div>
     </div>
-    <!-- Subject -->
     <label>Subject</label>
-    <div id="subject-dropdown" class="custom-dropdown">
-      <input type="hidden" id="subject-value" value="">
-      <div class="selected-option">Select Subject</div>
-      <div class="dropdown-options"></div>
-    </div>
-    <!-- Syllabus / Portions -->
+      <div id="subject-dropdown" class="custom-dropdown">
+        <input type="hidden" id="subject-value" value="">
+        <div class="selected-option">Select Subject</div>
+        <div class="dropdown-options"></div>
+      </div>
+     <!-- Syllabus / Portions -->
     <label>Syllabus/Portions for Exam</label>
     <textarea id="syllabus" placeholder="ENTER SYLLABUS OR PORTIONS FOR THIS EXAM..." style="text-transform:uppercase"></textarea>
     <button class="main-btn" id="save-btn"><i class="fa-solid fa-floppy-disk"></i>Save Year Plan</button>
   </div>
+   <!-- ⬇⬇⬇ HOMEWORK ENTRY ⬇⬇⬇ -->
+  <div class="section-container">
+    <h2><i class="fa-solid fa-calendar"></i> Homework Entry</h2>
+
+    <label>Academic Year</label>
+    <div id="hw-year-dropdown" class="custom-dropdown">
+      <input type="hidden" id="hw-year-value" value="">
+      <div class="selected-option">Loading...</div>
+      <div class="dropdown-options"></div>
+    </div>
+
+        <label>Class</label>
+    <div id="hw-class-dropdown" class="custom-dropdown">
+      <input type="hidden" id="hw-class-value" value="3rd Class">
+      <div class="selected-option"></div>
+      <div class="dropdown-options"></div>
+    </div>
+
+    <!-- NEW: Campus -->
+    <label>Campus</label>
+    <div id="hw-campus-dropdown" class="custom-dropdown">
+      <input type="hidden" id="hw-campus-value" value="Main Campus">
+      <div class="selected-option">Main Campus</div>
+      <div class="dropdown-options"></div>
+    </div>
+
+    <label>Subject</label>
+    <div id="hw-subject-dropdown" class="custom-dropdown">
+      <input type="hidden" id="hw-subject-value" value="">
+      <div class="selected-option">Select Subject</div>
+      <div class="dropdown-options"></div>
+    </div>
+
+    <label>Homework Date</label>
+    <input id="hw-date" type="date" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #bcd6ef;border-radius:8px;background:#f7fafd;color:#12416c;font-size:1.04em;margin-bottom:16px;">
+
+    <label>Homework</label>
+<textarea id="hw-text" placeholder="TYPE HOMEWORK HERE... (supports English/Telugu/Hindi)"></textarea>
+
+<!-- NEW: optional worksheet attachment (PDF only) -->
+<label>Attach Worksheets (PDFs)</label>
+
+<!-- List of file rows -->
+<div id="hw-files-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+
+<!-- Hidden template for a single row -->
+<template id="hw-file-row-tpl">
+  <div class="hw-file-row" style="display:grid;grid-template-columns:1fr 36px;align-items:center;gap:8px;">
+    <input type="file" accept="application/pdf"
+      style="width:100%;min-width:0;padding:10px 13px;border:1.5px solid #bcd6ef;border-radius:8px;background:#f7fafd;color:#12416c;font-size:1.04em;margin-bottom:0;">
+    <button type="button" class="hw-row-remove" title="Remove" aria-label="Remove"
+      style="align-items:center;justify-content:center;width:36px;height:36px;border:1.5px solid #bcd6ef;border-radius:8px;background:#fff;color:#b3261e;font-weight:700;cursor:pointer;display:none;justify-self:end;">✕</button>
+  </div>
+  <div class="hw-row-msg" style="font-size:.92em;color:#b3261e;margin:-4px 0 0 2px;display:none;"></div>
+</template>
+
+<!-- Add another file -->
+<button type="button" id="hw-file-add"
+  style="margin:6px 0 14px 0;padding:8px 12px;border:1px solid #bcd6ef;border-radius:8px;background:#fff;color:#0f3d6b;font-weight:600;cursor:pointer;">
+  + Add another file
+</button>
+
+<!-- Existing attachments list -->
+<div id="hw-existing-attachment" style="display:none;margin:-6px 0 16px 2px;font-size:.95em;color:#19599e;">
+  <div style="margin-bottom:6px;">Existing worksheets:</div>
+  <div id="hw-existing-list" style="display:flex;flex-direction:column;gap:6px;overflow-wrap:anywhere;word-break:break-word;"></div>
+</div>
+    <button class="main-btn" id="hw-save-btn"><i class="fa-solid fa-floppy-disk"></i> Save Homework</button>
+  </div>
+  <!-- ⬆⬆⬆ HOMEWORK ENTRY ⬆⬆⬆ -->
+
   <hr>
+
+  <!-- ⬇⬇⬇ HOMEWORK PDF DOWNLOAD ⬇⬇⬇ -->
+  <div class="section-container">
+    <h2><i class="fa-solid fa-download"></i> Download Homework PDF</h2>
+
+    <label>Academic Year</label>
+    <div id="hwdl-year-dropdown" class="custom-dropdown">
+      <input type="hidden" id="hwdl-year-value" value="">
+      <div class="selected-option">Loading...</div>
+      <div class="dropdown-options"></div>
+    </div>
+
+      <label>Class</label>
+    <div id="hwdl-class-dropdown" class="custom-dropdown">
+      <input type="hidden" id="hwdl-class-value" value="3rd Class">
+      <div class="selected-option">3rd Class</div>
+      <div class="dropdown-options"></div>
+    </div>
+
+    <!-- NEW: Campus -->
+    <label>Campus</label>
+    <div id="hwdl-campus-dropdown" class="custom-dropdown">
+      <input type="hidden" id="hwdl-campus-value" value="Main Campus">
+      <div class="selected-option">Main Campus</div>
+      <div class="dropdown-options"></div>
+    </div>
+
+    <label>Homework Date</label>
+    <input id="hwdl-date" type="date" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #bcd6ef;border-radius:8px;background:#f7fafd;color:#12416c;font-size:1.04em;margin-bottom:16px;">
+
+    <button class="main-btn green" id="hw-download-btn">
+      <i class="fa-solid fa-file-pdf"></i> Download Homework PDF
+    </button>
+  </div>
+  <!-- ⬆⬆⬆ HOMEWORK PDF DOWNLOAD ⬆⬆⬆ -->
+
+<hr>
   <div class="section-container">
     <h2><i class="fa-solid fa-download"></i> Download Exam Syllabus PDF</h2>
     <!-- Academic Year -->
@@ -223,34 +338,55 @@
       <div class="dropdown-options"></div>
     </div>
     <!-- Subject -->
-    <label>Subject</label>
-    <div id="pdf-subject-dropdown" class="custom-dropdown">
-      <input type="hidden" id="pdf-subject-value" value="">
-      <div class="selected-option">Select Subject</div>
-      <div class="dropdown-options"></div>
-    </div>
-    <button class="main-btn green" id="download-btn">
+     <button class="main-btn green" id="download-btn">
       <i class="fa-solid fa-file-pdf"></i> Download Exam Syllabus PDF
     </button>
   </div>
-
   <!-- Firebase (v9 compat) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
+    
+   <script>
+    
+    // ====== MULTI-SCHOOL BOOTSTRAP ======
+    const schoolData = JSON.parse(localStorage.getItem('schoolData') || 'null');
+    const schoolId = schoolData?.id || localStorage.getItem('schoolId') || '';
+
+    // If user opened this page without selecting a school
+    if (!schoolData || !schoolId) {
+      alert('No school selected. Please go back and select a school.');
+      // optional: redirect if you have a school select page
+      // window.location.href = 'index.html';
+    }
+
+    // Dynamic page title + header
+    document.title = `Year Plan & Syllabus PDF | ${(schoolData?.name || 'School')}`;
+    document.addEventListener('DOMContentLoaded', () => {
+      const hb = document.querySelector('.header-bar');
+      if (hb) hb.textContent = schoolData?.name ? `${schoolData.name} - Homework & Exam Syllabus` : 'Homework & Exam Syllabus';
+    });
+
     // ====== Your Data Mapping ======
     const aiGeneratorConfig = {
       classes: [
-        "3rd Class", "4th Class", "5th Class", "6th Class", "7th Class", "8th Class", "9th Class", "10th Class"
+        "3rd Class", "4th Class", "5th Class", "6th Class", "6th IIT & NEET", "7th Class", "7th IIT & NEET", "8th Class", "8th IIT & NEET", "9th Class", "9th IIT & NEET", "10th Class"
       ],
       subjectMappings: {
         "3rd Class": ["Telugu", "Hindi", "English", "Math", "Science", "Social"],
         "4th Class": ["Telugu", "Hindi", "English", "Math", "Science", "Social"],
         "5th Class": ["Telugu", "Hindi", "English", "Math", "Science", "Social"],
-        "6th Class": ["Telugu", "Hindi", "English 1", "English 2", "Math 1", "Math 1 IIT", "Math 2", "Math 2 IIT", "Physics", "Physics IIT & NEET", "Chemistry", "Chemistry IIT & NEET", "Biology", "Biology NEET", "Social"],
-        "7th Class": ["Telugu", "Hindi", "English 1", "English 2", "Math 1", "Math 1 IIT", "Math 2", "Math 2 IIT", "Physics", "Physics IIT & NEET", "Chemistry", "Chemistry IIT & NEET", "Biology", "Biology NEET", "Social"],
-        "8th Class": ["Telugu", "Hindi", "English 1", "English 2", "Math 1", "Math 1 IIT", "Math 2", "Math 2 IIT", "Physics", "Physics IIT & NEET", "Chemistry", "Chemistry IIT & NEET", "Biology", "Biology NEET", "Social"],
-        "9th Class": ["Telugu", "Hindi", "English 1", "English 2", "Math 1", "Math 1 IIT", "Math 2", "Math 2 IIT", "Physics", "Physics IIT & NEET", "Chemistry", "Chemistry IIT & NEET", "Biology", "Biology NEET", "Social"],
+        "6th Class": ["Telugu", "Hindi", "English 1", "English 2", "Math 1", "Math 2", "Physics", "Chemistry", "Biology", "Social"],
+        "6th IIT & NEET": ["Telugu", "Hindi", "English 1", "English 2", "Math 1 IIT", "Math 2 IIT", "Physics IIT & NEET", "Chemistry IIT & NEET", "Biology NEET", "Social"],
+        "7th Class": ["Telugu", "Hindi", "English 1", "English 2", "Math 1", "Math 2", "Physics", "Chemistry", "Biology", "Social"],
+        "7th IIT & NEET": ["Telugu", "Hindi", "English 1", "English 2", "Math 1 IIT", "Math 2 IIT", "Physics IIT & NEET", "Chemistry IIT & NEET", "Biology NEET", "Social"],
+        "8th Class": ["Telugu", "Hindi", "English 1", "English 2", "Math 1", "Math 2", "Physics", "Chemistry", "Biology", "Social"],
+        "8th IIT & NEET": ["Telugu", "Hindi", "English 1", "English 2", "Math 1 IIT", "Math 2 IIT", "Physics IIT & NEET", "Chemistry IIT & NEET", "Biology NEET", "Social"],
+        "9th Class": ["Telugu", "Hindi", "English 1", "English 2", "Math 1", "Math 2", "Physics", "Chemistry", "Biology", "Social"],
+        "9th IIT & NEET": ["Telugu", "Hindi", "English 1", "English 2", "Math 1 IIT", "Math 2 IIT", "Physics IIT & NEET", "Chemistry IIT & NEET", "Biology NEET", "Social"],
         "10th Class": ["Telugu", "Hindi", "English 1", "English 2", "Math 1", "Math 1 IIT", "Math 2", "Math 2 IIT", "Physics", "Physics IIT & NEET", "Chemistry", "Chemistry IIT & NEET", "Biology", "Biology NEET", "Social"]
       },
       exams: [
@@ -258,19 +394,27 @@
       ]
     };
 
-    // ====== Firebase Config ======
+     // ⬇ NEW: campuses
+    const CAMPUSES = (schoolData && Array.isArray(schoolData.campuses)) ? schoolData.campuses : [];
+
+   // ====== Firebase Config ======
     const firebaseConfig = {
-      apiKey: "AIzaSyAszVhWXUUOYLQ7VimKmPKf1yEu_CI9RCE",
-      authDomain: "stpatricks-questionbank.firebaseapp.com",
-      projectId: "stpatricks-questionbank",
-      storageBucket: "stpatricks-questionbank.appspot.com",
-      messagingSenderId: "917615322861",
-      appId: "1:917615322861:web:c6c890aa2184dd395b8ee4"
+      apiKey: "AIzaSyBXCXAB2n2qqF6lIxpX5XYnqBWHClYik14",
+      authDomain: "stpatricksprogresscard.firebaseapp.com",
+      projectId: "stpatricksprogresscard",
+      storageBucket: "stpatricksprogresscard.appspot.com",
+      messagingSenderId: "671416933178",
+      appId: "1:671416933178:web:4921d57abc6eb11bd2ce03"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    firebase.auth().onAuthStateChanged(function(user) {
+  });
+    // Track current Homework doc & attachments
+let currentHWDocId = null;
+let currentAttachments = []; // [{url,name}]
 
-    // ====== Helper: Setup Custom Dropdown ======
+// ====== Helper: Setup Custom Dropdown ======
     function setupDropdown(containerId, options, initialValue, onChange) {
       const dropdown = document.getElementById(containerId);
       const selected = dropdown.querySelector('.selected-option');
@@ -295,11 +439,10 @@
       };
       optionsBox.querySelectorAll('div[data-value]').forEach(optDiv => {
         optDiv.onclick = () => {
-          input.value = optDiv.getAttribute('data-value');
+         input.value = optDiv.getAttribute('data-value');
           selected.innerText = optDiv.innerText;
-          optionsBox.querySelectorAll('div[data-value]').forEach(div=>div.classList.remove('selected'));
-          optDiv.classList.add('selected');
-          dropdown.classList.remove('open');
+          dropdown.classList.remove('open'); 
+          input.dispatchEvent(new Event('change')); // <-- ADD THIS LINE
           if (onChange) onChange(optDiv.getAttribute('data-value'));
         };
       });
@@ -311,26 +454,26 @@
       });
     });
 
-    // ====== Syllabus Textarea to UPPERCASE ======
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('syllabus').addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-      });
-    });
-
+   // Attach fetchAndShowExistingSyllabus to all dropdowns after DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  ['year-value', 'class-value', 'exam-value', 'subject-value'].forEach(id => {
+    document.getElementById(id).addEventListener('change', fetchAndShowExistingSyllabus);
+  });
+  fetchAndShowExistingSyllabus();
+});
     // ====== Init Page (after Firestore loads) ======
     async function initPage() {
       // Load academic years from Firestore
       let years = [];
       try {
-        const snap = await db.collection('academic_years').orderBy('name', 'desc').get();
+        const snap = await db.collection('schools').doc(schoolId).collection('years').orderBy('name', 'desc').get();
         years = snap.docs.map(doc => doc.data().name);
       } catch (e) {
-        years = ["2025-26", "2024-25", "2023-24"]; // fallback
+        // Do nothing: If Firestore fails, years will be an empty array
       }
 
       // --- YEAR PLAN SECTION ---
-      setupDropdown('year-dropdown', years, years[0]);
+      setupDropdown('year-dropdown', years, years.length > 0 ? years[0] : "");
       setupDropdown('class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0], onYearPlanClassChange);
       setupDropdown('exam-dropdown', aiGeneratorConfig.exams, aiGeneratorConfig.exams[0]);
       // subject
@@ -340,22 +483,924 @@
       }
       onYearPlanClassChange(aiGeneratorConfig.classes[0]);
 
-      // --- PDF DOWNLOAD SECTION ---
-      setupDropdown('pdf-year-dropdown', years, years[0]);
-      setupDropdown('pdf-class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0], onPdfClassChange);
+           // --- PDF DOWNLOAD SECTION ---
+      setupDropdown('pdf-year-dropdown', years, years.length > 0 ? years[0] : "");
+      setupDropdown('pdf-class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0]);
       setupDropdown('pdf-exam-dropdown', aiGeneratorConfig.exams, aiGeneratorConfig.exams[0]);
-      // subject
-      function onPdfClassChange(selClass) {
-        const subjects = aiGeneratorConfig.subjectMappings[selClass];
-        setupDropdown('pdf-subject-dropdown', subjects, subjects[0]);
-      }
-      onPdfClassChange(aiGeneratorConfig.classes[0]);
-    }
 
-    // ====== DOMContentLoaded Startup ======
+      // --- HOMEWORK ENTRY ---
+      setupDropdown('hw-year-dropdown', years, years.length > 0 ? years[0] : "");
+      setupDropdown('hw-class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0], onHWClassChange);
+      function onHWClassChange(selClass) {
+        const subjects = aiGeneratorConfig.subjectMappings[selClass];
+        setupDropdown('hw-subject-dropdown', subjects, subjects[0]);
+      }
+            onHWClassChange(aiGeneratorConfig.classes[0]);
+
+      // NEW: campus dropdowns
+      setupDropdown('hw-campus-dropdown',   CAMPUSES, CAMPUSES[0]);
+      setupDropdown('hwdl-campus-dropdown', CAMPUSES, CAMPUSES[0]);
+
+      // --- HOMEWORK DOWNLOAD ---
+      setupDropdown('hwdl-year-dropdown', years, years.length > 0 ? years[0] : "");
+      setupDropdown('hwdl-class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0]);
+
+     } 
+      // ====== DOMContentLoaded Startup ======
     document.addEventListener('DOMContentLoaded', function() {
       initPage();
     });
+    // ====== Save Year Plan ======
+  document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('save-btn').onclick = async function () {
+    // STEP 1: Check if user is logged in
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      alert("You are not logged in. Please sign in first.");
+      return;
+    }
+   
+    const year = document.getElementById('year-value').value.trim();
+    const className = document.getElementById('class-value').value.trim();
+    const examName = document.getElementById('exam-value').value.trim();
+    const subject = document.getElementById('subject-value').value.trim();
+    const syllabus = document.getElementById('syllabus').value.toUpperCase().trim();
+
+    if (!year || !className || !examName || !subject || !syllabus) {
+      alert("Please fill all fields before saving.");
+      return;
+    }
+
+    // Save to Firestore
+    // Save to Firestore (Update if exists, else Add new)
+try {
+  const snap = await db.collection("schools").doc(schoolId).collection("year_plan")
+    .where("year", "==", year)
+    .where("class", "==", className)
+    .where("exam", "==", examName)
+    .where("subject", "==", subject)
+    .limit(1).get();
+
+  if (!snap.empty) {
+    // Update existing document
+    await db.collection("schools").doc(schoolId).collection("year_plan").doc(snap.docs[0].id).update({
+      syllabus,
+      updated: new Date()
+    });
+  } else {
+    // Add new document
+    await db.collection("schools").doc(schoolId).collection("year_plan").add({
+      year, class: className, exam: examName, subject, syllabus,
+      created: new Date()
+    });
+  }
+  // Show success message
+  showSavedMessage("Saved!");
+document.getElementById('syllabus').value = "";
+// You can also trigger a reload or re-initialize dropdowns if needed.
+} catch (e) {
+  console.error(e);
+  alert("Error saving. Try again.");
+}
+};
+  });
+    document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('download-btn').onclick = async function () {
+    showPdfSpinner();
+  const year = document.getElementById('pdf-year-value').value.trim();
+const className = document.getElementById('pdf-class-value').value.trim();
+const exam = document.getElementById('pdf-exam-value').value.trim();
+
+  // Fetch ALL subjects for this class/year/exam
+  const snap = await db.collection('schools').doc(schoolId).collection('year_plan')
+    .where('year', '==', year)
+    .where('class', '==', className)
+    .where('exam', '==', exam)
+    .get();
+
+  if (snap.empty) {
+    alert('No syllabus found for this selection.');
+    return;
+  }
+
+  // Prepare data
+    // Prepare data in fixed order
+  const subjectOrder = [
+    "Telugu",
+    "Hindi",
+    "English",
+    "English 1",
+    "English 2",
+    "Math",
+    "Math 1 IIT",
+    "Math 1",
+    "Math 2 IIT",
+    "Math 2",
+    "Science",
+    "Physics IIT & NEET",
+    "Physics",
+    "Chemistry IIT & NEET",
+    "Chemistry",
+    "Biology NEET",
+    "Biology",
+    "Social"
+  ];
+
+  // Create a map for quick lookup
+  const syllabusMap = {};
+  snap.forEach(doc => {
+    const d = doc.data();
+    syllabusMap[(d.subject || "").trim().toLowerCase()] = d.syllabus || "";
+  });
+
+  // Build ordered data array, only if subject exists for this selection
+  const data = subjectOrder
+    .map(sub => {
+      const key = sub.trim().toLowerCase();
+      if (syllabusMap[key]) {
+        return {subject: sub, syllabus: syllabusMap[key]};
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+   // ======= PDF generation (Indic-aware) =======
+// Use html2pdf when any Telugu/Devanagari text is present
+try {
+    const hasIndic = data.some(d =>
+  /[\u0900-\u097F\u0C00-\u0C7F]/.test((d.syllabus || "")) ||
+  /[\u0900-\u097F\u0C00-\u0C7F]/.test((d.subject || ""))
+);
+
+if (hasIndic) {
+  // Helper defined in next step
+  await renderSyllabusWithHTML2PDF({
+       school: (schoolData?.name || ""),
+    subtitle: (schoolData?.subtitle || ""),
+    className,
+    exam,
+    items: data
+  });
+} else {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let pageWidth = doc.internal.pageSize.getWidth();
+  let y = 18;
+
+  // 1. School
+  doc.setFontSize(18); doc.setFont(undefined, 'bold');
+  doc.text((schoolData?.name || ""), pageWidth / 2, y, { align: 'center' }); y += 9;
+
+  // 2. Subtitle
+  doc.setFontSize(14); doc.setFont(undefined, 'normal');
+  doc.text((schoolData?.subtitle || ""), pageWidth / 2, y, { align: 'center' }); y += 8;
+
+  // 3. Exam
+  doc.setFontSize(13); doc.setFont(undefined, 'bold');
+  doc.text(`${exam}`, pageWidth / 2, y, { align: 'center' }); y += 11;
+
+  // 4. Class line with superscript (same logic as your original)
+  let parts = className.trim().split(" ");
+  let numPart = parts[0].toUpperCase();
+  let supMatch = numPart.match(/^(\d+)(ST|ND|RD|TH)$/i);
+  let rest = parts.slice(1).join(" ");
+
+  if (supMatch) {
+    let mainNum = supMatch[1];
+    let sup = supMatch[2].toLowerCase();
+
+    if (rest) {
+      let beforeWidth = doc.getTextWidth(mainNum);
+      let supWidth = doc.getTextWidth(sup);
+      let restText = " " + rest.toUpperCase() + " - SYLLABUS";
+      let totalWidth = beforeWidth + supWidth + doc.getTextWidth(restText);
+      let startX = pageWidth / 2 - totalWidth / 2;
+
+      doc.setFontSize(13); doc.text(mainNum, startX, y);
+      doc.setFontSize(9);  doc.text(sup, startX + beforeWidth, y - 2.3);
+      doc.setFontSize(13); doc.text(restText, startX + beforeWidth + supWidth, y);
+      y += 11;
+    } else {
+      let afterText = " CLASS - SYLLABUS";
+      let beforeWidth = doc.getTextWidth(mainNum);
+      let supWidth = doc.getTextWidth(sup);
+      let afterWidth = doc.getTextWidth(afterText);
+      let startX = pageWidth / 2 - (beforeWidth + supWidth + afterWidth) / 2;
+
+      doc.setFontSize(13); doc.text(mainNum, startX, y);
+      doc.setFontSize(9);  doc.text(sup, startX + beforeWidth, y - 2.3);
+      doc.setFontSize(13); doc.text(afterText, startX + beforeWidth + supWidth, y);
+      y += 11;
+    }
+  } else {
+    doc.setFontSize(13);
+    doc.text(`${className.replace(/(\d+)\s*(st|nd|rd|th)\b/ig,(m,d,suf)=>d+suf.toLowerCase())} - SYLLABUS`, pageWidth / 2, y, { align: 'center' });
+    y += 11;
+  }
+
+  // 5. Subjects + syllabus
+  data.forEach(d => {
+    doc.setFont(undefined, 'bold'); doc.text(`${d.subject}:`, 10, y); y += 7;
+    doc.setFont(undefined, 'normal');
+    const lines = doc.splitTextToSize(normalizeSyllabus(d.syllabus || ''), 180);
+    doc.text(lines, 16, y);
+    y += lines.length * 7 + 2;
+    if (y > 270) { doc.addPage(); y = 14; }
+  });
+  doc.save(`${className}_${exam}_syllabus.pdf`);
+}
+} finally {
+    hidePdfSpinner();
+  }
+};
+  });
+    // --- Fetch and show existing syllabus for current dropdown values ---
+async function fetchAndShowExistingSyllabus() {
+ const year = document.getElementById('year-value').value.trim();
+const className = document.getElementById('class-value').value.trim();
+const examName = document.getElementById('exam-value').value.trim();
+const subject = document.getElementById('subject-value').value.trim();
+
+  if (!(year && className && examName && subject)) {
+    document.getElementById('syllabus').value = "";
+    return;
+  }
+
+  const snap = await db.collection('schools').doc(schoolId).collection('year_plan')
+    .where('year', '==', year)
+    .where('class', '==', className)
+    .where('exam', '==', examName)
+    .where('subject', '==', subject)
+    .limit(1).get();
+
+  if (!snap.empty) {
+    const data = snap.docs[0].data();
+    document.getElementById('syllabus').value = data.syllabus || "";
+  } else {
+    document.getElementById('syllabus').value = "";
+  }
+}
+    function showSavedMessage(msg) {
+  // Quick toast message
+  let d = document.createElement('div');
+  d.innerText = msg;
+  d.style.position = 'fixed';
+  d.style.bottom = '36px';
+  d.style.left = '50%';
+  d.style.transform = 'translateX(-50%)';
+  d.style.background = '#16aa47';
+  d.style.color = '#fff';
+  d.style.padding = '14px 28px';
+  d.style.fontSize = '1.13em';
+  d.style.borderRadius = '7px';
+  d.style.boxShadow = '0 3px 16px #0f3d6b29';
+  d.style.zIndex = 9999;
+  document.body.appendChild(d);
+  setTimeout(() => { d.remove(); }, 1900);
+}
+      // Safely escape HTML
+function escapeHTML(s) {
+  return (s || '').replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+}
+function sanitizeFileName(name) {
+  // Keep Unicode letters/numbers; replace others with underscores
+  return (name || 'syllabus')
+    .replace(/[\\/:*?"<>|]/g, '_')   // Windows-forbidden chars
+    .replace(/\s+/g, ' ')            // collapse spaces
+    .trim();
+}
+
+// NEW: make each Storage path segment safe (no slashes/control)
+function sanitizePathPart(s) {
+  return String(s || '')
+    .replace(/[^\p{L}\p{N}\s.&()+\-_,]/gu, '_') // keep letters, numbers & common symbols
+    .replace(/[\/\\]+/g, '_')                   // no slashes in path parts
+    .trim();
+}
+    // Remove any leading numbering/bullets, repeatedly.
+// Handles: "1.", "1)", "(1)", "१.", "I.", "(i)", "A)", "-", "•", "—", etc.
+// Also removes chains like "1. 1.) (i) ".
+function stripLeadingEnumerator(line) {
+  let s = String(line || '');
+  const patterns = [
+    /^\s*\(?[\u0966-\u096F\d]+\)?\s*[.)\-–—:]\s*/u,   // 1. / 1) / (1) / १.
+    /^\s*\(?[IVXLCDMivxlcdm]+\)?\s*[.)\-–—:]\s*/u,    // I. / (i)
+    /^\s*\(?[A-Za-z]\)?\s*[.)\-–—:]\s*/u,             // A. / (a)
+    /^\s*[-•*]\s*/u                                   // bullets/dashes
+  ];
+  let prev;
+  do {
+    prev = s;
+    for (const re of patterns) s = s.replace(re, '');
+  } while (s !== prev); // keep stripping until nothing changes
+  return s.trim();
+}
+    // Normalize whitespace: trim lines, collapse multiple spaces,
+// and limit consecutive blank lines to at most one.
+function normalizeSyllabus(txt) {
+  const lines = String(txt || '')
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map(l => l.replace(/\s+/g, ' ').trim());
+
+  const out = [];
+  for (const l of lines) {
+    if (l === '' && out.length && out[out.length - 1] === '') continue; // merge blanks
+    out.push(l);
+  }
+  return out.join('\n').trim();
+}
+
+// NEW: format 'YYYY-MM-DD' -> 'DD/MM/YYYY' (safe if input already blank/other)
+function toDMY(iso) {
+  const s = String(iso || '').trim();
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return s || '';
+  const [, y, mo, d] = m;
+  return `${d}/${mo}/${y}`;
+}
+
+// UPPERCASE but keep ordinal suffixes (st/nd/rd/th) lowercase: 6th, 21st, etc.
+function upperExceptOrdinals(txt) {
+  const up = String(txt || '').toUpperCase();
+  return up.replace(/(\d+)\s*(ST|ND|RD|TH)\b/g, (m, d, suf) => d + suf.toLowerCase());
+}
+
+
+ function showPdfSpinner(){ const el=document.getElementById('pdf-spinner'); if(el) el.style.display='flex'; }
+function hidePdfSpinner(){ const el=document.getElementById('pdf-spinner'); if(el) el.style.display='none'; }  
+
+// Preserves newlines by converting them to <br>.
+function renderMixedText(txt) {
+  const s = String(txt || '');
+  const parts = s.split('\n'); // keep lines
+  const runRegex = /([\u0C00-\u0C7F]+|[\u0900-\u097F]+|[^\\n\u0C00-\u0C7F\u0900-\u097F]+)/g; // Telugu | Devanagari | other
+
+  const renderRun = (run) => {
+    const r = run || '';
+    if (/[\u0C00-\u0C7F]/.test(r)) {
+      return `<span style="font-family:'Noto Sans Telugu','Segoe UI',sans-serif;">${escapeHTML(r)}</span>`;
+    } else if (/[\u0900-\u097F]/.test(r)) {
+      return `<span style="font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;">${escapeHTML(r)}</span>`;
+    }
+    return `<span style="font-family:'Segoe UI',sans-serif;">${escapeHTML(r)}</span>`;
+  };
+
+  const lines = parts.map(line => {
+    const runs = (line.match(runRegex) || []).map(renderRun).join('');
+    return runs;
+  });
+
+  return lines.join('<br>');
+}
+  // Render topics as the user typed them: keep existing numbering/bullets,
+// just indent and apply mixed-script font wrapping per segment.
+function renderMixedList(txt) {
+  const lines = String(txt || '')
+    .split('\n')
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  // Enumerator at start of line:
+  //  (1)  1.  1)  १.  I.  (i)  A)  -  –  —  •  *
+  const enumRe = /^\s*(?:\(?[\u0966-\u096F\d]+\)?\s*[.)\-–—:]+|[IVXLCDMivxlcdm]+\s*[.)\-–—:]+|[A-Za-z]\s*[.)\-–—:]+|[-•*–—]\s+)\s*/u;
+
+  return lines.map(line => {
+    let body = line;
+let prefix = '';
+const m = line.match(enumRe);
+if (m) {
+  const cut = m[0].length;
+  prefix = line.slice(0, cut).trim();
+  body = line.slice(cut);
+}
+const prefixHtml = prefix ? `${escapeHTML(prefix)} ` : '';
+return `<div style="margin:2px 0;">${prefixHtml}${renderMixedText(body)}</div>`;
+  }).join('');
+}
+
+// Use html2pdf for Telugu/Hindi-safe rendering
+async function renderSyllabusWithHTML2PDF({ school, subtitle, className, exam, items }) {
+  // Hidden container for print
+  const wrap = document.createElement('div');
+ wrap.style.position = 'absolute';
+wrap.style.left = '0';
+wrap.style.top = '0';
+wrap.style.width = '794px'; // ~A4, html2pdf scales anyway
+wrap.style.opacity = '0';   // still invisible to the user, but renderable
+wrap.style.pointerEvents = 'none';
+wrap.style.background = '#fff';
+ // Build printable HTML with per-block language-aware font selection
+const itemsHTML = items.map(it => {
+  const text = normalizeSyllabus(it.syllabus || '');
+  const isTelugu = /[\u0C00-\u0C7F]/.test(text);
+  const isDevanagari = /[\u0900-\u097F]/.test(text);
+  const langAttr = isTelugu ? 'te' : (isDevanagari ? 'hi' : 'en');
+  const fontFamily = isTelugu
+    ? "'Noto Sans Telugu','Segoe UI',sans-serif"
+    : (isDevanagari ? "'Noto Sans Devanagari','Segoe UI',sans-serif"
+                    : "'Segoe UI',sans-serif");
+
+  return `
+    <div class="sb" lang="${langAttr}" style="margin:0 0 12px 0; font-family:${fontFamily};">
+      <div style="font-weight:800; text-transform:uppercase; letter-spacing:.4px; margin:0 0 6px 0;">
+  ${escapeHTML(it.subject || '')}
+</div>
+      <div class="sb-line" style="margin-left:22px; white-space: normal; word-break: break-word;">
+  ${renderMixedList(text)}
+  ${ (Array.isArray(it.attachments) && it.attachments.length ? `
+  <div style="margin-top:6px;">
+   <span style="font-weight:700;">Worksheets:</span>
+${ it.attachments.map(a => `
+  <div>
+    <a href="${escapeHTML(a.url)}" target="_blank" rel="noopener" style="text-decoration:underline;">
+      ${escapeHTML(a.name || 'Open PDF')}
+    </a>
+    <span style="margin:0 6px;color:#666;">•</span>
+    <a href="${escapeHTML(a.url)}&download=1" target="_blank" rel="noopener" style="text-decoration:underline;">
+      Download
+    </a>
+  </div>
+`).join('') }
+  </div>` : '') }
+</div>
+    </div>
+  `;
+}).join('');
+
+wrap.innerHTML = `
+  <div id="indic-pdf-root" style="
+    font-family: 'Noto Sans Telugu','Noto Sans Devanagari','Segoe UI', sans-serif;
+    color:#111; background:#fff; padding:10px 20px 16px 20px; line-height:1.45; font-size:14px;">
+    <style>
+    .sb, .sb * { break-inside: avoid; page-break-inside: avoid; }
+    .sb-line { break-inside: avoid; page-break-inside: avoid; }
+    .html2pdf__page-break { height:0; page-break-before: always; }
+  </style>
+    <div style="text-align:center; font-weight:700; font-size:20px; margin-bottom:8px;">
+      ${escapeHTML(school)}
+    </div>
+    <div style="text-align:center; font-size:16px; margin-bottom:6px;">
+      ${escapeHTML(subtitle)}
+    </div>
+    <div style="text-align:center; font-weight:700; font-size:15px; margin-bottom:12px;">
+      ${escapeHTML(exam)}
+    </div>
+    <div style="text-align:center; font-weight:700; font-size:15px; margin-bottom:18px;">
+      ${escapeHTML(className.replace(/(\d+)\s*(st|nd|rd|th)\b/ig,(m,d,suf)=>d+suf.toLowerCase()))}${/home\s*work/i.test(className) ? '' : ' - SYLLABUS'}
+    </div>
+
+    ${itemsHTML}
+  </div>
+`;
+  document.body.appendChild(wrap);
+
+  // Generate and save PDF
+ const dpr = Math.min(2.5, (window.devicePixelRatio || 1));
+const opt = {
+  margin: [4, 10, 10, 10],
+  filename: sanitizeFileName(`${className}_${exam}_syllabus.pdf`),
+  image: { type: 'jpeg', quality: 0.98 },
+  enableLinks: true,
+  html2canvas: {
+    scale: dpr,
+    useCORS: true,
+    letterRendering: true,
+    scrollX: 0,
+    scrollY: 0
+  },
+  pagebreak: { mode: ['css', 'legacy'], avoid: ['.sb', '.sb-line'] },
+  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+};
+
+// Give the browser one full paint cycle to layout the hidden DOM
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  await html2pdf().set(opt).from(wrap.querySelector('#indic-pdf-root')).save();
+  wrap.remove();
+}
+    // ===== HOMEWORK: auto-fill today =====
+document.addEventListener('DOMContentLoaded', function () {
+  const today = new Date().toISOString().slice(0,10);
+  const d1 = document.getElementById('hw-date');   if (d1 && !d1.value) d1.value = today;
+  const d2 = document.getElementById('hwdl-date'); if (d2 && !d2.value) d2.value = today;
+
+  // wire change listeners to auto-load existing homework
+  ['hw-year-value','hw-class-value','hw-campus-value','hw-subject-value'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', fetchAndShowExistingHomework);
+  });
+  if (d1) d1.addEventListener('change', fetchAndShowExistingHomework);
+
+// Dynamic “Add another file” rows
+const hwFilesList = document.getElementById('hw-files-list');
+const hwRowTpl    = document.getElementById('hw-file-row-tpl');
+const hwAddBtn    = document.getElementById('hw-file-add');
+
+function addFileRow() {
+  const node = hwRowTpl.content.cloneNode(true);
+  const row  = node.querySelector('.hw-file-row');
+  const inp  = node.querySelector('input[type=file]');
+  const rm   = node.querySelector('.hw-row-remove');
+  const msg  = node.querySelector('.hw-row-msg');
+
+  // show remove button only if more than 1 row exists
+  const updateRemoveVis = () => {
+    const total = hwFilesList.querySelectorAll('.hw-file-row').length;
+    rm.style.display = total > 1 ? 'inline-flex' : 'none';
+  };
+
+  // validate PDF per row
+  inp.addEventListener('change', () => {
+    msg.style.display = 'none';
+    msg.textContent = '';
+    const f = inp.files?.[0];
+    if (!f) return;
+    const nameOk = /\.pdf$/i.test(f.name || '');
+    const typeOk = (f.type === 'application/pdf') || (f.type === '') || (f.type === 'application/octet-stream');
+    if (!(nameOk || typeOk)) {
+      msg.textContent = 'Only PDF files allowed.';
+      msg.style.display = 'block';
+      inp.value = '';
+    }
+  });
+
+  rm.addEventListener('click', () => {
+    const rows = hwFilesList.querySelectorAll('.hw-file-row');
+    if (rows.length > 1) {
+      row.nextElementSibling?.remove(); // remove msg div
+      row.remove();
+      updateRemoveVis();
+    } else {
+      // last row: just clear
+      inp.value = '';
+      msg.style.display = 'none';
+      msg.textContent = '';
+    }
+  });
+
+  hwFilesList.appendChild(node);
+  updateRemoveVis();
+}
+
+window.addFileRow = addFileRow;
+
+// initialize with one empty row
+window.addFileRow && window.addFileRow();
+
+// add more rows on click
+if (hwAddBtn) hwAddBtn.addEventListener('click', addFileRow);
+
+// initial load after defaults are set
+fetchAndShowExistingHomework();
+});
+
+ // === HOMEWORK: auto-load existing text when selectors change ===
+async function fetchAndShowExistingHomework() {
+  const year      = (document.getElementById('hw-year-value')||{}).value?.trim();
+  const className = (document.getElementById('hw-class-value')||{}).value?.trim();
+  const campus    = (document.getElementById('hw-campus-value')||{}).value?.trim();
+  const subject   = (document.getElementById('hw-subject-value')||{}).value?.trim();
+  const dateStr   = (document.getElementById('hw-date')||{}).value?.trim();
+  const ta        = document.getElementById('hw-text');
+
+  const exWrap = document.getElementById('hw-existing-attachment');
+  const exList = document.getElementById('hw-existing-list');
+
+  currentHWDocId = null;
+  currentAttachments = [];
+
+  if (!ta) return;
+  if (!(year && className && campus && subject && dateStr)) {
+    ta.value = '';
+    if (exWrap) exWrap.style.display = 'none';
+    if (exList) exList.innerHTML = '';
+    return;
+  }
+
+  try {
+    let snap = await db.collection('schools').doc(schoolId).collection('homework')
+      .where('year','==',year)
+      .where('class','==',className)
+      .where('campus','==',campus)
+      .where('subject','==',subject)
+      .where('date','==',dateStr)
+      .limit(1).get();
+
+    if (snap.empty) {
+      snap = await db.collection('schools').doc(schoolId).collection('homework')
+        .where('year','==',year)
+        .where('class','==',className)
+        .where('subject','==',subject)
+        .where('date','==',dateStr)
+        .limit(1).get();
+    }
+
+    if (!snap.empty) {
+      const doc = snap.docs[0];
+      const data = doc.data();
+      ta.value = data.text || '';
+      currentHWDocId = doc.id;
+
+      // prefer array; fallback to legacy single fields
+      let att = Array.isArray(data.attachments) ? data.attachments
+              : ((data.attachmentUrl || data.attachmentName) ? [{url:data.attachmentUrl||'', name:data.attachmentName||'Open PDF'}] : []);
+      currentAttachments = (att || []).filter(a => a && a.url);
+
+      if (exWrap && exList) {
+        if (currentAttachments.length) {
+          exList.innerHTML = currentAttachments.map((a,i)=>`
+            <div style="display:flex;align-items:center;gap:8px;max-width:100%;">
+              <a href="${escapeHTML(a.url)}" target="_blank" rel="noopener"
+                 style="text-decoration:underline;flex:1;min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:break-word;">
+                ${escapeHTML(a.name || 'Open PDF')}
+              </a>
+              <button type="button" class="hw-remove-att" data-index="${i}"
+                style="flex:0 0 auto;padding:4px 8px;border:1px solid #bcd6ef;border-radius:6px;background:#fff;color:#b3261e;font-weight:600;cursor:pointer;">
+                Remove
+              </button>
+            </div>`).join('');
+          exWrap.style.display = '';
+          // bind removes
+          exList.querySelectorAll('.hw-remove-att').forEach(btn=>{
+            btn.addEventListener('click', async ()=>{
+              const idx = Number(btn.getAttribute('data-index'));
+              if (Number.isNaN(idx)) return;
+              if (!currentHWDocId || !currentAttachments[idx]) return;
+              if (!confirm('Remove this worksheet?')) return;
+              const toRemove = currentAttachments[idx];
+              try {
+                try {
+                  const ref = firebase.storage().refFromURL(toRemove.url);
+                  await ref.delete();
+                } catch (err) { console.warn('Blob delete failed (continuing):', err); }
+                const next = currentAttachments.slice(0,idx).concat(currentAttachments.slice(idx+1));
+                await db.collection('homework').doc(currentHWDocId).update({
+                  attachments: next,
+                  // cleanup legacy singles
+                  attachmentUrl: firebase.firestore.FieldValue.delete(),
+                  attachmentName: firebase.firestore.FieldValue.delete(),
+                  attachmentPath: firebase.firestore.FieldValue.delete(),
+                  updated: new Date()
+                });
+                currentAttachments = next;
+                fetchAndShowExistingHomework();
+                showSavedMessage('Worksheet removed.');
+              } catch (e) {
+                console.error(e);
+                alert('Could not remove the worksheet. Try again.');
+              }
+            });
+          });
+        } else {
+          exList.innerHTML = '';
+          exWrap.style.display = 'none';
+        }
+      }
+    } else {
+      ta.value = '';
+      if (exWrap) exWrap.style.display = 'none';
+      if (exList) exList.innerHTML = '';
+    }
+  } catch (e) {
+    console.error(e);
+    ta.value = '';
+    if (exWrap) exWrap.style.display = 'none';
+    if (exList) exList.innerHTML = '';
+  }
+}
+
+// ===== HOMEWORK: save (upsert by year,class,subject,date) =====
+  document.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('hw-save-btn');
+  if (!btn) return;
+  btn.onclick = async function () {
+  let originalHTML = '';
+
+    // always re-enable in finally
+    try {
+      const user = firebase.auth().currentUser;
+      if (!user) { alert("You are not logged in. Please sign in first."); return; }
+
+      const year      = (document.getElementById('hw-year-value')||{}).value?.trim();
+      const className = (document.getElementById('hw-class-value')||{}).value?.trim();
+      const campus    = (document.getElementById('hw-campus-value')||{}).value?.trim();
+      const subject   = (document.getElementById('hw-subject-value')||{}).value?.trim();
+      const dateStr   = (document.getElementById('hw-date')||{}).value?.trim();
+      const text      = (document.getElementById('hw-text')||{}).value?.trim();
+      
+    // disable only after we know user is logged in + show spinner
+originalHTML = btn.innerHTML;
+btn.disabled = true;
+btn.innerHTML = `<span class="fa-solid fa-spinner fa-spin"></span> Saving...`;
+
+      if (!year || !className || !campus || !subject || !dateStr || !text) {
+        alert("Please fill all fields before saving.");
+        return; // re-enabled by finally
+      }
+
+      // optional upload
+    // collect files from ALL visible rows and upload
+let newAttachments = [];
+try {
+  const rows = Array.from(document.querySelectorAll('#hw-files-list .hw-file-row'));
+  for (const r of rows) {
+    const input = r.querySelector('input[type=file]');
+    const f = input?.files?.[0];
+    if (!f) continue;
+
+    const nameOk = /\.pdf$/i.test(f.name || '');
+    const typeOk = (f.type === 'application/pdf') || (f.type === '') || (f.type === 'application/octet-stream');
+    if (!(nameOk || typeOk)) { alert('Only PDF files allowed.'); return; }
+
+    const safeName   = sanitizeFileName(f.name || 'worksheet.pdf');
+    const partYear   = sanitizePathPart(year);
+    const partClass  = sanitizePathPart(className);
+    const partCampus = sanitizePathPart(campus);
+    const partDate   = sanitizePathPart(dateStr);
+    const partSubj   = sanitizePathPart(subject);
+
+    const partSchool = sanitizePathPart(schoolId);
+const path = `schools/${partSchool}/homework/${partYear}/${partClass}/${partCampus}/${partDate}/${partSubj}/${safeName}`;
+    const ref = firebase.storage().ref(path);
+    await ref.put(f, {
+      contentType: 'application/pdf',
+      contentDisposition: `inline; filename="${safeName}"`
+    });
+    const url = await ref.getDownloadURL();
+    newAttachments.push({ url, name: safeName });
+  }
+} catch (e) {
+  console.error(e);
+  alert('Upload failed for one or more files. Others may still be saved.');
+}
+
+     const snap = await db.collection("schools").doc(schoolId).collection("homework")
+        .where("year","==",year)
+        .where("class","==",className)
+        .where("campus","==",campus)
+        .where("subject","==",subject)
+        .where("date","==",dateStr)
+        .limit(1).get();
+      
+      // If a new file is selected AND an old attachment exists, delete the old blob first
+      // merge attachments: existing + newly uploaded
+let mergedAttachments = Array.isArray(currentAttachments) ? currentAttachments.slice() : [];
+if (newAttachments.length) mergedAttachments = mergedAttachments.concat(newAttachments);
+
+const payload = { year, class: className, campus, subject, date: dateStr, text, attachments: mergedAttachments };
+
+      if (!snap.empty) {
+        await db.collection("schools").doc(schoolId).collection("homework").doc(snap.docs[0].id).update({
+          ...payload,
+          // cleanup legacy single fields only during update
+          attachmentUrl: firebase.firestore.FieldValue.delete(),
+          attachmentName: firebase.firestore.FieldValue.delete(),
+          attachmentPath: firebase.firestore.FieldValue.delete(),
+          updated: new Date()
+        });
+      } else {
+        await db.collection("schools").doc(schoolId).collection("homework").add({
+          ...payload,
+          created: new Date()
+        });
+      }
+
+      showSavedMessage("Homework saved!");
+     // reset rows: remove all, leave one empty row
+      const list = document.getElementById('hw-files-list');
+      if (list) list.innerHTML = '';
+      addFileRow();
+      
+      await fetchAndShowExistingHomework();
+    } catch (e) {
+      console.error(e);
+      alert("Error saving. Try again.");
+    } finally {
+  btn.disabled = false;
+  if (originalHTML) btn.innerHTML = originalHTML;
+}
+  };
+});
+
+  // ===== HOMEWORK: download aggregated PDF by class+date =====
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('hw-download-btn');
+    if (!btn) return;
+    btn.onclick = async function () {
+      showPdfSpinner();
+                 const year      = (document.getElementById('hwdl-year-value')||{}).value?.trim();
+      const className = (document.getElementById('hwdl-class-value')||{}).value?.trim();
+      const campus    = (document.getElementById('hwdl-campus-value')||{}).value?.trim();
+      const dateStr   = (document.getElementById('hwdl-date')||{}).value?.trim();
+      const dateDMY   = toDMY(dateStr);
+      if (!year || !className || !campus || !dateStr) { alert('Select year, class, campus and date.'); hidePdfSpinner(); return; }
+
+      try {
+               const snap = await db.collection('schools').doc(schoolId).collection('homework')
+          .where('year','==',year)
+          .where('class','==',className)
+          .where('campus','==',campus)
+          .where('date','==',dateStr)
+          .get();
+        if (snap.empty) { alert('No homework found for this selection.'); hidePdfSpinner(); return; }
+
+        const subjectOrder = [
+          "Telugu","Hindi","English","English 1","English 2","Math","Math 1 IIT","Math 1","Math 2 IIT","Math 2",
+          "Science","Physics IIT & NEET","Physics","Chemistry IIT & NEET","Chemistry","Biology NEET","Biology","Social"
+        ];
+
+        const map = {};
+const attMap = {};
+snap.forEach(d => {
+  const x = d.data();
+  const k = (x.subject||'').trim().toLowerCase();
+  map[k] = x.text || '';
+  const arr = Array.isArray(x.attachments) ? x.attachments
+            : ((x.attachmentUrl || x.attachmentName) ? [{url:x.attachmentUrl||'', name:x.attachmentName||''}] : []);
+  attMap[k] = arr.filter(a => a && a.url);
+});
+
+const items = subjectOrder.map(s => {
+  const k = s.trim().toLowerCase();
+  if (!map[k]) return null;
+  const att = attMap[k] || {};
+ return {
+  subject: s,
+  // ALL CAPS but keep 1st/2nd/3rd/4th… suffix lowercase
+  syllabus: upperExceptOrdinals(map[k] || ''),
+  attachments: att
+};
+}).filter(Boolean);
+
+        const hasIndic = items.some(d =>
+          /[\u0900-\u097F\u0C00-\u0C7F]/.test(d.syllabus||'') || /[\u0900-\u097F\u0C00-\u0C7F]/.test(d.subject||'')
+        );
+
+        if (hasIndic) {
+          await renderSyllabusWithHTML2PDF({
+           school: (schoolData?.name || ""),
+subtitle: (schoolData?.subtitle || ""),
+            className: className + " - HOMEWORK",
+            exam: dateDMY,
+            items
+          });
+        } else {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          let pageWidth = doc.internal.pageSize.getWidth();
+          let y = 18;
+
+          doc.setFontSize(18); doc.setFont(undefined, 'bold');
+          doc.text((schoolData?.name || ""), pageWidth/2, y, {align:'center'}); y+=9;
+
+          doc.setFontSize(14); doc.setFont(undefined, 'normal');
+          doc.text((schoolData?.subtitle || ""), pageWidth/2, y, {align:'center'}); y+=8;
+
+          doc.setFontSize(13); doc.setFont(undefined, 'bold');
+          doc.text(`${dateDMY}`, pageWidth/2, y, {align:'center'}); y+=11;
+
+          doc.setFontSize(13);
+          doc.text(`${className.replace(/(\d+)\s*(st|nd|rd|th)\b/ig,(m,d,suf)=>d+suf.toLowerCase())} - HOMEWORK`, pageWidth/2, y, {align:'center'}); y+=11;
+
+          items.forEach(d => {
+  doc.setFont(undefined, 'bold'); doc.text(`${d.subject}:`, 10, y); y += 7;
+  doc.setFont(undefined, 'normal');
+  const lines = doc.splitTextToSize(normalizeSyllabus(d.syllabus || ''), 180);
+  doc.text(lines, 16, y);
+  y += lines.length * 7 + 2;
+// clickable links for multiple attachments
+if (Array.isArray(d.attachments) && d.attachments.length) {
+  doc.setFont(undefined, 'bold');
+  doc.text('Worksheets:', 16, y); y += 7;
+  for (const a of d.attachments) {
+    const label = `• ${a.name || 'Open PDF'}`;
+    doc.textWithLink(label, 20, y, { url: a.url });
+    y += 7;
+    if (y > 270) { doc.addPage(); y = 14; }
+  }
+  doc.setFont(undefined, 'normal');
+}
+
+  if (y > 270) { doc.addPage(); y = 14; }
+});
+           doc.save(`${className}_${campus}_${dateStr}_homework.pdf`);
+        }
+      } catch(e) {
+        console.error(e); alert('Error generating PDF.');
+      } finally {
+        hidePdfSpinner();
+      }
+    };
+  });
   </script>
+  <div id="pdf-spinner" style="position:fixed; inset:0; background:rgba(15,61,107,.12); backdrop-filter:saturate(120%) blur(1px); display:none; align-items:center; justify-content:center; z-index:99999;">
+  <div style="background:#0f3d6b; color:#fff; padding:14px 18px; border-radius:10px; box-shadow:0 6px 24px #0f3d6b33; display:flex; align-items:center; gap:10px;">
+    <span class="fa-solid fa-spinner fa-spin"></span>
+    <span>Generating PDF…</span>
+  </div>
+</div>
+
 </body>
 </html>
