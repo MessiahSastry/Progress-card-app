@@ -428,9 +428,13 @@ let currentAttachments = []; // [{url,name}]
         if (opt === initialValue) d.classList.add('selected');
         optionsBox.appendChild(d);
       });
-      // Set initial value
-      input.value = initialValue;
-      selected.innerText = initialValue;
+     // Set initial value (safe)
+const safeInit = (initialValue && String(initialValue).trim())
+  ? initialValue
+  : (options && options.length ? options[0] : 'Select');
+
+input.value = (safeInit === 'Select') ? '' : safeInit;
+selected.innerText = safeInit;
       // Click logic
       selected.onclick = e => {
         e.stopPropagation();
@@ -467,7 +471,9 @@ document.addEventListener('DOMContentLoaded', function() {
       let years = [];
       try {
         const snap = await db.collection('schools').doc(schoolId).collection('years').orderBy('name', 'desc').get();
-        years = snap.docs.map(doc => doc.data().name);
+        years = snap.docs
+  .map(doc => (doc.data().name || doc.data().year || doc.id))
+  .filter(Boolean);
       } catch (e) {
         // Do nothing: If Firestore fails, years will be an empty array
       }
@@ -1408,6 +1414,7 @@ if (Array.isArray(d.attachments) && d.attachments.length) {
 
 </body>
 </html>
+
 
 
 
