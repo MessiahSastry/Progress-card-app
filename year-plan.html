@@ -355,11 +355,7 @@
  let schoolData = {};
 try { schoolData = JSON.parse(localStorage.getItem('schoolData') || '{}'); } catch(e) {}
 
-const schoolId =
-  (schoolData && (schoolData.schoolId || schoolData.id || schoolData.docId)) ||
-  localStorage.getItem('schoolId') ||
-  (schoolData && schoolData.name) ||
-  '';
+const schoolId = (schoolData.schoolId || '').trim();
 
 // TEMP DEBUG (remove later)
 console.log('YEAR-PLAN DEBUG => schoolId:', schoolId, 'schoolData:', schoolData);
@@ -1432,6 +1428,7 @@ if (Array.isArray(d.attachments) && d.attachments.length) {
 
 </body>
 </html>
+
 
 
 
