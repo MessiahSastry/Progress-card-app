@@ -223,14 +223,7 @@
       <div class="dropdown-options"></div>
     </div>
 
-    <!-- NEW: Campus -->
-    <label>Campus</label>
-    <div id="hw-campus-dropdown" class="custom-dropdown">
-      <input type="hidden" id="hw-campus-value" value="Main Campus">
-      <div class="selected-option">Main Campus</div>
-      <div class="dropdown-options"></div>
-    </div>
-
+    
     <label>Subject</label>
     <div id="hw-subject-dropdown" class="custom-dropdown">
       <input type="hidden" id="hw-subject-value" value="">
@@ -296,14 +289,7 @@
       <div class="dropdown-options"></div>
     </div>
 
-    <!-- NEW: Campus -->
-    <label>Campus</label>
-    <div id="hwdl-campus-dropdown" class="custom-dropdown">
-      <input type="hidden" id="hwdl-campus-value" value="Main Campus">
-      <div class="selected-option">Main Campus</div>
-      <div class="dropdown-options"></div>
-    </div>
-
+   
     <label>Homework Date</label>
     <input id="hwdl-date" type="date" style="box-sizing:border-box;width:100%;padding:10px 13px;border:1.5px solid #bcd6ef;border-radius:8px;background:#f7fafd;color:#12416c;font-size:1.04em;margin-bottom:16px;">
 
@@ -524,10 +510,7 @@ try {
       }
             onHWClassChange(aiGeneratorConfig.classes[0]);
 
-      // NEW: campus dropdowns
-      setupDropdown('hw-campus-dropdown',   CAMPUSES, CAMPUSES[0]);
-      setupDropdown('hwdl-campus-dropdown', CAMPUSES, CAMPUSES[0]);
-
+      
       // --- HOMEWORK DOWNLOAD ---
             setupDropdown('hwdl-year-dropdown', years, preferredYear, (v)=>localStorage.setItem('sp_selectedYear', v));
       setupDropdown('hwdl-class-dropdown', aiGeneratorConfig.classes, aiGeneratorConfig.classes[0]);
@@ -1011,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const d2 = document.getElementById('hwdl-date'); if (d2 && !d2.value) d2.value = today;
 
   // wire change listeners to auto-load existing homework
-  ['hw-year-value','hw-class-value','hw-campus-value','hw-subject-value'].forEach(id => {
+  ['hw-year-value','hw-class-value','hw-subject-value'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('change', fetchAndShowExistingHomework);
   });
@@ -1084,8 +1067,7 @@ fetchAndShowExistingHomework();
 async function fetchAndShowExistingHomework() {
   const year      = (document.getElementById('hw-year-value')||{}).value?.trim();
   const className = (document.getElementById('hw-class-value')||{}).value?.trim();
-  const campus    = (document.getElementById('hw-campus-value')||{}).value?.trim();
-  const subject   = (document.getElementById('hw-subject-value')||{}).value?.trim();
+    const subject   = (document.getElementById('hw-subject-value')||{}).value?.trim();
   const dateStr   = (document.getElementById('hw-date')||{}).value?.trim();
   const ta        = document.getElementById('hw-text');
 
@@ -1209,8 +1191,7 @@ async function fetchAndShowExistingHomework() {
 
       const year      = (document.getElementById('hw-year-value')||{}).value?.trim();
       const className = (document.getElementById('hw-class-value')||{}).value?.trim();
-      const campus    = (document.getElementById('hw-campus-value')||{}).value?.trim();
-      const subject   = (document.getElementById('hw-subject-value')||{}).value?.trim();
+            const subject   = (document.getElementById('hw-subject-value')||{}).value?.trim();
       const dateStr   = (document.getElementById('hw-date')||{}).value?.trim();
       const text      = (document.getElementById('hw-text')||{}).value?.trim();
       
@@ -1241,12 +1222,11 @@ try {
     const safeName   = sanitizeFileName(f.name || 'worksheet.pdf');
     const partYear   = sanitizePathPart(year);
     const partClass  = sanitizePathPart(className);
-    const partCampus = sanitizePathPart(campus);
-    const partDate   = sanitizePathPart(dateStr);
+      const partDate   = sanitizePathPart(dateStr);
     const partSubj   = sanitizePathPart(subject);
 
     const partSchool = sanitizePathPart(schoolId);
-const path = `schools/${partSchool}/homework/${partYear}/${partClass}/${partCampus}/${partDate}/${partSubj}/${safeName}`;
+     const path = `schools/${partSchool}/homework/${partYear}/${partClass}/${partDate}/${partSubj}/${safeName}`;
     const ref = firebase.storage().ref(path);
     await ref.put(f, {
       contentType: 'application/pdf',
@@ -1273,7 +1253,7 @@ const path = `schools/${partSchool}/homework/${partYear}/${partClass}/${partCamp
 let mergedAttachments = Array.isArray(currentAttachments) ? currentAttachments.slice() : [];
 if (newAttachments.length) mergedAttachments = mergedAttachments.concat(newAttachments);
 
-const payload = { year, class: className, campus, subject, date: dateStr, text, attachments: mergedAttachments };
+const payload = { year, class: className, subject, date: dateStr, text, attachments: mergedAttachments };
 
       if (!snap.empty) {
         await db.collection("schools").doc(schoolId).collection("homework").doc(snap.docs[0].id).update({
@@ -1316,8 +1296,7 @@ const payload = { year, class: className, campus, subject, date: dateStr, text, 
       showPdfSpinner();
                  const year      = (document.getElementById('hwdl-year-value')||{}).value?.trim();
       const className = (document.getElementById('hwdl-class-value')||{}).value?.trim();
-      const campus    = (document.getElementById('hwdl-campus-value')||{}).value?.trim();
-      const dateStr   = (document.getElementById('hwdl-date')||{}).value?.trim();
+           const dateStr   = (document.getElementById('hwdl-date')||{}).value?.trim();
       const dateDMY   = toDMY(dateStr);
       if (!year || !className || !campus || !dateStr) { alert('Select year, class, campus and date.'); hidePdfSpinner(); return; }
 
@@ -1428,6 +1407,7 @@ if (Array.isArray(d.attachments) && d.attachments.length) {
 
 </body>
 </html>
+
 
 
 
