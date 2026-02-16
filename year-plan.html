@@ -487,21 +487,14 @@ document.addEventListener('DOMContentLoaded', function() {
 let years = [];
 try {
   const yearsRef = db.collection('schools').doc(schoolId).collection('years');
-  let snap;
+const snap = await yearsRef.get();
 
-  // Prefer ordering by "name" if it exists, else fallback to plain get()
-  try {
-    snap = await yearsRef.orderBy('name', 'desc').get();
-  } catch (err) {
-    snap = await yearsRef.get();
-  }
+years = snap.docs
+  .map(d => String(d.id || '').trim())
+  .filter(Boolean);
 
-  years = snap.docs
-    .map(d => String((d.data() && d.data().name) ? d.data().name : d.id).trim())
-    .filter(Boolean);
-
-  // Sort like: 2025-26, 2024-25 ...
-  years.sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
+// Sort like: 2025-26, 2024-25 ...
+years.sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
 } catch (e) {
   years = [];
 }
@@ -1439,6 +1432,7 @@ if (Array.isArray(d.attachments) && d.attachments.length) {
 
 </body>
 </html>
+
 
 
 
