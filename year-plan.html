@@ -482,8 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
      // Load academic years from Firestore
 let years = [];
 try {
-  const yearsRef = db.collection('schools').doc(String(schoolId||'').trim()).collection('years');
-  console.log('YEAR-PLAN DEBUG => reading years from:', yearsRef.path);
+  const yearsRef = db.collection('years');
 
   const snap = await yearsRef.get();
   console.log('YEAR-PLAN DEBUG => years snap size:', snap.size);
@@ -1429,6 +1428,7 @@ if (Array.isArray(d.attachments) && d.attachments.length) {
 
 </body>
 </html>
+
 
 
 
