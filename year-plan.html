@@ -482,19 +482,20 @@ document.addEventListener('DOMContentLoaded', function() {
      // Load academic years from Firestore
 let years = [];
 try {
-  const yearsRef = db.collection('schools').doc(schoolId).collection('years');
-const snap = await yearsRef.get();
+  const yearsRef = db.collection('schools').doc(String(schoolId||'').trim()).collection('years');
+  console.log('YEAR-PLAN DEBUG => reading years from:', yearsRef.path);
 
-years = snap.docs
-  .map(d => String(d.id || '').trim())
-  .filter(Boolean);
+  const snap = await yearsRef.get();
+  console.log('YEAR-PLAN DEBUG => years snap size:', snap.size);
 
-// Sort like: 2025-26, 2024-25 ...
-years.sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
+  years = snap.docs.map(d => String(d.id || '').trim()).filter(Boolean);
+  years.sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
+
+  console.log('YEAR-PLAN DEBUG => years list:', years);
 } catch (e) {
+  console.error('YEAR-PLAN ERROR => cannot load years:', e);
   years = [];
 }
-
            // Pick last selected year (auto) if available, else latest year
       const preferredYearRaw = (localStorage.getItem('sp_selectedYear') || '').trim();
       const preferredYear = (preferredYearRaw && years.includes(preferredYearRaw)) ? preferredYearRaw : (years.length > 0 ? years[0] : "");
@@ -1428,6 +1429,7 @@ if (Array.isArray(d.attachments) && d.attachments.length) {
 
 </body>
 </html>
+
 
 
 
