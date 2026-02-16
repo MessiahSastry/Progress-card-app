@@ -353,7 +353,7 @@
     
     // ====== MULTI-SCHOOL BOOTSTRAP ======
     const schoolData = JSON.parse(localStorage.getItem('schoolData') || 'null');
-    const schoolId = schoolData?.id || localStorage.getItem('schoolId') || '';
+    const schoolId = schoolData?.schoolId || '';
 
     // If user opened this page without selecting a school
     if (!schoolData || !schoolId) {
@@ -1403,4 +1403,5 @@ if (Array.isArray(d.attachments) && d.attachments.length) {
 
 </body>
 </html>
+
 
